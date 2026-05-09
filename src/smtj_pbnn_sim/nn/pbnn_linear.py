@@ -8,12 +8,16 @@ ways depending on ``mode``:
   modeling at all. Used to reproduce published PBNN baselines and as a
   sanity check for the device-aware path.
 
-* ``ForwardMode.HARDWARE_AWARE`` -- per-cell write voltages
-  V_ij = V_th_ij + V_T_ij * theta_ij are mapped through the device
-  Sigmoid p_ij = sigmoid((V_ij - V_th_ij) / V_T_ij) -- which simplifies to
-  sigmoid(theta_ij) when V_T_ij is constant, but couples theta to per-cell
-  variation when it is not. The forward then uses CLT-Gaussian sampling of
-  the preactivation. This is the default training mode.
+* ``ForwardMode.HARDWARE_AWARE`` -- write voltages are computed from the
+  *nominal* calibration V_ij = V_th_nom + V_T_nom * theta_ij (the DAC is
+  calibrated once against nominal device parameters), but each cell's
+  switching probability depends on its own physical parameters after D2D
+  variation: p_ij = sigmoid((V_ij - V_th_ij) / V_T_ij). Without variation
+  this simplifies to sigmoid(theta_ij); with variation the per-cell
+  threshold shift and slope change modify the soft probability and its
+  gradient. The forward uses hard binary weights via the STE trick and
+  CLT-Gaussian sampling of the preactivation. This is the default
+  training mode.
 
 * ``ForwardMode.FULL_STACK``    -- explicit T-step Bernoulli sampling
   through the device Sigmoid, returning the empirical mean of the
@@ -60,6 +64,18 @@ class DeviceLayerParams:
     Defaults follow the Chapter 2.3 primary reference: Device A, P->AP,
     t_w = 0.75 ns. ``Delta_nom`` and ``V_c0_nom`` are required only when the
     variation sampler is configured with ``mode = "delta"``.
+
+    Non-ideality parameters
+    -----------------------
+    ``sigma_c2c`` models cycle-to-cycle noise: per-switching-event
+    Gaussian perturbation on the write voltage V_wr (in volts). Applied
+    in FULL_STACK mode only (each of the T Bernoulli draws sees
+    independent noise). Default 0 (no C2C noise).
+
+    ``p_max`` models back-hopping: the switching probability is clamped
+    to ``[1 - p_max, p_max]`` so the device can never fully commit to
+    either state. Default 1.0 (ideal, no back-hopping). Chapter 2.3
+    Device A AP→P shows p_max ≈ 0.72 at t_w = 0.75 ns.
     """
     V_th_nom: float = 0.894
     V_T_nom: float = 1.0 / 44.6      # = 0.02242 V
@@ -71,6 +87,9 @@ class DeviceLayerParams:
     eta_c: float = 5.34
     tau_0: float = 1.0e-9
     t_p: float = 0.75e-9
+    # Non-ideality parameters
+    sigma_c2c: float = 0.0            # C2C noise std-dev on V_wr [V]
+    p_max: float = 1.0                # back-hopping plateau ceiling
 
 
 class PBNNLinear(torch.nn.Module):
@@ -126,9 +145,6 @@ class PBNNLinear(torch.nn.Module):
         for buf_name in ("V_th_field", "V_T_field"):
             key = prefix + buf_name
             if key in state_dict and state_dict[key].shape != getattr(self, buf_name).shape:
-                # Keep the buffer on the current device (may already be on
-                # CUDA from a prior .to() call); the base class copy_()
-                # handles cross-device transfer from the state dict.
                 cur_dev = getattr(self, buf_name).device
                 setattr(self, buf_name,
                         torch.empty(state_dict[key].shape,
@@ -137,9 +153,13 @@ class PBNNLinear(torch.nn.Module):
         super()._load_from_state_dict(
             state_dict, prefix, local_metadata, strict,
             missing_keys, unexpected_keys, error_msgs)
-        # Mark variation as drawn if the buffers were loaded from checkpoint.
-        if self.V_th_field.numel() > 0:
-            self._variation_drawn = True
+        # Force variation re-draw on next forward.  The checkpoint's
+        # variation buffers are a specific realization from the training
+        # run's variation config (e.g. delta-mode, centered at 0.843 V)
+        # which may not match the current model's variation_cfg.  Always
+        # re-drawing ensures the variation field is consistent with the
+        # current config (or nominal values if variation_cfg is None).
+        self._variation_drawn = False
 
     def _ensure_variation(self, device: torch.device) -> None:
         if self._variation_drawn:
@@ -182,24 +202,41 @@ class PBNNLinear(torch.nn.Module):
         """Binary p for HARDWARE_AWARE mode (train and eval).
 
         theta is a dimensionless logit; the layer maps it to a write
-        voltage about each cell's local center, then the device Sigmoid
-        gives the per-cell switching probability. The result is snapped
-        to {0, 1} via the STE trick so that the forward always uses
-        binary weights w = sign(theta) ∈ {-1, +1}.
+        voltage using the *nominal* calibration curve (the DAC/driver is
+        calibrated once against the nominal device), while the actual
+        switching probability depends on each cell's physical parameters
+        after D2D variation.
+
+        Without variation: V_th_field == V_th_nom, V_T_field == V_T_nom,
+        so ``p_soft = sigmoid(theta)`` — identical to SOFTWARE mode.
+
+        With variation: ``p_soft_i = sigmoid((V_th_nom + V_T_nom * theta_i
+        - V_th_i) / V_T_i)`` — the per-cell threshold shift and slope
+        change cause the soft probability (and thus the gradient) to
+        deviate from the ideal sigmoid(theta).
+
+        The result is snapped to {0, 1} via the STE trick so that the
+        forward always uses binary weights w = sign(theta) ∈ {-1, +1}.
         """
-        V_wr = self.V_th_field + self.V_T_field * self.theta
+        dp = self.device_params
+        V_wr = dp.V_th_nom + dp.V_T_nom * self.theta
         p_soft = psw_sigmoid(V_wr, self.V_th_field, self.V_T_field)
         return self._harden(p_soft)
 
     def _p_soft_for_sampling(self) -> Tensor:
         """True (soft) switching probability for FULL_STACK Bernoulli sampling.
 
+        Uses the same nominal-calibration write voltage as ``_p_hardware``,
+        but returns the *soft* p (no hardening) so that Bernoulli draws
+        reflect per-cell variation.
+
         After training with hard binary weights, the learned theta will have
         large magnitudes, so ``sigmoid(theta)`` is near 0 or 1, making the
         Bernoulli samples near-deterministic. This is the intended behavior:
         FULL_STACK converges quickly when the weights are well-trained.
         """
-        V_wr = self.V_th_field + self.V_T_field * self.theta
+        dp = self.device_params
+        V_wr = dp.V_th_nom + dp.V_T_nom * self.theta
         return psw_sigmoid(V_wr, self.V_th_field, self.V_T_field)
 
     def _harden(self, p_soft: Tensor) -> Tensor:
@@ -255,9 +292,30 @@ class PBNNLinear(torch.nn.Module):
         if T <= 0:
             raise ValueError(f"T must be positive, got {T}")
         with torch.no_grad():
-            p = self._p_soft_for_sampling()  # soft p for Bernoulli draws
+            dp = self.device_params
+            has_c2c = dp.sigma_c2c > 0
+            has_plateau = dp.p_max < 1.0
+
+            if not has_c2c:
+                # Static p: compute once, reuse for all T draws.
+                p = self._p_soft_for_sampling()
+                if has_plateau:
+                    p = p.clamp(1.0 - dp.p_max, dp.p_max)
+
+            V_wr_base: Optional[Tensor] = None
+            if has_c2c:
+                V_wr_base = dp.V_th_nom + dp.V_T_nom * self.theta
+
             acc: Optional[Tensor] = None
             for _ in range(T):
+                if has_c2c:
+                    # C2C noise: per-draw Gaussian perturbation on V_wr.
+                    assert V_wr_base is not None
+                    V_wr = V_wr_base + dp.sigma_c2c * torch.randn_like(
+                        V_wr_base)
+                    p = psw_sigmoid(V_wr, self.V_th_field, self.V_T_field)
+                    if has_plateau:
+                        p = p.clamp(1.0 - dp.p_max, dp.p_max)
                 w = _bernoulli_pm1(p)
                 z_t = torch.nn.functional.linear(x, w)
                 acc = z_t if acc is None else (acc + z_t)

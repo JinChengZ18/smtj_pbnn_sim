@@ -1,7 +1,6 @@
 # Calibration guide
 
-How to fit Chapter 2.3-style P_sw(V) measurements into a device YAML
-that the simulator can consume.
+How to fit Chapter 2.3-style P_sw(V) measurements into a device YAML that the simulator can consume.
 
 ## Input format
 
@@ -21,8 +20,7 @@ Optional but recommended columns:
 | `direction` | e.g. "AP->P" / "P->AP"; enables per-direction fits |
 | `n_reps` | number of single-shot experiments per row |
 
-The reference CSV `measured_0p75ns.csv` has all six columns and 46 rows;
-follow that schema.
+The reference CSV `measured_0p75ns.csv` has all six columns and 46 rows; follow that schema.
 
 ## Operating-point Sigmoid fit
 
@@ -53,8 +51,7 @@ write_device_yaml(
 
 ## Cross-pulse-width Néel-Brown fit
 
-If you have V_th measured at multiple t_p values (extracted from
-hysteresis sweeps), fit (Δ, V_c0):
+If you have V_th measured at multiple t_p values (extracted from hysteresis sweeps), fit (Δ, V_c0):
 
 ```python
 from smtj_pbnn_sim.device.calibration import fit_neel_brown_from_vth_vs_tw
@@ -71,15 +68,11 @@ The recovered (Δ, V_c0) feed the variation sampler in `mode="delta"`.
 
 ## Computing η_c
 
-η_c is the empirical narrowing factor relating the analytic NB slope to
-the measured Sigmoid slope:
+η_c is the empirical narrowing factor relating the analytic NB slope to the measured Sigmoid slope:
 
     eta_c = beta_s_measured / beta_NB_analytic
 
-with `beta_NB_analytic = 2 * ln(2) * Delta / V_c0`. For the chapter
-primary reference: 44.6 / 7.94 ≈ 5.62 (chapter reports 5.34 from MC
-fitting; the 5% difference is due to logistic-vs-Gumbel curvature
-discussed in Chapter 2.3 §2.3.5 and §2.3.6).
+with `beta_NB_analytic = 2 * ln(2) * Delta / V_c0`. For the chapter primary reference: 44.6 / 7.94 ≈ 5.62 (chapter reports 5.34 from MC fitting; the 5% difference is due to logistic-vs-Gumbel curvature discussed in Chapter 2.3 §2.3.5 and §2.3.6).
 
 ## Deploying the YAML
 
@@ -112,12 +105,9 @@ The training script will pick all of these up automatically.
 
 ## Verifying
 
-After running the calibration, verify against `experiments/01_device_calibration.py`
-output:
+After running the calibration, verify against `experiments/01_device_calibration.py` output:
 
 * The fitted V_th must match Chapter 2.3 to <5 mV
 * The fitted β_s must match to <3 V⁻¹
 * R² must exceed 0.99 for clean curves (P→AP for both Device A and B)
-* AP→P curves may have lower R² due to back-hopping plateau (Device A,
-  V > 940 mV) or two-stage transition (Device B, 840–860 mV) -- this is
-  a known device-physics artifact, not a fit failure.
+* AP→P curves may have lower R² due to back-hopping plateau (Device A, V > 940 mV) or two-stage transition (Device B, 840–860 mV) -- this is a known device-physics artifact, not a fit failure.

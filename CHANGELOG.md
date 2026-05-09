@@ -1,51 +1,255 @@
-# Changelog
+# Changelog & Project Reference
 
-## 0.1.0 — Cloud session, initial implementation
+This document serves dual purpose: **version changelog** for the `smtj_pbnn_sim` package, and **project reference** for maintainers (consolidated from the former HANDOFF.md and LOCAL_AGENT_BRIEF.md).
 
-### Added — verified
+---
 
-* Real Chapter 2.3 measurement CSV at
-  `data/smtj_psw_curves/measured_0p75ns.csv` (46 rows, 4 device/direction
-  combinations, t_w = 0.75 ns, 100-shot Wilson CIs implicit in n_reps).
-* `device.arrhenius` — Néel-Brown closed form, Sigmoid form, and the
-  analytic NB→Sigmoid bridge with the corrected formula
-  `β_NB = 2 ln(2) · Δ/V_c0` (independent of t_p).
-  - Verified to give 7.94 V⁻¹ for chapter primary parameters,
+## Architecture & Design Decisions
+
+### Physics grounding (where every default number comes from)
+
+| Symbol | Default | Source |
+|---|---|---|
+| V_th_nom | 0.894 V | Chapter 2.3 Table 2.3-3, Device A P->AP, 100-shot Sigmoid fit |
+| V_T_nom | 1/44.6 = 0.02242 V | same |
+| beta_s_nom | 44.6 V^-1 | same |
+| Delta_nom | 4.91 | Chapter 2.3 Table 2.3-9, NB inversion of V_th(t_w) |
+| V_c0_nom | 0.857 V | same |
+| tau_0 | 1 ns | Chapter 2.3 prior |
+| eta_c | 5.34 | Chapter 2.3 S2.3.5 (beta_s_meas / beta_NB_fit) |
+| CV(Delta) | 7.7 % | Chapter 2.3 S2.3.6, Brinkman-decomposed PDK baseline |
+| R_P | 4.9 kOhm | Chapter 2.3 S2.3.3, Device A R_AP/R_P readout |
+| TMR | 1.0 (100 %) | Chapter 2.3 Table 2.3-1 typical 100-120 % |
+| R_SOT | 776 Ohm | Chapter 2.3 Table 2.3-2 |
+| V_wr | 0.9 V | Chapter 2.3 S2.3.3 (V_th+ at 0.75 ns) |
+| t_w | 0.75 ns | Chapter 2.3 S2.3.3 |
+| E_write | ~0.78 pJ | derived: V^2/R * t (matches Chapter 2.3) |
+
+Every constant appears in YAML form (not hardcoded) under `configs/`. To swap to a different operating point, edit the YAML; nothing in the source needs to change.
+
+### Lazy torch dispatch
+
+NumPy is the primary backend in the device layer; torch is only invoked when explicitly requested (e.g., via `device=` argument to `VariationSampler.sample`). This lets the calibration scripts and most unit tests run in a torch-free CI. Don't unify them.
+
+### YAML schema with explicit sections
+
+`device:` block has `operating_point`, `neel_brown`, `resistance`, plus a top-level `eta_c`. A YAML file alone fully specifies a device configuration.
+
+### Three forward modes share theta
+
+Same trained checkpoint runs in all three modes (SOFTWARE, HARDWARE_AWARE, FULL_STACK); no software-vs-hardware fork.
+
+### `mode='delta'` as default for variation
+
+Aligns the simulator with the Chapter 2.3 PDK Brinkman decomposition (CV on Delta, not on Sigmoid parameters directly).
+
+### Open design questions
+
+1. **Tile vs. weight granularity for variation.** Current implementation draws variation per weight; should it be per *cell* (with N samples per weight on a multi-cell tile) for higher fidelity? Probably yes for a future iteration.
+
+2. **Read-path noise model.** Chapter 2.3 doesn't characterize read-noise statistics. Suggest leaving at 0 until empirical data appears.
+
+3. **eta_c temperature dependence.** eta_c is treated as a constant. Chapter 2.3 hints at sub-domain dynamics that may be temperature-or pulse-shape-dependent. Revisit if temperature variation is added.
+
+4. **IR-drop activation.** `array.ir_drop.estimate_ir_drop` is a stub. For sub-arrays > 256x256 it should be enabled in `array.tile.Tile` and propagated to the per-bit-line voltage.
+
+5. **Compatibility with Chapter 4 PBNN training math.** The current CLT forward is the Peters-Welling formulation. If the chapter-4 derivation uses LAR-net style local reparameterization with covariance terms, `bernoulli_pm1_clt_forward` may need to gain a covariance argument.
+
+---
+
+## Known Traps & Gotchas
+
+### The 843 vs 894 mV question
+
+In `mode='delta'` the per-cell V_th is computed from the NB closed form `V_th(t_p) = V_c0 * (1 - ln(t_p / tau_0 / ln2) / Delta)`. With chapter parameters Delta = 4.91, V_c0 = 0.857 V, this gives 843.2 mV at t_p = 0.75 ns -- which is **NOT** the measured Sigmoid center (894 mV). The ~50 mV offset is the well-known NB-vs-measurement mismatch (Chapter 2.3 S2.3.5), and `eta_c = 5.34` corrects the slope, not the center.
+
+If you want the network to use the measured 894 mV as the center, set `mode='sigmoid_direct'` in your variation YAML and supply `sigma_V_th_rel`. This trades physical NB->Sigmoid coupling for direct operating-point statistics.
+
+### NB->Sigmoid analytic slope formula
+
+In an earlier version the formula was `beta_NB = (Delta/V_c0) * ln(t_p/tau_0)`, which is **wrong** when t_p < tau_0 (gives negative beta). The correct closed form, obtained by differentiating the NB expression at P_sw = 1/2:
+
+    beta_NB = 2 * ln(2) * (Delta / V_c0)   (independent of t_p)
+
+This matches Chapter 2.3 Table 2.3-9 (beta_NB ~ 7.94 V^-1) exactly.
+
+### Variation field shape vs. tile shape
+
+`PBNNLinear._ensure_variation` draws a field of shape `(out_features, in_features)`. This means each *weight* has its own (V_th, V_T) -- not each cell. If you later move to a tile-based mapping where one weight maps to multiple cells, override `_ensure_variation` to draw with the tile-aware shape.
+
+### Variation and the write voltage
+
+The write voltage is computed from *nominal* device parameters: `V_wr = V_th_nom + V_T_nom * theta` (the DAC/driver is calibrated once against the nominal device). Each cell's switching probability then depends on its own physical parameters after D2D variation: `p_i = sigmoid((V_wr - V_th_i) / V_T_i)`. Without variation this simplifies to `sigmoid(theta)`; with variation the per-cell threshold shift and slope change modify the soft probability.
+
+Note that this variation effect is visible in FULL_STACK mode (which uses the soft p for Bernoulli sampling) but not in HARDWARE_AWARE mode (which always uses hard binary `sign(theta)` in the forward).
+
+### Gradients in three modes
+
+* `SOFTWARE` and `HARDWARE_AWARE` -- both use hard binary weights `sign(theta)` in the forward via the `_harden()` STE trick: `p_hard = (theta >= 0).detach() + p_soft - p_soft.detach()`. Forward values are always binary; backward gradients flow through `sigmoid(theta)` (SOFTWARE) or the device Sigmoid (HARDWARE_AWARE), giving smooth `dp/dtheta = p_soft * (1 - p_soft)`.
+* `FULL_STACK` -- wrapped in `torch.no_grad()`; gradients **don't** flow. Always train in HARDWARE_AWARE mode and only switch to FULL_STACK at evaluation. When switching modes, use `calibrate_bn()` to recalibrate BatchNorm running statistics for the new mode's preactivation distribution.
+
+### Training pipeline design
+
+* All hidden layers use `binarize_output=False`; binarization is done externally as BN -> sign_ste, which normalizes preactivations to O(1) before the STE clips at |z| <= 1.
+* Training uses `sample=False` (deterministic CLT mean). The sign_ste provides the binary stochastic structure; CLT sampling noise adds O(sqrt(N)) variance that BN normalizes away but attenuates gradients.
+* Post-training theta scaling (x100) makes `sigmoid(theta)` near 0/1 for near-deterministic FULL_STACK. `sign(theta)` is invariant to this scaling.
+
+### T_full_stack=1 is degenerate
+
+A T=1 explicit-sample pass is equivalent to a single Bernoulli draw, which has very high variance. The CLT path (HARDWARE_AWARE mode with `sample=True`) is a much better approximation. For inference, T >= 8.
+
+### PPA constants are placeholders for CMOS peripherals
+
+`tech_params.TechParams.e_dac_step`, `e_smtj_read`, `e_count_inc`, and all areas are 28 nm order-of-magnitude defaults. The **only** PPA number grounded in Chapter 2.3 is `e_smtj_write` (SOT channel dissipation). For absolute energy/latency comparisons, replace the CMOS constants with NeuroSim V1.5 floorplan-derived numbers.
+
+### CSV column units
+
+The CSV at `data/smtj_psw_curves/measured_0p75ns.csv` stores **V in volts and t_p in seconds**. The chapter-2 figure script worked in mV and ns. If you add new measurements, follow the volts/seconds convention.
+
+### Backwards compatibility for variation modes
+
+`VariationConfig` defaults to `mode="delta"`. If you load an old YAML written before the rewrite, it may not have `mode:` -- the YAML reader will default to `"delta"`, which requires `Delta_nom` and `V_c0_nom` in the device YAML. Make sure those keys exist before loading.
+
+---
+
+## Extension Guide
+
+### New devices / batches
+
+1. Add a new CSV under `data/smtj_psw_curves/` (columns: `V, t_p, P_sw, device_id, direction, n_reps`).
+2. Run `python experiments/01_device_calibration.py` -- modify the script to point to the new CSV and pick the desired `(device_id, direction)` as primary.
+3. The new YAML lands in `configs/device/`; reference it from your experiment YAML by editing the `device:` block.
+
+### New networks
+
+1. Drop new architecture file under `src/smtj_pbnn_sim/scripts/_<arch>_train.py`, following the structure of `_mnist_train.PBNN_MLP`.
+2. Wire in `cli.train_entry`'s `dataset` dispatch.
+3. Add a new YAML under `configs/experiment/`.
+4. Add a thin wrapper under `experiments/`.
+
+### New PPA technology nodes
+
+`TechParams` is a dataclass; subclass it or instantiate with custom constants. To swap globally, edit `ppa.tech_params.default_28nm()`.
+
+### Adding a sigmoid-direct calibration path
+
+If only operating-point Sigmoid distributions are available (no NB inversion), use `VariationConfig(mode="sigmoid_direct", ...)` and supply `sigma_V_th_rel` / `sigma_V_T_rel` directly. The bridge through Delta is bypassed.
+
+---
+
+## Protected Files
+
+Files that should NOT be modified unless you have a specific reason:
+
+| File | Why |
+|---|---|
+| `device/arrhenius.py` | Locked to Chapter 2.3 closed forms; verified analytically |
+| `device/calibration.py` | Locked to fitting routines verified against real data |
+| `data/smtj_psw_curves/measured_0p75ns.csv` | Source of truth |
+| `tests/test_arrhenius.py` | Regression hard-rails for the chapter physics |
+| `tests/test_calibration.py` | Regression hard-rails for the chapter physics |
+| `tests/test_variation.py` | Regression hard-rails for the chapter physics |
+| `tests/test_tmr.py` | Regression hard-rails for the chapter physics |
+| `tests/test_ppa.py` | Regression hard-rails for the chapter physics |
+
+---
+
+## Reproducibility
+
+* All experiments use the seed in their config or a hard-coded seed of 42.
+* `utils.seeding.set_global_seed` seeds Python, NumPy, and Torch.
+* The MNIST experiment writes `runs/<name>/resolved.yaml` alongside `best.pt`, so any run can be reproduced with `smtj-train --config runs/<name>/resolved.yaml`.
+* Training metrics are persisted to `runs/<name>/metrics.csv` with per-epoch loss, accuracy, and wall-clock timing.
+
+---
+
+## 0.2.0 -- Local session, training pipeline and variation fix
+
+### Fixed -- training pipeline (from non-functional to working)
+
+* **`binarize_output=False` for hidden layers** -- `_mnist_train.PBNN_MLP` was constructed with `binarize_output=True`, which applied `sign_ste` to raw preactivations of magnitude ~28 (from 784 or 1024 input sums). The STE gradient clips to zero for `|z| > 1`, killing all learning. Fixed by setting `binarize_output=False` and binarizing externally via BN -> sign_ste, which normalizes preactivations to O(1) first.
+
+* **`sample=False` during training** -- CLT sampling noise of O(sqrt(N)) ~ 28 was being normalized away by BN in the forward pass but attenuated backward gradients by 1/sigma_raw per layer. Fixed by using the deterministic CLT mean (`sample=False`) during training; the sign_ste already provides the essential binary stochastic structure.
+
+* **Hard binary STE (`_harden`)** -- the network previously used infinitesimal soft weights `2*sigmoid(theta)-1 in [-1,1]` amplified by BN gain, achieving 97.7% train accuracy but 10% on FULL_STACK (all p ~ 0.5). Added `_harden()` method that snaps p to {0,1} in the forward (`p_hard = (theta >= 0).float()`) while flowing gradients through `sigmoid(theta)` in the backward. Applied in both SOFTWARE and HARDWARE_AWARE modes for train and eval, ensuring BN running stats are consistent and FULL_STACK receives meaningful p values.
+
+* **Post-training theta scaling** -- after training, `theta` magnitudes are ~0.5, so `sigmoid(theta)` ~ 0.6 and Bernoulli draws in FULL_STACK are noisy. Added post-training scaling of theta x 100, making `sigmoid(theta)` near 0 or 1 for near-deterministic FULL_STACK. `sign(theta)` is invariant to positive scaling, so HARDWARE_AWARE eval is unaffected.
+
+* **Checkpoint loading for lazy variation buffers** -- variation fields `V_th_field` and `V_T_field` are initialized as empty tensors (shape 0) and populated lazily on first forward. Loading from a checkpoint with populated buffers caused a `size mismatch` error. Added `_load_from_state_dict` override to resize buffers before `copy_()`.
+
+* **BN calibration for cross-mode evaluation** -- added `calibrate_bn()` in `train_loop.py` to recalibrate BN running stats when switching from HARDWARE_AWARE (training) to FULL_STACK (evaluation). Resets running mean/var and re-estimates over 50 batches of forward passes in the target mode.
+
+### Fixed -- variation model
+
+* **Variation cancellation bug** -- `_p_hardware()` and `_p_soft_for_sampling()` computed write voltage as `V_wr = V_th_field + V_T_field * theta`, which when fed into `psw_sigmoid(V_wr, V_th_field, V_T_field) = sigmoid((V_wr - V_th) / V_T)` simplified to `sigmoid(theta)` -- D2D variation cancelled completely. Fixed by using nominal parameters for V_wr: `V_wr = V_th_nom + V_T_nom * theta` (the DAC is calibrated against nominal device parameters), while each cell's switching probability uses its own V_th_i and V_T_i from the variation field.
+
+* **Experiment 07 evaluation mode** -- changed from HARDWARE_AWARE (which always uses `sign(theta)`, invariant to variation) to FULL_STACK with BN calibration per variation level, so D2D variation is visible in the Bernoulli sampling.
+
+### Added
+
+* `nn.losses.binarization_regularizer` -- penalizes `p*(1-p)` to encourage theta toward larger magnitudes. Available via `bin_alpha` config key (default 0.0).
+* Two new tests in `test_torch_nn.py`:
+  - `test_variation_changes_soft_p_in_full_stack` -- verifies that D2D
+    variation actually shifts FULL_STACK output.
+  - `test_no_variation_hardware_aware_matches_software` -- verifies that
+    without variation, HARDWARE_AWARE = SOFTWARE.
+
+* Experiment 08: comprehensive non-ideality ablation study with two figures -- P_sw curve distortion visualization and accuracy-vs-parameter-strength for 5 factors (joint D2D, V_th shift, V_T slope, C2C noise, back-hopping) plus combined scenario.
+* Two new tests for C2C noise and p_max:
+  - `test_c2c_noise_increases_full_stack_variance`
+  - `test_p_max_clamps_full_stack_output`
+
+### Changed
+
+* `configs/experiment/mnist_lenet.yaml` -- epochs 5 -> 20, added `bin_alpha: 0.0`.
+* `.gitignore` -- added `data/mnist/`, `.claude/settings.local.json`.
+* Test count: 60 passing (49 torch-free + 11 torch-dependent).
+
+### Verification log (training pipeline)
+
+| Check | Expected | Got | Status |
+|---|---|---|---|
+| MNIST train accuracy (20 epochs) | >95% | 96.82% | pass |
+| MNIST test accuracy (HARDWARE_AWARE) | >95% | 96.82% | pass |
+| MNIST test accuracy (FULL_STACK T=64) | >95% | 97.5% | pass |
+| Three-mode parity (SOFTWARE=HW_AWARE=FULL_STACK) | match | pass | pass |
+| Variation effect visible in FULL_STACK | diff > 0 | pass | pass |
+| Unit tests | all pass | 60 passed | pass |
+| Experiments 01-08 | all run | pass | pass |
+
+---
+
+## 0.1.0 -- Cloud session, initial implementation
+
+### Added -- verified
+
+* Real Chapter 2.3 measurement CSV at `data/smtj_psw_curves/measured_0p75ns.csv` (46 rows, 4 device/direction combinations, t_w = 0.75 ns, 100-shot Wilson CIs implicit in n_reps).
+* `device.arrhenius` -- Neel-Brown closed form, Sigmoid form, and the analytic NB->Sigmoid bridge with the corrected formula `beta_NB = 2 ln(2) * Delta/V_c0` (independent of t_p).
+  - Verified to give 7.94 V^-1 for chapter primary parameters,
     exactly matching Table 2.3-9.
-* `device.calibration` — per-(device, direction) Sigmoid fit and
-  cross-pulse-width NB inversion.
-  - Reproduces chapter V_th = 894 mV / β_s = 44.6 V⁻¹ to within
+* `device.calibration` -- per-(device, direction) Sigmoid fit and cross-pulse-width NB inversion.
+  - Reproduces chapter V_th = 894 mV / beta_s = 44.6 V^-1 to within
     fitting noise on the real CSV.
-* `device.variation` — D2D sampler with two modes: `delta` (samples
-  Δ_i, propagates via NB bridge) and `sigmoid_direct` (samples V_th /
-  V_T directly). NumPy primary, torch optional.
-  - At PDK baseline CV(Δ) = 7.7 %, wafer-mean β_s = 42.37 V⁻¹ matches
-    chapter joint prediction 42.3 V⁻¹ to <1 %.
-* `device.tmr` — three-terminal SOT-MTJ description (R_P, R_AP, R_SOT,
-  V_read) plus `sot_write_energy` returning V²/R_SOT · t_p.
-  - Verified to give 0.78 pJ at 0.9 V / 0.75 ns / 776 Ω, exact chapter
+* `device.variation` -- D2D sampler with two modes: `delta` (samples Delta_i, propagates via NB bridge) and `sigmoid_direct` (samples V_th / V_T directly). NumPy primary, torch optional.
+  - At PDK baseline CV(Delta) = 7.7 %, wafer-mean beta_s = 42.37 V^-1
+    matches chapter joint prediction 42.3 V^-1 to <1 %.
+* `device.tmr` -- three-terminal SOT-MTJ description (R_P, R_AP, R_SOT, V_read) plus `sot_write_energy` returning V^2/R_SOT * t_p.
+  - Verified to give 0.78 pJ at 0.9 V / 0.75 ns / 776 Ohm, exact chapter
     value.
-* `ppa.tech_params` with `e_smtj_write` as a derived property; per-MAC
-  energy 793 fJ at chapter operating point (98.7 % from sMTJ write).
-* `ppa.energy`, `ppa.latency`, `ppa.area` — composers above
-  `tech_params`. T-scaling verified.
-* `array.ir_drop` — first-order resistive-ladder estimator (pure
-  Python).
-* `array.periphery` — DAC and counter quantization, NumPy/torch
-  duck-typed.
-* `sampling.schedules` — `constant_T`, `layer_depth_T`,
-  `beta_schedule` (pure Python).
-* Experiments 01–04 (no torch): device calibration, wafer-average MC,
-  NB cross-pulse-width inversion, PPA breakdown. All run end-to-end
-  and write figures to `figures/`.
+* `ppa.tech_params` with `e_smtj_write` as a derived property; per-MAC energy 793 fJ at chapter operating point (98.7 % from sMTJ write).
+* `ppa.energy`, `ppa.latency`, `ppa.area` -- composers above `tech_params`. T-scaling verified.
+* `array.ir_drop` -- first-order resistive-ladder estimator (pure Python).
+* `array.periphery` -- DAC and counter quantization, NumPy/torch duck-typed.
+* `sampling.schedules` -- `constant_T`, `layer_depth_T`, `beta_schedule` (pure Python).
+* Experiments 01-04 (no torch): device calibration, wafer-average MC, NB cross-pulse-width inversion, PPA breakdown. All run end-to-end and write figures to `figures/`.
 * Tests: 49 passing, 6 deferred (torch).
-  - `test_arrhenius.py` — 10 tests
-  - `test_calibration.py` — 6 tests
-  - `test_variation.py` — 5 tests
-  - `test_tmr.py` — 4 tests
-  - `test_ppa.py` — 7 tests
-  - `test_schedules.py` — 7 tests
-  - `test_array_pure.py` — 10 tests
+  - `test_arrhenius.py` -- 10 tests
+  - `test_calibration.py` -- 6 tests
+  - `test_variation.py` -- 5 tests
+  - `test_tmr.py` -- 4 tests
+  - `test_ppa.py` -- 7 tests
+  - `test_schedules.py` -- 7 tests
+  - `test_array_pure.py` -- 10 tests
 * YAML configs:
   - `configs/device/sot_smtj_devA_pAP_0p75ns.yaml` (primary reference)
   - `configs/array/256x256.yaml`
@@ -55,65 +259,40 @@
   - `docs/calibration_guide.md`, `docs/physics_grounding.md`,
     `docs/architecture.md`
 
-### Added — coded but not run
+### Added -- coded but not run
 
-These are present in the source tree, will run once torch is installed,
-and have unit tests gated by `pytest.importorskip("torch")`:
+These are present in the source tree, will run once torch is installed, and have unit tests gated by `pytest.importorskip("torch")`:
 
-* `nn.pbnn_linear`, `nn.pbnn_conv` — three forward modes
-  (SOFTWARE / HARDWARE_AWARE / FULL_STACK).
+* `nn.pbnn_linear`, `nn.pbnn_conv` -- three forward modes (SOFTWARE / HARDWARE_AWARE / FULL_STACK).
 * `nn.ste`, `nn.clt`, `nn.batchnorm`, `nn.losses`.
 * `sampling.bernoulli_smtj`, `sampling.unfold`.
 * `array.crossbar`, `array.tile`.
-* `train.train_loop`, `train.inference`, `train.uncertainty`,
-  `train.compare_baseline`.
+* `train.train_loop`, `train.inference`, `train.uncertainty`, `train.compare_baseline`.
 * `data.mnist`.
-* `scripts/_mnist_train.py`, `scripts/_mnist_eval.py` — CLI
-  implementations.
-* `cli.py` — `smtj-train`, `smtj-eval`, `smtj-cal` entry points.
-* Experiments 05 (MNIST training), 06 (T sweep), 07 (variation sweep).
-* `tests/test_torch_nn.py` — 6 tests of STE, CLT, three-mode parity.
+* `scripts/_mnist_train.py`, `scripts/_mnist_eval.py` -- CLI implementations.
+* `cli.py` -- `smtj-train`, `smtj-eval`, `smtj-cal` entry points.
+* Experiments 05 (MNIST training), 06 (T sweep), 07 (baseline comparison).
+* `tests/test_torch_nn.py` -- 6 tests of STE, CLT, three-mode parity.
 
 ### Known issues / deferred
 
-See `HANDOFF.md` §5 for the full list. Top three:
+See "Known Traps & Gotchas" section above for the full list. Top three:
 
-1. PPA peripheral constants (DAC, counter, sense, area) are 28 nm
-   order-of-magnitude defaults; replace with NeuroSim V1.5 floorplan
-   output for absolute claims.
-2. Variation field is per-weight, not per-cell; sub-sampling per cell
-   needs a future override.
-3. The 843 vs 894 mV discrepancy between NB-derived V_th and measured
-   V_th is by design but documented in `LOCAL_AGENT_BRIEF.md` for the
-   next agent to revisit.
-
-### Decisions
-
-* **Lazy torch dispatch in device layer.** NumPy is the primary
-  backend; torch is only invoked when explicitly requested (e.g., via
-  `device=` argument to `VariationSampler.sample`). This lets the
-  calibration scripts and most unit tests run in a torch-free CI.
-* **YAML schema with explicit sections.** `device:` block has
-  `operating_point`, `neel_brown`, `resistance`, plus a top-level
-  `eta_c`. Designed so a YAML file alone fully specifies a device
-  configuration.
-* **`mode='delta'` as default for variation.** Aligns the simulator
-  with the Chapter 2.3 PDK Brinkman decomposition (CV on Δ, not on
-  Sigmoid parameters directly).
-* **Three forward modes share `θ`.** Same trained checkpoint runs in
-  all three modes; no software-vs-hardware fork.
+1. PPA peripheral constants (DAC, counter, sense, area) are 28 nm order-of-magnitude defaults; replace with NeuroSim V1.5 floorplan output for absolute claims.
+2. Variation field is per-weight, not per-cell; sub-sampling per cell needs a future override.
+3. The 843 vs 894 mV discrepancy between NB-derived V_th and measured V_th is by design but documented in "Known Traps" above for future review.
 
 ### Verification log
 
 | Check | Expected (Chapter 2.3) | Got | Status |
 |---|---|---|---|
-| Device A P→AP V_th fit | 894 mV | 895.8 mV | ✓ within 5 mV |
-| Device A P→AP β_s fit | 44.6 V⁻¹ | 42.7 V⁻¹ | ✓ within 3 V⁻¹ |
-| Device A P→AP R² | 0.993 | 0.992 | ✓ within 0.001 |
-| NB analytic β_NB | 7.94 V⁻¹ | 7.94 V⁻¹ | ✓ exact |
-| AP→P NB inversion Δ | 5.15 | 5.19 | ✓ within 0.04 |
-| AP→P NB inversion V_c0 | 884 mV | 882 mV | ✓ within 2 mV |
-| Wafer β at CV(Δ)=7.7% | 42.3 V⁻¹ | 42.37 V⁻¹ | ✓ within 0.1 V⁻¹ |
-| SOT write energy | 0.78 pJ | 0.78 pJ | ✓ exact |
+| Device A P->AP V_th fit | 894 mV | 895.8 mV | pass (within 5 mV) |
+| Device A P->AP beta_s fit | 44.6 V^-1 | 42.7 V^-1 | pass (within 3 V^-1) |
+| Device A P->AP R^2 | 0.993 | 0.992 | pass (within 0.001) |
+| NB analytic beta_NB | 7.94 V^-1 | 7.94 V^-1 | exact |
+| AP->P NB inversion Delta | 5.15 | 5.19 | pass (within 0.04) |
+| AP->P NB inversion V_c0 | 884 mV | 882 mV | pass (within 2 mV) |
+| Wafer beta at CV(Delta)=7.7% | 42.3 V^-1 | 42.37 V^-1 | pass (within 0.1 V^-1) |
+| SOT write energy | 0.78 pJ | 0.78 pJ | exact |
 | PPA per-MAC energy | n/a | 793 fJ | informational |
-| Unit tests | n/a | 49 passed, 1 skipped | ✓ |
+| Unit tests | n/a | 49 passed, 1 skipped | pass |

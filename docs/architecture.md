@@ -1,13 +1,10 @@
 # Architecture
 
-This document describes the simulator's dependency graph, data flow, and
-call chains. It complements the layered-architecture summary in
-`README.md` with concrete code references.
+This document describes the simulator's dependency graph, data flow, and call chains. It complements the layered-architecture summary in `README.md` with concrete code references.
 
 ## 1. Dependency graph
 
-Modules respect strict layering. Higher layers import from lower layers,
-never the reverse.
+Modules respect strict layering. Higher layers import from lower layers, never the reverse.
 
 ```
                         ┌─────────────────────────────┐
@@ -66,10 +63,7 @@ never the reverse.
        └────────────────────────────────────────────┘
 ```
 
-The forbidden direction `device → nn` is enforced by convention; if
-broken, the device layer becomes useless for offline calibration
-scripts that don't have `nn/` set up (e.g., the chapter-2 verification
-plots).
+The forbidden direction `device → nn` is enforced by convention; if broken, the device layer becomes useless for offline calibration scripts that don't have `nn/` set up (e.g., the chapter-2 verification plots).
 
 ## 2. Three forward modes — call chain
 
@@ -117,8 +111,7 @@ PBNNLinear.forward(x, mode=FULL_STACK, T=T)
   └─ z = sign_ste(z)                  # STE still applied (safe in no_grad)
 ```
 
-The `θ` parameter is shared across all three modes; no separate
-software/hardware checkpoints are needed.
+The `θ` parameter is shared across all three modes; no separate software/hardware checkpoints are needed.
 
 ## 3. Data flow at training time
 
@@ -163,8 +156,7 @@ software/hardware checkpoints are needed.
 
 ## 5. Backend dispatch
 
-Some modules support both NumPy and Torch backends; they detect the
-input type at runtime via `type(x).__module__.startswith("torch")`:
+Some modules support both NumPy and Torch backends; they detect the input type at runtime via `type(x).__module__.startswith("torch")`:
 
 | Module | NumPy | Torch | Notes |
 |---|:-:|:-:|---|
@@ -182,32 +174,16 @@ input type at runtime via `type(x).__module__.startswith("torch")`:
 | `sampling.schedules` | ✓ | — | scalar / list arithmetic |
 | `ppa.*` | ✓ | — | scalar arithmetic |
 
-This split lets calibration scripts and unit tests run in a torch-free
-environment while runtime code (training / eval) uses torch.
+This split lets calibration scripts and unit tests run in a torch-free environment while runtime code (training / eval) uses torch.
 
 ## 6. Key design choices
 
-* **Variation field is per-weight, not per-cell.** A single
-  PBNNLinear weight is treated as one cell; tile-based mapping (e.g.,
-  one weight = 4 cells with 1 Bernoulli vote each) requires overriding
-  `_ensure_variation`. Documented in HANDOFF §7.
+* **Variation field is per-weight, not per-cell.** A single PBNNLinear weight is treated as one cell; tile-based mapping (e.g., one weight = 4 cells with 1 Bernoulli vote each) requires overriding `_ensure_variation`. Documented in HANDOFF §7.
 
-* **CLT shortcut over T-step sampling at training time.** We never
-  unroll the time-domain T loop in the autograd graph; the
-  reparameterized Gaussian gives the same expectation gradient with
-  zero variance, at one MAC per layer instead of T MACs.
+* **CLT shortcut over T-step sampling at training time.** We never unroll the time-domain T loop in the autograd graph; the reparameterized Gaussian gives the same expectation gradient with zero variance, at one MAC per layer instead of T MACs.
 
-* **STE sign at output, not at input.** Each PBNN layer binarizes its
-  *own* output. Activations are already binary by the time they reach
-  the next layer's input.
+* **STE sign at output, not at input.** Each PBNN layer binarizes its *own* output. Activations are already binary by the time they reach the next layer's input.
 
-* **YAML over command-line flags.** Experiments are reproducible via a
-  single config file. Hardcoded constants are explicitly disallowed in
-  the source (every `DeviceLayerParams` has a default that mirrors the
-  chapter primary reference, but production scripts always overwrite
-  from YAML).
+* **YAML over command-line flags.** Experiments are reproducible via a single config file. Hardcoded constants are explicitly disallowed in the source (every `DeviceLayerParams` has a default that mirrors the chapter primary reference, but production scripts always overwrite from YAML).
 
-* **`runs/<name>/resolved.yaml` written alongside checkpoints.** The
-  effective config (after CLI overrides, defaults, and computed values
-  like `R_AP = R_P * (1 + TMR)`) is dumped. Reproducing a run is
-  `smtj-train --config runs/<name>/resolved.yaml`.
+* **`runs/<name>/resolved.yaml` written alongside checkpoints.** The effective config (after CLI overrides, defaults, and computed values like `R_AP = R_P * (1 + TMR)`) is dumped. Reproducing a run is `smtj-train --config runs/<name>/resolved.yaml`.

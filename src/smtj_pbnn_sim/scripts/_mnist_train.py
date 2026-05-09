@@ -6,6 +6,7 @@ A small PBNN MLP is defined locally; for richer models add new files under
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 import torch
 from torch import Tensor
@@ -18,7 +19,7 @@ from ..device.variation import VariationConfig
 from ..data.mnist import get_mnist_loaders
 from ..train.train_loop import train_one_epoch, evaluate
 from ..utils.seeding import set_global_seed
-from ..utils.logging import log
+from ..utils.logging import log, MetricsLogger
 from ..utils.io import dump_yaml
 
 
@@ -152,15 +153,16 @@ def run(cfg: dict, out_dir: Path) -> int:
                     loss = loss + binarization_regularizer(m.theta, bin_alpha)
         return loss
 
+    logger = MetricsLogger(out_dir, n_epochs=n_epochs)
     best_acc = 0.0
     for epoch in range(n_epochs):
+        t0 = time.time()
         tr_loss, tr_acc = train_one_epoch(
             model, train_loader, optimizer, criterion, device, mode=train_mode)
         te_loss, te_acc = evaluate(
             model, test_loader, criterion, device, mode=eval_mode)
-        log(f"epoch {epoch + 1:02d}/{n_epochs}  "
-            f"train loss={tr_loss:.4f} acc={tr_acc:.4f}   "
-            f"test loss={te_loss:.4f} acc={te_acc:.4f}")
+        elapsed = time.time() - t0
+        logger.log_epoch(epoch + 1, tr_loss, tr_acc, te_loss, te_acc, elapsed)
 
         if te_acc > best_acc:
             best_acc = te_acc
@@ -190,5 +192,8 @@ def run(cfg: dict, out_dir: Path) -> int:
                 "best_acc": best_acc,
                 "theta_scale": theta_scale},
                out_dir / "best.pt")
+
+    logger.dump_summary(best_acc=best_acc, theta_scale=theta_scale)
+    logger.close()
 
     return 0

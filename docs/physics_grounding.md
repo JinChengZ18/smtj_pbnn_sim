@@ -1,8 +1,6 @@
 # Physics grounding
 
-Every default constant in the simulator traces back to a specific
-location in Chapter 2.3. This document is the audit trail; if Chapter 2.3
-is updated, follow the table below to keep the simulator in sync.
+Every default constant in the simulator traces back to a specific location in Chapter 2.3. This document is the audit trail; if Chapter 2.3 is updated, follow the table below to keep the simulator in sync.
 
 ## Layer-1 (cross-pulse-width) parameters
 
@@ -33,9 +31,7 @@ For the chapter primary reference Device A, P→AP, t_w = 0.75 ns:
 | β_NB fit (logistic on NB curve) | numerical fit | ~9.5 V⁻¹ (CV=0 single-device) |
 | η_c = β_s_meas / β_NB_fit | empirical | 5.34 (Chapter 2.3 §2.3.5 reports MC value; analytic ratio is 44.6 / 7.94 ≈ 5.62) |
 
-The simulator default is `eta_c = 5.34` to match the chapter MC-derived
-value. Both numbers are valid depending on whether you treat
-`β_NB_analytic` or `β_NB_fit` as the reference.
+The simulator default is `eta_c = 5.34` to match the chapter MC-derived value. Both numbers are valid depending on whether you treat `β_NB_analytic` or `β_NB_fit` as the reference.
 
 ## D2D variation parameters
 
@@ -49,9 +45,7 @@ From Chapter 2.3 §2.3.6 (Brinkman decomposition of PDK mismatch):
 | Free-layer thickness t_f | 0.3 % (<1 %) | PDK |
 | **Total CV(Δ)** | **7.7 %** | combined |
 
-The simulator parameterizes only the total CV(Δ); the breakdown is
-informational and influences which process improvement direction has the
-highest leverage (geometry > interface > magnetization).
+The simulator parameterizes only the total CV(Δ); the breakdown is informational and influences which process improvement direction has the highest leverage (geometry > interface > magnetization).
 
 ## Resistance / TMR
 
@@ -66,18 +60,13 @@ highest leverage (geometry > interface > magnetization).
 
 The single SOT write energy at the chapter operating point:
 
-$$E = V_{wr}^2 / R_{SOT} \cdot t_w
-   = (0.9 \mathrm{V})^2 / 776 \mathrm{\Omega} \cdot 0.75 \mathrm{ns}
-   \approx 0.78 \mathrm{pJ}.$$
+$$E = V_{wr}^2 / R_{SOT} \cdot t_w = (0.9 \mathrm{V})^2 / 776 \mathrm{\Omega} \cdot 0.75 \mathrm{ns} \approx 0.78 \mathrm{pJ}.$$
 
-Implemented as `MTJResistance.sot_write_energy(V_wr, t_p, R_SOT)` and
-exposed as `TechParams.e_smtj_write` (a property derived from the
-`V_wr_nom`, `R_SOT`, and `t_write` fields).
+Implemented as `MTJResistance.sot_write_energy(V_wr, t_p, R_SOT)` and exposed as `TechParams.e_smtj_write` (a property derived from the `V_wr_nom`, `R_SOT`, and `t_write` fields).
 
 ## What's not from Chapter 2.3
 
-The following are **not** grounded in chapter measurements; they are
-order-of-magnitude defaults for 28 nm CMOS peripherals:
+The following are **not** grounded in chapter measurements; they are order-of-magnitude defaults for 28 nm CMOS peripherals:
 
 * `e_dac_step = 5 fJ`
 * `e_smtj_read = 5 fJ`
@@ -85,9 +74,7 @@ order-of-magnitude defaults for 28 nm CMOS peripherals:
 * `t_dac_step = 1 ns`, `t_smtj_read = 2 ns`, `t_count_inc = 0.5 ns`
 * All `a_*` area numbers
 
-These should be replaced by NeuroSim V1.5 floorplan output for any
-absolute energy/latency claim. Relative T-scaling of energy and latency
-is correct as-is.
+These should be replaced by NeuroSim V1.5 floorplan output for any absolute energy/latency claim. Relative T-scaling of energy and latency is correct as-is.
 
 ## How to verify
 
@@ -101,5 +88,4 @@ The unit test suite checks every grounded constant:
 * `test_tmr.py::test_sot_write_energy_chapter_value`
 * `test_ppa.py::test_smtj_write_energy_property_matches_chapter`
 
-If any of these fails after a chapter update, the documented constant
-above should be revised.
+If any of these fails after a chapter update, the documented constant above should be revised.

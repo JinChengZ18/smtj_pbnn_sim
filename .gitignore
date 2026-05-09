@@ -12,3 +12,5 @@ dist/
 runs/
 *.log
 .DS_Store
+data/mnist/
+.claude/settings.local.json
