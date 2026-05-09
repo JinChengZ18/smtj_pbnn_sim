@@ -1,0 +1,11 @@
+# Default 256x256 sub-array config.
+rows: 256
+cols: 256
+dac:
+  n_bits: 5
+  v_min: 0.0
+  v_max: 1.1            # cover the Chapter 2.3 V_SOT scan range
+counter:
+  n_bits: 16
+ir_drop:
+  enabled: false

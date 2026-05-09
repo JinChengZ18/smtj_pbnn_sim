@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smtj_pbnn_sim"
+version = "0.1.0"
+description = "PyTorch-based hardware simulator for sMTJ-based probabilistic binary neural networks (PBNN)."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    {name = "Thesis simulator"},
+]
+dependencies = [
+    "torch>=2.0",
+    "torchvision>=0.15",
+    "numpy>=1.23",
+    "scipy>=1.10",
+    "pyyaml>=6.0",
+    "matplotlib>=3.6",
+    "pandas>=1.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+smtj-train  = "smtj_pbnn_sim.cli:train_entry"
+smtj-eval   = "smtj_pbnn_sim.cli:eval_entry"
+smtj-cal    = "smtj_pbnn_sim.cli:calibrate_entry"
+
+[tool.setuptools.packages.find]
+where = ["src"]

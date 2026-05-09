@@ -1,0 +1,51 @@
+# MNIST PBNN-MLP experiment, Chapter 2.3 primary-reference device.
+
+name: mnist_pbnn_mlp
+dataset: mnist
+seed: 0
+
+data:
+  root: ./data/mnist
+  batch_size: 128
+  num_workers: 2
+
+model:
+  hidden: 1024
+
+# Forward modes:  software | hardware_aware | full_stack
+train_mode: hardware_aware
+eval_mode:  hardware_aware
+T_full_stack: 16
+
+# Device parameters: primary reference, Chapter 2.3.
+device:
+  operating_point:
+    V_th_nom: 0.894
+    V_T_nom:  0.022422       # 1 / 44.6
+    t_p:      0.75e-9
+  neel_brown:
+    Delta_nom: 4.91
+    V_c0_nom:  0.857
+    tau_0:     1.0e-9
+  eta_c: 5.34
+  resistance:
+    R_P_nom: 4.9e3
+    TMR_nom: 1.0
+    R_SOT:   776.0
+
+# Variation: PDK-baseline CV(Delta) = 7.7 % (Chapter 2.3 Brinkman-decomposed).
+variation:
+  enabled: true
+  mode: delta
+  cv_delta: 0.077
+  sigma_RP_rel: 0.05
+  sigma_TMR_rel: 0.10
+  seed: 42
+
+optim:
+  lr: 1.0e-3
+  weight_decay: 0.0
+
+epochs: 20
+mi_beta: 0.0
+bin_alpha: 0.0

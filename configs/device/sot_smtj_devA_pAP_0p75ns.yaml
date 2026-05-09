@@ -1,0 +1,15 @@
+device_type: sot_smtj
+operating_point:
+  V_th_nom: 0.895783386747604
+  V_T_nom: 0.023413624598939815
+  beta_s: 42.71017482894471
+  t_p: 7.5e-10
+  fit_r2: 0.9919404256646248
+  fit_rmse: 0.03465719979284548
+  n_points: 12
+resistance:
+  R_P_nom: 4900.0
+  TMR_nom: 1.0
+  R_SOT: 776.0
+eta_c: 5.34
+note: Auto-fit by 01_device_calibration.py from Chapter 2.3 CSV.
