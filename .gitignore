@@ -13,4 +13,6 @@ runs/
 *.log
 .DS_Store
 data/mnist/
+experiments/data/
 .claude/settings.local.json
+.claude/worktrees/

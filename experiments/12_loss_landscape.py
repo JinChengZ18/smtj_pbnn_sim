@@ -422,7 +422,7 @@ def main() -> None:
         ax.set_title(f"{name}  L_min={grid.min():.3f}  L_max={grid.max():.3f}")
         ax.legend(loc="upper right", fontsize=9)
         plt.colorbar(cs, ax=ax, label="test loss")
-    fig_a.suptitle("12a: Local loss-landscape around each optimum  "
+    fig_a.suptitle("Local loss-landscape around each optimum  "
                     "(filter-normalized 2D random projection, Li et al. 2018)",
                     fontsize=14, y=1.02)
     fig_a.tight_layout()
@@ -452,7 +452,7 @@ def main() -> None:
                      zorder=5, label=f"{name} optimum")
     ax_b.set_xlabel("PC 1")
     ax_b.set_ylabel("PC 2")
-    ax_b.set_title("12b: Optimizer trajectories in shared 2-D PCA projection  "
+    ax_b.set_title("Optimizer trajectories in shared 2-D PCA projection  "
                     f"(circle = init, star = final;  PC1+PC2 = "
                     f"{(S[0]**2 + S[1]**2) / (S**2).sum() * 100:.1f}% variance)",
                     fontsize=12)
@@ -471,7 +471,7 @@ def main() -> None:
                   markersize=5, label=f"{nA}  →  {nB}")
     ax_c.set_xlabel(r"interpolation $\alpha$:  $\theta(\alpha) = (1 - \alpha)\,\theta_A + \alpha\,\theta_B$")
     ax_c.set_ylabel("test loss")
-    ax_c.set_title("12c: Pairwise linear interpolation between optima  "
+    ax_c.set_title("Pairwise linear interpolation between optima  "
                     "(barriers = distinct basins, monotone = co-aligned)",
                     fontsize=12)
     ax_c.legend(loc="best")

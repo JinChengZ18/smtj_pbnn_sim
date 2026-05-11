@@ -392,12 +392,12 @@ def _part2_accuracy_ablation(out_dir: Path, run_dir: Path | None = None) -> None
     _ax_setup(ax[0],
               r"$\sigma_{\rm rel}(V_{\rm th})$  (%)"
               r"  [$\sigma(V_T) = 2\times$]",
-              r"(a) D2D:  $V_{\rm th}$ + $V_T$ jointly")
+              r"D2D:  $V_{\rm th}$ + $V_T$ jointly")
 
     # ------ (b) sigma_rel(V_th) sweep ------
     svth_vals = [0.0, 0.02, 0.05, 0.08, 0.10, 0.15, 0.20]
     accs_b = []
-    print("  (b) sigma_rel(V_th) sweep:")
+    print("  sigma_rel(V_th) sweep:")
     for sv in svth_vals:
         if sv == 0:
             vc = None
@@ -436,7 +436,7 @@ def _part2_accuracy_ablation(out_dir: Path, run_dir: Path | None = None) -> None
     ax[2].plot([v * 100 for v in svt_vals], accs_c, "D-",
                color=PURPLE["dark"], lw=2, ms=5)
     _ax_setup(ax[2], r"$\sigma_{\rm rel}(V_T)$  (%)",
-              r"(c) D2D:  $V_T$ slope")
+              r"D2D:  $V_T$ slope")
 
     # ------ (d) sigma_C2C sweep ------
     V_T_nom = dp_base.V_T_nom
@@ -451,7 +451,7 @@ def _part2_accuracy_ablation(out_dir: Path, run_dir: Path | None = None) -> None
     ax[3].plot(sc2c_mults, accs_d, "^-",
                color=PURPLE["dark"], lw=2, ms=5)
     _ax_setup(ax[3], r"$\sigma_{\rm C2C}$  (multiples of $V_T$)",
-              r"(d) C2C noise")
+              r"C2C noise")
 
     # ------ (e) p_max sweep ------
     pm_vals = [1.0, 0.95, 0.90, 0.85, 0.80, 0.72, 0.60, 0.55]
@@ -469,7 +469,7 @@ def _part2_accuracy_ablation(out_dir: Path, run_dir: Path | None = None) -> None
     ax[4].legend(loc="lower left", frameon=False)
     ax[4].invert_xaxis()
     _ax_setup(ax[4], r"$p_{\rm max}$",
-              r"(e) back-hopping plateau")
+              r"back-hopping plateau")
 
     # ------ (f) combined: D2D + p_max + C2C ------
     # Fix D2D at sigma_V_th=5%, sigma_V_T=10%, sweep C2C at two p_max levels.
@@ -496,7 +496,7 @@ def _part2_accuracy_ablation(out_dir: Path, run_dir: Path | None = None) -> None
                    lw=2, ms=5, label=f"D2D + {label}")
     ax[5].legend(loc="lower left", frameon=False)
     _ax_setup(ax[5], r"$\sigma_{\rm C2C}$  (multiples of $V_T$)",
-              "(f) combined: D2D + plateau + C2C")
+              "combined: D2D + plateau + C2C")
 
     fig.suptitle(
         "Non-ideality ablation: MNIST PBNN-MLP accuracy (FULL\\_STACK, "

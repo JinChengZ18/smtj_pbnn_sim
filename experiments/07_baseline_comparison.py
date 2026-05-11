@@ -507,21 +507,21 @@ def main() -> None:
 
     panel_cfg = [
         (axes[0, 0], results["gaussian"],
-         r"Input noise $\sigma$", "(a) Additive Gaussian"),
+         r"Input noise $\sigma$", "Additive Gaussian"),
         (axes[0, 1], results["salt_pepper"],
-         "Corrupted pixel fraction", "(b) Salt-and-pepper"),
+         "Corrupted pixel fraction", "Salt-and-pepper"),
         (axes[0, 2], results["speckle"],
-         r"Speckle $\sigma$", "(c) Speckle (multiplicative)"),
+         r"Speckle $\sigma$", "Speckle (multiplicative)"),
         (axes[0, 3], results["blur"],
-         r"Blur $\sigma$ (px)", "(d) Gaussian blur"),
+         r"Blur $\sigma$ (px)", "Gaussian blur"),
         (axes[1, 0], results["cutout"],
-         "Cutout patch size (px)", "(e) Cutout / occlusion"),
+         "Cutout patch size (px)", "Cutout / occlusion"),
         (axes[1, 1], results["brightness"],
-         r"Brightness shift $b$", "(f) Brightness shift"),
+         r"Brightness shift $b$", "Brightness shift"),
         (axes[1, 2], results["weight_perturb"],
-         r"Weight noise $\sigma_w$", "(g) Weight perturbation"),
+         r"Weight noise $\sigma_w$", "Weight perturbation"),
         (axes[1, 3], results["pgd"],
-         r"PGD $\epsilon$ (L$_\infty$)", "(h) PGD-10 adversarial"),
+         r"PGD $\epsilon$ (L$_\infty$)", "PGD-10 adversarial"),
     ]
 
     for ax, r, xlabel, title in panel_cfg:

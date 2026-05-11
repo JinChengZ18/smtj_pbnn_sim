@@ -191,7 +191,7 @@ def main() -> None:
     ax.set_xscale("log")
     ax.set_xlabel("Total training energy (20 epochs, 9380 batches) [J, log scale]",
                    fontsize=12)
-    ax.set_title("13a: End-to-end training energy across 9 CIM architectures  "
+    ax.set_title("End-to-end training energy across 9 CIM architectures  "
                   f"(MNIST PBNN-MLP, T={T} for probabilistic-binary variants)",
                   fontsize=13)
     ax.legend(loc="lower right", fontsize=10)
