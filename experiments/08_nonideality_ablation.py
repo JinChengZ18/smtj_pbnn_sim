@@ -161,7 +161,7 @@ def _part1_psw_curves(out_dir: Path) -> None:
     svth_values = [0.0, 0.02, 0.05, 0.10, 0.20]
     colors_b = _gradient_colors(len(svth_values), PURPLE["darkest"],
                                 PURPLE["accent"])
-    _plot_common(ax[1], r"(b) D2D:  $\sigma_{\rm rel}(V_{\rm th})$")
+    _plot_common(ax[1], r"D2D:  $\sigma_{\rm rel}(V_{\rm th})$")
     for i, sv in enumerate(svth_values):
         if sv == 0.0:
             p = p_ideal.copy()
@@ -397,7 +397,7 @@ def _part2_accuracy_ablation(out_dir: Path, run_dir: Path | None = None) -> None
     # ------ (b) sigma_rel(V_th) sweep ------
     svth_vals = [0.0, 0.02, 0.05, 0.08, 0.10, 0.15, 0.20]
     accs_b = []
-    print("  sigma_rel(V_th) sweep:")
+    print("(b)  sigma_rel(V_th) sweep:")
     for sv in svth_vals:
         if sv == 0:
             vc = None
