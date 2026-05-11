@@ -138,7 +138,7 @@ def _part1_psw_curves(out_dir: Path) -> None:
     colors_a = _gradient_colors(len(d2d_values), PURPLE["darkest"],
                                 PURPLE["accent"])
     _plot_common(ax[0],
-                 r"(a) D2D:  $V_{\rm th}$+$V_T$ jointly")
+                 r"D2D:  $V_{\rm th}$+$V_T$ jointly")
     for i, sv in enumerate(d2d_values):
         if sv == 0.0:
             p = p_ideal.copy()
@@ -181,7 +181,7 @@ def _part1_psw_curves(out_dir: Path) -> None:
     svt_values = [0.0, 0.05, 0.10, 0.30, 0.60]
     colors_c = _gradient_colors(len(svt_values), PURPLE["darkest"],
                                 PURPLE["accent"])
-    _plot_common(ax[2], r"(c) D2D:  $\sigma_{\rm rel}(V_T)$")
+    _plot_common(ax[2], r"D2D:  $\sigma_{\rm rel}(V_T)$")
     for i, sv in enumerate(svt_values):
         if sv == 0.0:
             p = p_ideal.copy()
@@ -203,7 +203,7 @@ def _part1_psw_curves(out_dir: Path) -> None:
     sc2c_multiples = [0.0, 0.5, 1.0, 2.0, 4.0]
     colors_d = _gradient_colors(len(sc2c_multiples), PURPLE["darkest"],
                                 PURPLE["accent"])
-    _plot_common(ax[3], r"(d) C2C noise  $\sigma_{\rm C2C}$")
+    _plot_common(ax[3], r"C2C noise  $\sigma_{\rm C2C}$")
     n_cycles = 3000
     for i, m in enumerate(sc2c_multiples):
         sigma = m * V_T_nom
@@ -226,7 +226,7 @@ def _part1_psw_curves(out_dir: Path) -> None:
     pm_values = [1.0, 0.95, 0.85, 0.72, 0.55]
     colors_e = _gradient_colors(len(pm_values), PURPLE["darkest"],
                                 PURPLE["accent"])
-    _plot_common(ax[4], r"(e) back-hopping  $p_{\rm max}$")
+    _plot_common(ax[4], r"back-hopping  $p_{\rm max}$")
     for i, pm in enumerate(pm_values):
         p = np.clip(p_ideal, 1.0 - pm, pm)
         lw = 2.4 if pm == 1.0 else 1.6
@@ -237,7 +237,7 @@ def _part1_psw_curves(out_dir: Path) -> None:
 
     # ------ (f) combined calibrated device ------
     # D2D (sigma_V_th=5%, sigma_V_T=10%) + back-hopping + C2C
-    _plot_common(ax[5], "(f) combined: D2D + plateau + C2C")
+    _plot_common(ax[5], "combined: D2D + plateau + C2C")
 
     V_wr_grid = V_th_nom + V_T_nom * theta[None, :]
 
@@ -414,7 +414,7 @@ def _part2_accuracy_ablation(out_dir: Path, run_dir: Path | None = None) -> None
     ax[1].plot([v * 100 for v in svth_vals], accs_b, "s-",
                color=PURPLE["dark"], lw=2, ms=5)
     _ax_setup(ax[1], r"$\sigma_{\rm rel}(V_{\rm th})$  (%)",
-              r"(b) D2D:  $V_{\rm th}$ shift")
+              r"D2D:  $V_{\rm th}$ shift")
 
     # ------ (c) sigma_rel(V_T) sweep ------
     svt_vals = [0.0, 0.05, 0.10, 0.20, 0.30, 0.50, 0.80]
