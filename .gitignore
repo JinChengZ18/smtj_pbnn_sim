@@ -13,6 +13,8 @@ runs/
 *.log
 .DS_Store
 data/mnist/
+data/cifar10/
+data/fashion_mnist/
 experiments/data/
 .claude/settings.local.json
 .claude/worktrees/

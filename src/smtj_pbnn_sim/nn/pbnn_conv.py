@@ -71,6 +71,28 @@ class PBNNConv2d(torch.nn.Module):
         self._variation_drawn = False
 
     # ------------------------------------------------------------------#
+    # Variation field bookkeeping (mirrors PBNNLinear)                    #
+    # ------------------------------------------------------------------#
+
+    def _load_from_state_dict(self, state_dict, prefix, local_metadata,
+                              strict, missing_keys, unexpected_keys,
+                              error_msgs):
+        # Variation buffers are lazily initialized with shape (0,); resize
+        # them to match the checkpoint shape before the base class copies
+        # values, then force a re-draw on next forward to keep the field
+        # consistent with the current variation_cfg (e.g. None at eval).
+        for buf_name in ("V_th_field", "V_T_field"):
+            key = prefix + buf_name
+            if key in state_dict and state_dict[key].shape != getattr(self, buf_name).shape:
+                cur_dev = getattr(self, buf_name).device
+                setattr(self, buf_name,
+                        torch.empty(state_dict[key].shape,
+                                    device=cur_dev,
+                                    dtype=state_dict[key].dtype))
+        super()._load_from_state_dict(
+            state_dict, prefix, local_metadata, strict,
+            missing_keys, unexpected_keys, error_msgs)
+        self._variation_drawn = False
 
     def _ensure_variation(self, device: torch.device) -> None:
         if self._variation_drawn:
@@ -101,11 +123,48 @@ class PBNNConv2d(torch.nn.Module):
         self.V_T_field  = V_T
         self._variation_drawn = True
 
+    def _harden(self, p_soft: Tensor) -> Tensor:
+        """Snap p to {0, 1} with STE-style gradient (matches PBNNLinear).
+
+        Forward:  ``p_hard ∈ {0, 1}``  →  ``w = 2 p_hard - 1 = sign(θ)``
+        Backward: gradient flows through ``p_soft`` so ``dp/dθ`` stays
+        smooth via the sigmoid derivative.
+
+        Without this trick, training uses continuous ``2σ(θ)-1`` weights
+        whose magnitude depends on |θ|; after post-training θ-scaling the
+        forward distribution shifts, breaking BatchNorm calibration in
+        deeper CNNs. Hardening keeps the forward strictly binary so BN
+        running stats remain valid across HARDWARE_AWARE and FULL_STACK.
+        """
+        p_hard = (self.theta >= 0).float()
+        return p_hard.detach() + p_soft - p_soft.detach()
+
     def _p_software(self) -> Tensor:
-        return torch.sigmoid(self.theta)
+        return self._harden(torch.sigmoid(self.theta))
 
     def _p_hardware(self) -> Tensor:
-        V_wr = self.V_th_field + self.V_T_field * self.theta
+        """Binary p for HARDWARE_AWARE mode (train and eval).
+
+        Matches PBNNLinear semantics: nominal-DAC voltage on theta, then
+        per-cell variation through the device sigmoid, then STE-hardened
+        to {0,1} so the forward uses sign(theta).
+        """
+        dp = self.device_params
+        V_wr = dp.V_th_nom + dp.V_T_nom * self.theta
+        p_soft = psw_sigmoid(V_wr, self.V_th_field, self.V_T_field)
+        return self._harden(p_soft)
+
+    def _p_soft_for_sampling(self) -> Tensor:
+        """True (soft) switching probability for FULL_STACK Bernoulli sampling.
+
+        Mirrors PBNNLinear._p_soft_for_sampling: returns the *soft* p (no
+        hardening) so Bernoulli draws reflect per-cell variation. After
+        training with hard binary weights, learned theta will have large
+        magnitudes so sigmoid(theta) is near 0/1 and Bernoulli samples
+        are near-deterministic.
+        """
+        dp = self.device_params
+        V_wr = dp.V_th_nom + dp.V_T_nom * self.theta
         return psw_sigmoid(V_wr, self.V_th_field, self.V_T_field)
 
     # ------------------------------------------------------------------#
@@ -143,7 +202,10 @@ class PBNNConv2d(torch.nn.Module):
         elif mode is ForwardMode.FULL_STACK:
             T_eff = self.T_full_stack if T is None else int(T)
             with torch.no_grad():
-                p = self._p_hardware()
+                # Use soft p for Bernoulli sampling (mirrors PBNNLinear).
+                # After theta scaling, p is near {0,1} so samples are
+                # near-deterministic and converge to sign(theta).
+                p = self._p_soft_for_sampling()
                 acc: Optional[Tensor] = None
                 for _ in range(T_eff):
                     w = _bernoulli_pm1(p)

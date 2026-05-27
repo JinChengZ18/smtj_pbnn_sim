@@ -1,21 +1,26 @@
-"""05 -- MNIST PBNN-MLP training, with FP-MLP baseline comparison.
+"""05 -- MNIST PBNN-MLP training, with BNN and FP-MLP baselines.
 
 Trains the 3-layer PBNN-MLP defined in
 ``smtj_pbnn_sim.scripts._mnist_train`` using the Chapter-2.3 primary-
 reference device parameters and PDK-baseline variation, then trains a
-matched-architecture full-precision MLP under identical hyper-parameters
-(Adam lr=1e-3, batch 128, 20 epochs, hidden=1024) so the per-epoch
-training curves can be compared.
+matched-architecture deterministic BNN (DeterministicBinaryLinear + BN +
+sign-STE, i.e. the digital-BNN special case of PBNN at single-point
+sampling) and full-precision / QAT-quantized MLPs under identical
+hyper-parameters (Adam lr=1e-3, batch 128, 20 epochs, hidden=1024) so
+the per-epoch training curves can be compared.
 
 Demonstrates that **PBNN converges to FP-comparable accuracy at the
-same epoch count** even though every weight is binary at inference.
+same epoch count** even though every weight is binary at inference,
+and that **PBNN matches or exceeds the digital BNN baseline** while
+additionally providing the time-domain unfolding knob.
 
 Outputs:
   - runs/05_mnist_pbnn_<ts>/{best.pt, metrics.csv, summary.json}
                                                  (PBNN, via the CLI run())
-  - runs/05_mnist_pbnn_<ts>/fp_metrics.csv       FP-MLP per-epoch metrics
+  - runs/05_mnist_pbnn_<ts>/bnn_metrics.csv      BNN per-epoch metrics
+  - runs/05_mnist_pbnn_<ts>/fp_*_metrics.csv     FP/INT-QAT per-epoch metrics
   - figures/05_mnist_training_curves.png         2-panel: accuracy + loss
-                                                 vs epoch, PBNN vs FP-MLP
+                                                 vs epoch, PBNN vs BNN vs FP
   - runs/mnist_pbnn_mlp/best.pt                  stable copy for downstream
                                                  experiments
 
@@ -169,6 +174,105 @@ def _load_pbnn_metrics(metrics_csv: Path):
     return h
 
 
+def _train_bnn(out_dir: Path, hidden: int, n_epochs: int,
+               batch_size: int, lr: float):
+    """Train a deterministic BNN-MLP (sign-STE, no device modelling).
+
+    This is the special case of PBNN at single-point sampling without
+    sMTJ stochasticity: weights are w = sign(W_real) via the
+    straight-through estimator, with BatchNorm and sign-STE activations.
+    Identical depth/width and optimiser to the PBNN/FP baselines so
+    the per-epoch curves are directly comparable.
+    """
+    import csv
+    import torch
+    from torch import nn
+    from smtj_pbnn_sim.nn.deterministic_bnn import DeterministicBinaryLinear
+    from smtj_pbnn_sim.nn.batchnorm import BinaryBatchNorm1d
+    from smtj_pbnn_sim.nn.ste import sign_ste
+    from smtj_pbnn_sim.data.mnist import get_mnist_loaders
+    from smtj_pbnn_sim.utils.seeding import set_global_seed
+    from smtj_pbnn_sim.utils.logging import log
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    set_global_seed(0)
+    train_loader, test_loader = get_mnist_loaders(
+        root="./data/mnist", batch_size=batch_size, num_workers=0)
+
+    class BNN_MLP(nn.Module):
+        def __init__(self, hidden: int = 1024):
+            super().__init__()
+            self.fc1 = DeterministicBinaryLinear(28 * 28, hidden)
+            self.bn1 = BinaryBatchNorm1d(hidden)
+            self.fc2 = DeterministicBinaryLinear(hidden, hidden)
+            self.bn2 = BinaryBatchNorm1d(hidden)
+            self.fc3 = DeterministicBinaryLinear(hidden, 10)
+
+        def forward(self, x):
+            x = x.view(x.size(0), -1)
+            h = sign_ste(self.bn1(self.fc1(x)))
+            h = sign_ste(self.bn2(self.fc2(h)))
+            return self.fc3(h)
+
+    model = BNN_MLP(hidden=hidden).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    criterion = nn.CrossEntropyLoss()
+
+    history = {"train_loss": [], "train_acc": [],
+               "test_loss":  [], "test_acc":  [], "epoch_s": []}
+
+    for epoch in range(n_epochs):
+        t0 = time.time()
+        model.train()
+        tr_loss_sum, tr_correct, n_seen = 0.0, 0, 0
+        for x, y in train_loader:
+            x = x.to(device, non_blocking=True)
+            y = y.to(device, non_blocking=True)
+            logits = model(x)
+            loss = criterion(logits, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            tr_loss_sum += float(loss.item()) * x.size(0)
+            tr_correct += int((logits.argmax(1) == y).sum().item())
+            n_seen += x.size(0)
+
+        model.eval()
+        te_loss_sum, te_correct, n_te = 0.0, 0, 0
+        with torch.no_grad():
+            for x, y in test_loader:
+                x = x.to(device, non_blocking=True)
+                y = y.to(device, non_blocking=True)
+                logits = model(x)
+                te_loss_sum += float(criterion(logits, y).item()) * x.size(0)
+                te_correct += int((logits.argmax(1) == y).sum().item())
+                n_te += x.size(0)
+
+        elapsed = time.time() - t0
+        history["train_loss"].append(tr_loss_sum / max(1, n_seen))
+        history["train_acc"].append(tr_correct / max(1, n_seen))
+        history["test_loss"].append(te_loss_sum / max(1, n_te))
+        history["test_acc"].append(te_correct / max(1, n_te))
+        history["epoch_s"].append(elapsed)
+        log(f"[BNN  ] epoch {epoch + 1:02d}/{n_epochs}  "
+            f"train acc={history['train_acc'][-1]:.4f}  "
+            f"test acc={history['test_acc'][-1]:.4f}  ({elapsed:.1f}s)")
+
+    csv_path = out_dir / "bnn_metrics.csv"
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["epoch", "train_loss", "train_acc",
+                    "test_loss", "test_acc", "elapsed_s"])
+        for e in range(n_epochs):
+            w.writerow([e + 1,
+                        f"{history['train_loss'][e]:.6f}",
+                        f"{history['train_acc'][e]:.6f}",
+                        f"{history['test_loss'][e]:.6f}",
+                        f"{history['test_acc'][e]:.6f}",
+                        f"{history['epoch_s'][e]:.2f}"])
+    return history
+
+
 def main() -> None:
     try:
         import torch  # noqa: F401
@@ -224,6 +328,13 @@ def main() -> None:
             out_dir, hidden=hidden, n_epochs=n_epochs,
             batch_size=batch, lr=lr, bits=bits)
 
+    # ----- Part 2b: train digital BNN baseline (sign-STE, no sMTJ) ------
+    print("\n" + "=" * 70)
+    print("Part 2b: Training digital BNN baseline (sign-STE, no sMTJ)")
+    print("=" * 70)
+    bnn_history = _train_bnn(out_dir, hidden=hidden, n_epochs=n_epochs,
+                              batch_size=batch, lr=lr)
+
     # ----- Part 3: load PBNN metrics and plot training curves -----
     print("\n" + "=" * 70)
     print("Part 3: Generating training-curve figure")
@@ -239,11 +350,16 @@ def main() -> None:
     fig, axes = plt.subplots(1, 2, figsize=(14, 5.5))
     epochs = list(range(1, n_epochs + 1))
 
+    bnn_color = "#D97706"  # warm amber for the digital BNN baseline
+
     # Accuracy panel
     ax = axes[0]
     ax.plot(epochs, [a * 100 for a in pbnn_history["test_acc"]], "o-",
             color="#4B1369", lw=2.2, markersize=5,
-            label=f"PBNN-MLP (binary ±1)")
+            label=f"PBNN-MLP (binary ±1, sMTJ)")
+    ax.plot(epochs, [a * 100 for a in bnn_history["test_acc"]], "s-",
+            color=bnn_color, lw=2.0, markersize=4.5,
+            label="BNN-MLP (digital, sign-STE)")
     for bits in fp_bit_widths:
         h = fp_histories[bits]
         ax.plot(epochs, [a * 100 for a in h["test_acc"]], "D-",
@@ -260,7 +376,10 @@ def main() -> None:
     ax = axes[1]
     ax.plot(epochs, pbnn_history["test_loss"], "o-",
             color="#4B1369", lw=2.2, markersize=5,
-            label="PBNN-MLP (binary ±1)")
+            label="PBNN-MLP (binary ±1, sMTJ)")
+    ax.plot(epochs, bnn_history["test_loss"], "s-",
+            color=bnn_color, lw=2.0, markersize=4.5,
+            label="BNN-MLP (digital, sign-STE)")
     for bits in fp_bit_widths:
         h = fp_histories[bits]
         ax.plot(epochs, h["test_loss"], "D-",
@@ -287,9 +406,14 @@ def main() -> None:
 
     # ----- Summary -----
     pbnn_best = max(pbnn_history["test_acc"])
+    bnn_best = max(bnn_history["test_acc"])
     print("\n--- Summary ---")
-    print(f"  PBNN-MLP (binary ±1) best test acc = {pbnn_best * 100:.2f}%  "
+    print(f"  PBNN-MLP (binary ±1, sMTJ) best test acc = "
+          f"{pbnn_best * 100:.2f}%  "
           f"(final = {pbnn_history['test_acc'][-1] * 100:.2f}%)")
+    print(f"  BNN-MLP  (sign-STE, digital) best test acc = "
+          f"{bnn_best * 100:.2f}%  "
+          f"(final = {bnn_history['test_acc'][-1] * 100:.2f}%)")
     for bits in fp_bit_widths:
         h = fp_histories[bits]
         best = max(h["test_acc"])
