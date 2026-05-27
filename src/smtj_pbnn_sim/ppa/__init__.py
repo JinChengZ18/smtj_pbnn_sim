@@ -10,6 +10,10 @@ from .training_energy import (
     pbnn_step_energy, pbnn_stoch_step_energy,
     fp_step_energy, network_training_energy,
 )
+from .reservoir_energy import (
+    ReservoirHW, smtj_rc_step_energy, smtj_rc_inference_energy,
+    digital_esn_step_energy, digital_esn_inference_energy,
+)
 
 __all__ = [
     "TechParams",
@@ -27,4 +31,9 @@ __all__ = [
     "pbnn_stoch_step_energy",
     "fp_step_energy",
     "network_training_energy",
+    "ReservoirHW",
+    "smtj_rc_step_energy",
+    "smtj_rc_inference_energy",
+    "digital_esn_step_energy",
+    "digital_esn_inference_energy",
 ]

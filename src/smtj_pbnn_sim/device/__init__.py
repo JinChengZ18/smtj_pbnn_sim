@@ -10,9 +10,17 @@ about 7.7% as a Gaussian on Delta).
 
 from .arrhenius import (
     psw_neel_brown,
+    neel_brown_rate,
     psw_sigmoid,
     vth_neel_brown,
     sigmoid_params_from_neel_brown,
+)
+from .telegraph import (
+    TelegraphParams,
+    TelegraphArray,
+    up_down_rates,
+    stationary_mean,
+    relaxation_time,
 )
 from .tmr import (
     MTJResistance,
@@ -34,9 +42,15 @@ from .calibration import (
 
 __all__ = [
     "psw_neel_brown",
+    "neel_brown_rate",
     "psw_sigmoid",
     "vth_neel_brown",
     "sigmoid_params_from_neel_brown",
+    "TelegraphParams",
+    "TelegraphArray",
+    "up_down_rates",
+    "stationary_mean",
+    "relaxation_time",
     "MTJResistance",
     "conductance_from_state",
     "sot_write_energy",

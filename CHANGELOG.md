@@ -163,6 +163,65 @@ Files that should NOT be modified unless you have a specific reason:
 
 ---
 
+## 0.3.0 -- sMTJ reservoir-computing extension (hardware eval + device optimization)
+
+New research direction: repurpose the *same* calibrated sMTJ device as the
+dynamical substrate of a physical reservoir computer (RC), instead of a
+memoryless PBNN p-bit. Planning doc: `article/plan/chapter5_rc_plan.md`.
+
+### Added -- stateful device physics
+
+* **`device/arrhenius.py::neel_brown_rate`** -- additive: exposes the
+  continuous-time Néel-Brown hazard rate `W(V) = (1/tau_0) exp[-Delta(1-V/V_c0)]`
+  that already underlies `psw_neel_brown`. Needed because RC uses the rate, not
+  a pulse-integrated probability. Existing closed forms untouched; all
+  `test_arrhenius.py` rails still pass.
+* **`device/telegraph.py`** -- stateful two-state random-telegraph-noise model:
+  a population of superparamagnetic sMTJs as a continuous-time Markov process
+  with the exact two-state propagator (any `dt`). Closed forms:
+  `stationary_mean(V) = tanh(Delta V/V_c0)` (the nonlinearity) and
+  `relaxation_time(V) = 1/(r_up+r_dn)` (the tunable fading memory, ~68 ns at
+  zero bias for the Chapter 2.3 device). NumPy-only; not in the PBNN forward path.
+
+### Added -- reservoir layer (`src/smtj_pbnn_sim/reservoir/`)
+
+* `node.py` -- `SMTJReservoir`: fixed random pool of telegraph nodes, input
+  injection + optional spectral-radius-scaled recurrence, per-node Delta
+  heterogeneity, ensemble averaging (devices/node), and a noise-free
+  `meanfield` mode (the RC analogue of PBNN `software` mode). Couplings are
+  specified in ESN-effective units and converted to volts via the steep
+  transfer slope `Delta/V_c0` to stay in the echo-state regime.
+* `readout.py` -- closed-form ridge readout (the only trained part).
+* `tasks.py` -- NARMA-10, memory-capacity input, product-memory (nonlinear),
+  sine/square.
+* `metrics.py` -- NRMSE and linear memory capacity (Jaeger 2001).
+
+### Added -- PPA for RC (`ppa/reservoir_energy.py`)
+
+* `smtj_rc_*` and `digital_esn_*` energy on the Chapter-2.3 `tech_params`
+  footing; digital ESN bracketed between conventional digital MAC and an
+  optimistic in-array CIM lower bound.
+
+### Added -- experiments
+
+* `14_rc_prototype.py` -- viability: mean-field MC ~ 6.6, NARMA-10 NRMSE ~ 0.61;
+  real device (ensemble=96) MC ~ 2.0, NRMSE ~ 0.81. Surfaces the shot-noise limit.
+* `15_rc_device_optimization.py` -- **device guidance**: optimal barrier tracks
+  task timescale, `tau* ~ 2.3 dt`; RC optimum `Delta ~ 3.5` sits *below* the
+  PBNN write device's `Delta = 4.91` (RC wants a more superparamagnetic, lower-
+  barrier device); memory/nonlinearity Pareto set by operating-point bias.
+* `16_rc_hardware_ppa.py` -- **hardware eval**: sMTJ-RC replaces the digital
+  ESN's O(N^2) recurrent matmul with O(N x ensemble) analog physics; ~38x lower
+  energy than a conventional digital ESN and ~8x better energy-per-MC, though an
+  idealized ADC-free CIM ESN remains a cheaper floor (honest bracket).
+
+### Added -- tests
+
+* `tests/test_telegraph.py`, `tests/test_reservoir.py`, and RC-energy cases in
+  `tests/test_ppa.py`. Suite: 61 -> 93 passing.
+
+---
+
 ## 0.2.0 -- Local session, training pipeline and variation fix
 
 ### Fixed -- training pipeline (from non-functional to working)

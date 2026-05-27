@@ -108,6 +108,38 @@ def psw_neel_brown(
     return -_expm1(-rate)
 
 
+def neel_brown_rate(
+    V,
+    *,
+    tau_0: float = 1e-9,
+    Delta: float = 4.91,
+    V_c0: float = 0.857,
+):
+    """Néel-Brown thermal-activation *hazard rate* (per second).
+
+    This is the instantaneous escape rate that underlies
+    :func:`psw_neel_brown` (which integrates it over a pulse as
+    ``P_sw = 1 - exp(-rate * t_p)``):
+
+        W(V) = (1 / tau_0) * exp[ -Delta * (1 - V / V_c0) ].
+
+    Exposed separately because the time-domain telegraph model in
+    :mod:`smtj_pbnn_sim.device.telegraph` needs the continuous-time rate,
+    not a pulse-integrated probability. ``V`` may be a NumPy array or a
+    Torch tensor.
+
+    Args:
+        V: Bias voltage [V] in the *driven* direction. Backend-agnostic.
+        tau_0: Attempt time [s].
+        Delta: Dimensionless thermal stability factor.
+        V_c0: Zero-thermal critical voltage [V].
+
+    Returns:
+        Escape rate [1/s], same shape and backend as ``V``.
+    """
+    return (1.0 / tau_0) * _exp(-Delta * (1.0 - V / V_c0))
+
+
 def vth_neel_brown(
     t_p: float,
     *,

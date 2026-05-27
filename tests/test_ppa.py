@@ -8,6 +8,8 @@ from smtj_pbnn_sim.ppa import (
     default_28nm, per_mac_energy, layer_inference_energy,
     per_mac_latency, layer_inference_latency,
     tile_area, accelerator_area,
+    ReservoirHW, smtj_rc_step_energy, smtj_rc_inference_energy,
+    digital_esn_inference_energy,
 )
 
 
@@ -58,3 +60,45 @@ def test_accelerator_scales_with_num_tiles():
     a1 = accelerator_area(256, 256, 1, tech)
     a4 = accelerator_area(256, 256, 4, tech)
     assert math.isclose(a4 / a1, 4.0, rel_tol=1e-9)
+
+
+# -----------------------------------------------------------------------------#
+# Reservoir-computing energy model                                              #
+# -----------------------------------------------------------------------------#
+
+def test_rc_step_breakdown_components_positive():
+    tech = default_28nm()
+    bd = smtj_rc_step_energy(ReservoirHW(n_nodes=100, ensemble=96, dt=25e-9), tech)
+    assert set(bd) == {"drive", "DAC", "sense", "readout"}
+    assert all(v > 0 for v in bd.values())
+
+
+def test_rc_inference_scales_linearly_in_steps():
+    tech = default_28nm()
+    hw = ReservoirHW(n_nodes=64, ensemble=32, dt=20e-9)
+    e1 = smtj_rc_inference_energy(hw, tech, 100)
+    e10 = smtj_rc_inference_energy(hw, tech, 1000)
+    assert math.isclose(e10 / e1, 10.0, rel_tol=1e-9)
+
+
+def test_rc_drive_scales_linearly_in_ensemble():
+    """Device-drive energy is O(n_nodes * ensemble): doubling ensemble ~doubles it."""
+    tech = default_28nm()
+    a = smtj_rc_step_energy(ReservoirHW(n_nodes=50, ensemble=10, dt=20e-9), tech)
+    b = smtj_rc_step_energy(ReservoirHW(n_nodes=50, ensemble=20, dt=20e-9), tech)
+    assert math.isclose(b["drive"] / a["drive"], 2.0, rel_tol=1e-9)
+
+
+def test_digital_esn_scales_quadratically_in_N():
+    """Dense ESN recurrent cost is O(N^2): 2x nodes ~4x energy at large N."""
+    tech = default_28nm()
+    e1 = digital_esn_inference_energy(500, tech, 100)
+    e2 = digital_esn_inference_energy(1000, tech, 100)
+    assert 3.9 < e2 / e1 < 4.0   # ->4 as the N^2 term dominates
+
+
+def test_cim_lower_bound_cheaper_than_digital_mac():
+    tech = default_28nm()
+    e_dig = digital_esn_inference_energy(100, tech, 100, digital_mac=True)
+    e_cim = digital_esn_inference_energy(100, tech, 100, digital_mac=False)
+    assert e_cim < e_dig
