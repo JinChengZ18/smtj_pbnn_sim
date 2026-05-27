@@ -131,7 +131,7 @@ Mackey-Glass单步预测NRMSE低至0.006，随预测步长增至约0.04，表明
 
 [^rc_ipc]: Dambre J, Verstraeten D, Schrauwen B, Massar S. Information processing capacity of dynamical systems. *Scientific Reports*, 2012, 2: 514. [doi:10.1038/srep00514](https://doi.org/10.1038/srep00514)
 
-[^cmos_pbit_camsari]: Camsari K Y, Sutton B M, Datta S. p-Bits for probabilistic spin logic. *Proceedings of the IEEE*, 2020, 108(8): 1335–1340. [doi:10.1109/JPROC.2020.2966869](https://doi.org/10.1109/JPROC.2020.2966869)
+[^cmos_pbit_camsari]: Camsari K Y, Sutton B M, Datta S. p-bits for probabilistic spin logic. *Applied Physics Reviews*, 2019, 6(1): 011305. [doi:10.1063/1.5055860](https://doi.org/10.1063/1.5055860)
 
 [^borders_factor]: Borders W A, Pervaiz A Z, Fukami S, Camsari K Y, Ohno H, Datta S. Integer factorization using stochastic magnetic tunnel junctions. *Nature*, 2019, 573: 390–393. [doi:10.1038/s41586-019-1557-9](https://doi.org/10.1038/s41586-019-1557-9)
 
