@@ -1,6 +1,6 @@
 # Calibration guide
 
-How to fit Chapter 2.3-style P_sw(V) measurements into a device YAML that the simulator can consume.
+How to fit P_sw(V) measurements into a device YAML that the simulator can consume.
 
 ## Input format
 

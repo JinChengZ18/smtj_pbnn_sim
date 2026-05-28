@@ -113,4 +113,4 @@ smtj_pbnn_sim/
 
 ## License
 
-MIT (template; replace before publishing).
+MIT.
