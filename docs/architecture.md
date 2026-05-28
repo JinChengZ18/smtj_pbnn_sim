@@ -43,17 +43,27 @@ Modules respect strict layering. Higher layers import from lower layers, never t
        ┌────────────────────────────────────────────┐
        │ device/                                     │
        │ ─────                                       │
-       │ arrhenius (compact models)                  │
+       │ arrhenius (compact models, NB rate)         │
        │ tmr (resistance / SOT energy)               │
        │ variation (D2D sampling, NB or direct mode) │
        │ calibration (fits real data → YAML)         │
        │ llg_dynamics (reference only, not runtime)  │
+       │ telegraph (stateful two-state RTN, RC node) │
        └────────────────────────────────────────────┘
 
        ┌────────────────────────────────────────────┐
        │ sampling/  (cross-cutting; used by nn/, array/)
        │ ─────                                       │
        │ bernoulli_smtj, unfold, schedules           │
+       └────────────────────────────────────────────┘
+
+       ┌────────────────────────────────────────────┐
+       │ reservoir/  (parallel pipeline for RC)      │
+       │ ─────                                       │
+       │ node (SMTJReservoir, uses device.telegraph) │
+       │ readout (closed-form ridge regression)      │
+       │ tasks (NARMA-10, MC, Mackey-Glass, ...)     │
+       │ metrics (NRMSE, linear memory capacity)     │
        └────────────────────────────────────────────┘
 
        ┌────────────────────────────────────────────┐
@@ -64,6 +74,8 @@ Modules respect strict layering. Higher layers import from lower layers, never t
 ```
 
 The forbidden direction `device → nn` is enforced by convention; if broken, the device layer becomes useless for offline calibration scripts that don't have `nn/` set up (e.g., the chapter-2 verification plots).
+
+Reservoir computing (v0.3.0) is a sibling pipeline that *reuses* the same calibrated device but bypasses `nn/` and `array/` entirely: `experiments/14–19` → `reservoir/` → `device.telegraph` (which itself sits on `device.arrhenius`). Energy accounting for this pipeline lives in `ppa.reservoir_energy`. There is no autograd loop on the reservoir side — only the linear readout is trained, in closed form.
 
 ## 2. Three forward modes — call chain
 
@@ -173,12 +185,14 @@ Some modules support both NumPy and Torch backends; they detect the input type a
 | `sampling.unfold` | — | ✓ | accepts callable returning tensor |
 | `sampling.schedules` | ✓ | — | scalar / list arithmetic |
 | `ppa.*` | ✓ | — | scalar arithmetic |
+| `device.telegraph` | ✓ | — | NumPy two-state CTMC, no autograd |
+| `reservoir.*` | ✓ | — | NumPy node pool + closed-form ridge readout |
 
 This split lets calibration scripts and unit tests run in a torch-free environment while runtime code (training / eval) uses torch.
 
 ## 6. Key design choices
 
-* **Variation field is per-weight, not per-cell.** A single PBNNLinear weight is treated as one cell; tile-based mapping (e.g., one weight = 4 cells with 1 Bernoulli vote each) requires overriding `_ensure_variation`. Documented in HANDOFF §7.
+* **Variation field is per-weight, not per-cell.** A single PBNNLinear weight is treated as one cell; tile-based mapping (e.g., one weight = 4 cells with 1 Bernoulli vote each) requires overriding `_ensure_variation`.
 
 * **CLT shortcut over T-step sampling at training time.** We never unroll the time-domain T loop in the autograd graph; the reparameterized Gaussian gives the same expectation gradient with zero variance, at one MAC per layer instead of T MACs.
 
