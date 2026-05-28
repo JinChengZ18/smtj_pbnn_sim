@@ -1,4 +1,4 @@
-# 第四章 基于sMTJ的概率二值网络硬件仿真器
+# 第4章 基于sMTJ的概率二值网络硬件仿真器
 
 本章是全文主线下的第二类任务评估，与第三章的伊辛求解构成对偶：前者把sMTJ抽象为伊辛自旋以承担组合优化任务，本章则把同一硬件单元转作PBNN的概率二值权重，以承担机器学习推断任务。两类任务共用第二章所交付的Sigmoid接口$(u_{\mathrm{th}},\beta_s)$与同一仿真后端，区别仅在于上层调度——前者以全阵列同步演化至热平衡的方式进行优化，后者以按层有序前馈采样的方式进行推断。本章因此不是在PBNN算法层提出新的网络结构，而是把第一章所设计的全自旋三位一体架构与时域展开范式在机器学习任务上做完整工程化评估，回答同一物理阵列承担PBNN推断时，其精度、鲁棒性与能耗在跨架构条件下的相对位置如何。
 
@@ -26,7 +26,7 @@ PBNN要求节点具备随机二值输出。当施加于MTJ的写入脉冲接近�
 
 $$\beta_\mathrm{NB}=2\ln 2\cdot\Delta/V_\mathrm{c0}$$
 
-把Néel-Brown (NB) 斜率与Sigmoid斜率连接起来。增益$$\beta_s=1/V_T$$与偏置$$-\beta_s V_\mathrm{th}$$严格由底层物理参数决定，可作为器件-算法协同优化的入口[^krizakova2022]。MTJ的写入结果$$m\in\{0,1\}$$构成天然的伯努利样本$$m\sim\mathrm{Bernoulli}(P_\mathrm{sw})$$，经$$2m-1$$的极性反演直接对应PBNN所需的概率神经元$$\xi\sim 2\,\mathrm{Bernoulli}(p)-1$$。与传统CMOS方案的均匀随机数发生器加概率比较器级联实现相比，sMTJ把随机熵源与计算节点在器件层面原位融合，避免了独立TRNG模块带来的面积与能耗开销。这一融合带来的能量优势在4.7节中以4.2倍的训练能耗差异定量给出。
+把Néel-Brown (NB) 斜率与Sigmoid斜率连接起来。增益$$\beta_s=1/V_T$$与偏置$$-\beta_s V_\mathrm{th}$$严格由底层物理参数决定，可作为器件-算法协同优化的入口[^krizakova2022]。MTJ的写入结果$$m\in\{0,1\}$$构成天然的伯努利样本$$m\sim\mathrm{Bernoulli}(P_\mathrm{sw})$$，经$$2m-1$$的极性反演直接对应PBNN所需的概率神经元$$\xi\sim 2\,\mathrm{Bernoulli}(p)-1$$。与传统CMOS方案的均匀随机数发生器加概率比较器级联实现相比，sMTJ把随机熵源与计算节点在器件层面原位融合，避免了独立TRNG模块带来的面积与能耗开销。这一融合带来的能量优势在4.5节中以4.2倍的训练能耗差异定量给出。
 
 由上述两点，PBNN在MRAM-CIM架构内的前向传播被重构为物理与数学严格对应的闭环迭代。上一层生成的随机二值向量$$\boldsymbol{x}^{(r)}$$驱动MRAM阵列与固化权重$$\boldsymbol{W}$$执行XNOR-CIM运算，列电流向量正比于$$\boldsymbol{a}^{(r)}=\boldsymbol{W}\boldsymbol{x}^{(r)}$$；列端的数模混合电路把$$\boldsymbol{a}^{(r)}$$映射为下一层目标翻转概率$$\boldsymbol{p}^{(r+1)}=g(\boldsymbol{a}^{(r)})$$，并据此生成对应的物理写入激励参数；写入激励驱动后级采样MTJ阵列发生热随机翻转，输出新一轮独立状态$$\boldsymbol{x}^{(r+1)}\sim 2\,\mathrm{Bernoulli}(\boldsymbol{p}^{(r+1)})-\boldsymbol{1}$$。第一次迭代的输入$$\boldsymbol{x}^{(0)}$$来自确定性原始数据 (如图像像素经量化后的二值编码)，随机采样从第二层起逐层引入。该闭环前向的硬件实现如图4.1所示。
 
@@ -34,7 +34,7 @@ $$\beta_\mathrm{NB}=2\ln 2\cdot\Delta/V_\mathrm{c0}$$
 
 **图4.1** sMTJ-PBNN单层闭环前向的硬件实现示意。左侧MRAM-CIM权重阵列以差分单元承担确定性二值权重$$\boldsymbol{W}\in\{-1,+1\}$$，输入二值向量$$\boldsymbol{x}^{(r)}$$经位线电压编码后，列电流由基尔霍夫电流定律自动完成XNOR-popcount，得到$$\boldsymbol{a}^{(r)}=\boldsymbol{W}\boldsymbol{x}^{(r)}$$；中段非线性映射$$p=g(a)$$与写入驱动器将列电流转换为下一层目标翻转概率与对应的物理写脉冲；右侧采样MTJ阵列在亚临界写脉冲下发生热涨落翻转，输出新一轮Bernoulli样本$$\boldsymbol{x}^{(r+1)}$$；底部对$$T$$次独立样本作空间或时域平均即近似恢复推理期望$$\mathbb{E}[s]$$。该结构把概率神经元的随机熵源与权重计算单元在同一阵列内原位融合，无需独立TRNG模块。
 
-PBNN单次前向传播仅给出样本输出$$s^{(r)}$$，而网络推断的真实语义依赖于统计期望$$\mathbb{E}[s]=\sum_i w_i(2p_i-1)$$。对$$T$$个独立样本求均值$$\bar s_T=T^{-1}\sum_{r=1}^{T}s^{(r)}$$，依大数定律可渐近收敛于$$\mathbb{E}[s]$$，估计方差以$$\mathcal{O}(1/T)$$衰减。这一关系决定了概率网络在硬件实现中固有的精度-吞吐率权衡：采样次数越多估计方差越小，但延迟与能耗也按线性递增。MRAM-CIM的高并行列求和能力可同时利用空间并行 (多个MTJ单元独立翻转) 与时间复用 (同一单元重复写入生成bit-stream) 两种方式获取样本，从而部分缓解这一权衡；4.4节将给出$$T=4$$时MNIST精度即可达到$$T=64$$渐近值0.17个百分点之内的具体证据。期望恢复的收敛性依赖于零均值误差假设$$\mathbb{E}[\epsilon]=0$$。实际硬件中存在两类统计性质截然不同的误差：由MTJ热涨落引起的逐周期独立的循环间随机性C2C满足$$\mathbb{E}[\epsilon_\mathrm{C2C}]=0$$，可被多次采样平均消除，是支撑Bernoulli采样的有用随机源；而由器件制造离散性与寄生效应引起的器件间系统误差D2D在同一次推断中保持不变，$$\mathbb{E}[\epsilon_\mathrm{D2D}]\neq 0$$，无法通过增加采样次数由大数定律消除。综合电路级与器件级非理想，第$$r$$次采样的实际硬件输出可统一建模为
+PBNN单次前向传播仅给出样本输出$$s^{(r)}$$，而网络推断的真实语义依赖于统计期望$$\mathbb{E}[s]=\sum_i w_i(2p_i-1)$$。对$$T$$个独立样本求均值$$\bar s_T=T^{-1}\sum_{r=1}^{T}s^{(r)}$$，依大数定律可渐近收敛于$$\mathbb{E}[s]$$，估计方差以$$\mathcal{O}(1/T)$$衰减。这一关系决定了概率网络在硬件实现中固有的精度-吞吐率权衡：采样次数越多估计方差越小，但延迟与能耗也按线性递增。MRAM-CIM的高并行列求和能力可同时利用空间并行 (多个MTJ单元独立翻转) 与时间复用 (同一单元重复写入生成bit-stream) 两种方式获取样本，从而部分缓解这一权衡；4.3节将给出$$T=4$$时MNIST精度即可达到$$T=64$$渐近值0.17个百分点之内的具体证据。期望恢复的收敛性依赖于零均值误差假设$$\mathbb{E}[\epsilon]=0$$。实际硬件中存在两类统计性质截然不同的误差：由MTJ热涨落引起的逐周期独立的循环间随机性C2C满足$$\mathbb{E}[\epsilon_\mathrm{C2C}]=0$$，可被多次采样平均消除，是支撑Bernoulli采样的有用随机源；而由器件制造离散性与寄生效应引起的器件间系统误差D2D在同一次推断中保持不变，$$\mathbb{E}[\epsilon_\mathrm{D2D}]\neq 0$$，无法通过增加采样次数由大数定律消除。综合电路级与器件级非理想，第$$r$$次采样的实际硬件输出可统一建模为
 
 $$s^{(r)}=\underbrace{\sum_i w_i x_i^{(r)}}_{\text{ideal}}+\underbrace{\epsilon_\mathrm{IR}+\epsilon_\mathrm{leak}+\epsilon_{V_\mathrm{th}}}_{\text{D2D error}}+\underbrace{\epsilon_\mathrm{noise}}_{\text{C2C error}}$$
 
@@ -46,7 +46,7 @@ $$s^{(r)}=\underbrace{\sum_i w_i x_i^{(r)}}_{\text{ideal}}+\underbrace{\epsilon_
 
 sMTJ器件级仿真器关注随机翻转事件的统计性质而不直接接入神经网络。ARM公开的MRAM紧凑模型以随机Landau-Lifshitz-Gilbert-Slonczewski (s-LLGS) 方程为内核，提供Python与Verilog-A两套实现，并以Fokker-Planck求解器校准至给定写错误率，已用OOMMF微磁仿真验证[^smtj_arm_compact]；Rajpoot等人公开的STT/SHE-MTJ NGSPICE紧凑模型亦给出相近能力并兼容开源仿真链[^smtj_ngspice]。p-bit层面，Onizawa等人的GPU加速模拟退火框架以受变异修正的p-bit为采样源，对最大割 (MAX-CUT) 等组合优化问题获得相对CPU两个数量级的加速[^psl_gpu_sa]；Camsari等人系统综述了p-bit的电路实现与Bernoulli发生器的能耗代价；Borders等人展示了基于sMTJ的整数因子分解原型机[^borders_factor]，Sutton等人将其扩展为自治概率协处理器原型[^sutton_pbit]。这些工作主要服务于组合优化任务，更新规则为同步Gibbs或全异步，与PBNN所需的按层有序前馈不一致。Kaiser等人发表的基于sMTJ的in-situ玻尔兹曼机硬件感知学习电路与仿真[^kaiser_insitu_bm]是迄今最贴近本工作的先例，但仍以无向玻尔兹曼机为对象，不涉及前馈PBNN在大规模图像数据集上的精度评估。PBNN算法层面已有若干公开的PyTorch复现，包括Peters等人的原始论文复现[^pbnn_peters]以及Bayes-by-Backprop类工具如PyTorch-BayesianCNN[^bnn_bayescnn]与TyXe[^bnn_tyxe]，主要展示算法可行性而无硬件建模。将上述四类能力对照本工作目标——同时承担sMTJ Sigmoid采样、单比特Bernoulli权重、基于中心极限定理 (Central Limit Theorem，CLT) 的高斯化前向、时域展开、阵列级XNOR-popcount与PPA估算——没有一个既有工具是该交集的天然载体。本章因此选择以PyTorch自行搭建仿真流水线，复用社区已成熟的器件级与PPA估算结果 (Arrhenius $$P_\mathrm{sw}$$拟合参数、NeuroSim校准的工艺常数、aihwkit验证过的硬件感知训练范式)，但在网络层与采样层独立实现，以匹配sMTJ-PBNN的语义需求。
 
-## 4.3 仿真器分层架构与模块实现
+## 4.3 仿真器分层架构与器件层校准
 
 仿真器组织为五个解耦层次，配合一条贯穿各层的时域展开支柱。每一层只面向相邻层暴露最小接口，便于单元测试与独立替换。层次自底向上依次为器件层、阵列电路层、网络层、PPA估算层与实验基准层。器件层把第二章建立的sMTJ磁化动力学模型抽象为可微的紧凑函数，输出在给定写电压、脉冲宽度与温度下的Bernoulli参数；阵列电路层把$$N$$个器件并行组织为子阵列，仿真位线电流求和、外围数模转换器 (Digital-to-Analog Converter，DAC) 与计数器的有限精度行为；网络层基于PyTorch实现PBNN全连接层、PBNN卷积层与直通估计器 (Straight-Through Estimator，STE) 反向传播算子，并以CLT为捷径在训练时绕过显式逐样本采样；PPA层在给定网络结构、阵列配置与时域展开因子$$T$$的条件下输出能耗、延迟与面积；实验层封装训练循环、推理流程、不确定性量化与对照实验脚本。时域展开作为横向支柱被五层共享，管理$$T$$步采样的迭代调度、Bernoulli样本生成的数值实现以及采样次数$$T$$的退火与衰减曲线，从而将器件层的单次写概率提升为网络层的统计期望、并把PPA层的单步能耗乘以采样次数得到完整推理代价。各层与PyTorch自动微分的对接遵循同一原则：前向通路完整保留器件物理与阵列非理想，反向通路在不影响梯度估计无偏性的前提下采用最廉价的近似——sign算子的反向使用Bengio等人提出的直通估计器[^ste]，Bernoulli采样的反向通过CLT得到的高斯均值与方差表达直接求导，器件变异的随机抽样视为常数场而不参与反向。这一选择保证了任何由本仿真器训练出的网络都可以在不修改梯度图的前提下，通过仅替换前向算子实现训练阶段CLT解析逼近、推理阶段显式时域采样两种模式之间的切换。仿真器的整体分层与各模块依赖如图4.2所示。
 
@@ -54,13 +54,11 @@ sMTJ器件级仿真器关注随机翻转事件的统计性质而不直接接入�
 
 **图4.2** 分层硬件仿真器的模块组织。物理基底的器件层向上依次为阵列电路、网络、采样、PPA与实验层；左侧标注每层的主要输入 (器件实测$$P_\mathrm{sw}(V,t_\mathrm{p})$$曲线、MNIST/UCI数据集等)，右侧标注每层主要输出 (校准后的器件配置、CIM面积与每MAC能耗、训练后的检查点、$$T$$步推理精度曲线、PPA前/反/写细分、运行结果图与日志) ；底部时域展开模块以Bernoulli采样、unfold与$$\beta/T$$调度贯穿各层，把单次写概率提升为网络层期望。该组织把时域展开的算法语义与各层的物理模型严格分离，使采样次数、精度与能效在固定网络与阵列条件下能够独立扫描。
 
-器件层以一组紧凑函数把sMTJ的物理行为封装为可微的概率算子，包括Sigmoid响应$$P_\mathrm{sw}(V,t_\mathrm{p})$$、Néel-Brown临界电压函数$$V_\mathrm{th}(t_\mathrm{p},\Delta)$$及其解析斜率，并以非线性最小二乘对第二章的实测$$P_\mathrm{sw}(V,t_\mathrm{p})$$散点拟合得到$$(V_\mathrm{th},V_T)$$。在Device A、$$P\to\mathrm{AP}$$、$$t_\mathrm{p}=0.75\,\mathrm{ns}$$参考点上，拟合给出$$V_\mathrm{th}=895.8\,\mathrm{mV}$$、$$\beta_s=42.7\,\mathrm{V}^{-1}$$、$$R^2=0.992$$，与第二章的标定值$$894\,\mathrm{mV}$$、$$44.6\,\mathrm{V}^{-1}$$、$$0.993$$分别相差$$1.8\,\mathrm{mV}$$、$$1.9\,\mathrm{V}^{-1}$$与$$0.001$$，处于46点测量数据集的拟合噪声范围之内，这一一致性是后续所有上层结果的基础。变异模块接受由实测数据估计的$$(V_\mathrm{th},V_T)$$方差与协方差，对每个物理位置抽取一组保持不变的偏移量。变异来源既可以是直接对Sigmoid操作点的相对扰动 (直接Sigmoid模式)，也可以是先对势垒$$\Delta$$采样、再经NB-to-Sigmoid桥式公式$$\beta_\mathrm{NB}=2\ln 2\cdot\Delta/V_\mathrm{c0}$$传播至Sigmoid斜率 (NB桥式模式)。后者更贴近物理，因为第二章指出主导D2D通道是无量纲的热稳定因子$$\Delta$$，其变异系数 (Coefficient of Variation，CV) 在300 mm晶圆上约为7.7%，经Brinkman分解归因为66%来自MTJ柱直径、27%来自界面各向异性、7%来自饱和磁化。两万样本的Monte Carlo校验给出晶圆平均值$$\beta_s=42.37\,\mathrm{V}^{-1}$$，与第二章$$42.3\,\mathrm{V}^{-1}$$相差$$0.07\,\mathrm{V}^{-1}$$，桥式公式的解析-数值偏差在CV$$(\Delta)$$的0%至60%范围内均不超过0.2%。一个易错点是，NB桥式模式从势垒采样得到的$$V_\mathrm{th}$$中心值约为$$0.843\,\mathrm{V}$$，而Sigmoid直接拟合得到的$$V_\mathrm{th,nom}=0.894\,\mathrm{V}$$，两者间存在约$$50\,\mathrm{mV}$$的系统偏差，折算为$$2.26\,V_T$$；如果训练时按Sigmoid标定写电压、推理时却按NB桥式采样的$$V_\mathrm{th}$$读取概率，系统会在每个权重上叠加这一偏差，导致全栈评估精度大幅下降。为避免该陷阱，仿真器在加载检查点时强制变异场重抽，且推理脚本默认对预训练检查点禁用变异。隧穿磁阻 (Tunnel Magnetoresistance，TMR) 模块把P与AP两阻态的电导比$$G_P/G_\mathrm{AP}$$转化为位线电流贡献的实际幅值；自旋轨道矩 (Spin-Orbit Torque，SOT) 通道的写能耗按Ohmic耗散公式$$E_\mathrm{write}=V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$$给出，在第二章参考点$$V_\mathrm{wr}=0.90\,\mathrm{V}$$、$$R_\mathrm{SOT}=776\,\Omega$$、$$t_\mathrm{w}=0.75\,\mathrm{ns}$$下计算得$$0.78\,\mathrm{pJ}$$，这是PPA层中唯一物理量地标定的能量数。器件层另保留一份基于s-LLGS方程的宏自旋参考实现，仅在校准阶段使用，不参与神经网络前向。
+器件层以一组紧凑函数把sMTJ的物理行为封装为可微的概率算子，包括Sigmoid响应$$P_\mathrm{sw}(V,t_\mathrm{p})$$、Néel-Brown临界电压函数$$V_\mathrm{th}(t_\mathrm{p},\Delta)$$及其解析斜率，并以非线性最小二乘对第二章的实测$$P_\mathrm{sw}(V,t_\mathrm{p})$$散点拟合得到$$(V_\mathrm{th},V_T)$$。在Device A、$$P\to\mathrm{AP}$$、$$t_\mathrm{p}=0.75\,\mathrm{ns}$$参考点上，拟合给出$$V_\mathrm{th}=895.8\,\mathrm{mV}$$、$$\beta_s=42.7\,\mathrm{V}^{-1}$$、$$R^2=0.992$$，与第二章的标定值$$894\,\mathrm{mV}$$、$$44.6\,\mathrm{V}^{-1}$$、$$0.993$$分别相差$$1.8\,\mathrm{mV}$$、$$1.9\,\mathrm{V}^{-1}$$与$$0.001$$，处于46点测量数据集的拟合噪声范围之内，这一一致性是后续所有上层结果的基础。变异模块接受由实测数据估计的$$(V_\mathrm{th},V_T)$$方差与协方差，对每个物理位置抽取一组保持不变的偏移量。变异来源既可以是直接对Sigmoid操作点的相对扰动 (直接Sigmoid模式)，也可以是先对势垒$$\Delta$$采样、再经NB-to-Sigmoid桥式公式$$\beta_\mathrm{NB}=2\ln 2\cdot\Delta/V_\mathrm{c0}$$传播至Sigmoid斜率 (NB桥式模式)。后者更贴近物理，因为第二章指出主导D2D通道是无量纲的热稳定因子$$\Delta$$，其变异系数 (Coefficient of Variation，CV) 在300mm晶圆上约为7.7%，经Brinkman分解归因为66%来自MTJ柱直径、27%来自界面各向异性、7%来自饱和磁化。两万样本的Monte Carlo校验给出晶圆平均值$$\beta_s=42.37\,\mathrm{V}^{-1}$$，与第二章$$42.3\,\mathrm{V}^{-1}$$相差$$0.07\,\mathrm{V}^{-1}$$，桥式公式的解析-数值偏差在CV$$(\Delta)$$的0%至60%范围内均不超过0.2%。一个易错点是，NB桥式模式从势垒采样得到的$$V_\mathrm{th}$$中心值约为$$0.843\,\mathrm{V}$$，而Sigmoid直接拟合得到的$$V_\mathrm{th,nom}=0.894\,\mathrm{V}$$，两者间存在约$$50\,\mathrm{mV}$$的系统偏差，折算为$$2.26\,V_T$$；如果训练时按Sigmoid标定写电压、推理时却按NB桥式采样的$$V_\mathrm{th}$$读取概率，系统会在每个权重上叠加这一偏差，导致全栈评估精度大幅下降。为避免该陷阱，仿真器在加载检查点时强制变异场重抽，且推理脚本默认对预训练检查点禁用变异。隧穿磁阻 (Tunnel Magnetoresistance，TMR) 模块把P与AP两阻态的电导比$$G_P/G_\mathrm{AP}$$转化为位线电流贡献的实际幅值；自旋轨道矩 (Spin-Orbit Torque，SOT) 通道的写能耗按Ohmic耗散公式$$E_\mathrm{write}=V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$$给出，在第二章参考点$$V_\mathrm{wr}=0.90\,\mathrm{V}$$、$$R_\mathrm{SOT}=776\,\Omega$$、$$t_\mathrm{w}=0.75\,\mathrm{ns}$$下计算得$$0.78\,\mathrm{pJ}$$，这是PPA层中唯一物理量地标定的能量数。器件层另保留一份基于s-LLGS方程的宏自旋参考实现，仅在校准阶段使用，不参与神经网络前向。
 
 阵列电路层把器件层的Bernoulli样本组织为$$M\times N$$的子阵列，实现差分双端XNOR-popcount算子；外围电路以4到6比特DAC把潜参数$$\theta_{ij}$$转换为写电压并下发到行驱动，计数器以有限位整数累计$$T$$步的结果。可选的IR-drop模块以阻性梯子近似金属线压降，在$$256\times 256$$以下子阵列、典型工艺线宽下其对单比特读出的影响可被外围数字阈值吸收，仅以扫描方式评估而非默认开启。tile抽象封装一次完整的子阵列调用，作为网络层算子的最小硬件单元。网络层在PyTorch中实现PBNN全连接层与PBNN卷积层两种基本层。PBNN全连接层持有可训练张量$$\boldsymbol{\Theta}\in\mathbb{R}^{M\times N}$$，前向时按运行模式路由出三档行为。软件档使用理想的$$p_{ij}=\sigma(\theta_{ij})$$，不引入任何器件信息，主要用于复现已发表PBNN工作的基线；硬件感知档使用名义校准写电压$$V_\mathrm{wr}=V_\mathrm{th,nom}+V_T\cdot\theta_{ij}$$，把潜参数视为以名义器件为基准的逻辑标度，实际开关概率由每个单元的物理参数$$(V_{\mathrm{th},ij},V_{T,ij})$$决定，这是默认训练模式，在无变异时退化为$$\sigma(\theta_{ij})$$，在有变异时让梯度感知到设备失配引起的概率梯度变化；全栈档显式调用阵列层$$T$$次，由计数器累计估计期望，是评估模式，匹配真实硬件的推理行为。三档对应同一份$$\boldsymbol{\Theta}$$检查点，无需重新训练。为使批归一化 (Batch Normalization，BN) 的滑动统计在三档之间保持一致，仿真器采用硬二值STE技巧：前向输出$$p_\mathrm{hard}=\mathbb{1}[\theta\ge 0]$$对应$$w=\mathrm{sign}(\theta)\in\{-1,+1\}$$，反向梯度通过$$p_\mathrm{soft}=\sigma(\theta)$$回传，保留$$\partial p/\partial\theta=p_\mathrm{soft}(1-p_\mathrm{soft})$$的平滑性，使三档共用相同的硬二值前向、BN running stats可跨档复用。CLT高斯化前向在训练阶段把矩阵向量积$$\boldsymbol{w}\boldsymbol{x}$$近似为$$\mathcal{N}(\mu,\sigma^2)$$，其中$$\mu=(2\sigma(\boldsymbol{\Theta})-1)\boldsymbol{x}$$、$$\sigma^2=4\sigma(\boldsymbol{\Theta})(1-\sigma(\boldsymbol{\Theta}))\boldsymbol{x}^{\odot 2}$$，以单次解析计算代替$$T$$次显式抽样，使训练阶段的每步计算复杂度与一次确定性矩阵乘法相同，而不是$$T$$倍。PBNN卷积层通过PyTorch的unfold操作把卷积展开为等效Toeplitz矩阵以复用同一逻辑；针对二值激活的离散尺度，BatchNorm 1D/2D对归一化项做了参数化微调以避免标准BN在低位宽下的尺度漂移；损失模块在标准交叉熵之外提供互信息正则与权重二值化正则两个可选项。
 
-采样层接受$$(\theta_{ij},V_{\mathrm{th},ij},V_{T,ij})$$返回单次$$\pm 1$$样本，沿真实Bernoulli路径而非Gumbel等连续松弛实现，以保证与硬件一致；时域unfold在迭代中维护$$T$$步累加器并在末端归一化为期望估计；调度模块持有$$\beta(t)$$与按层深递增的$$T$$调度，便于扫描采样次数与精度的折线。PPA层引用NeuroSim系列在40 nm/28 nm工艺下校准的电路级常数 (SRAM和MTJ读写能量、ADC与DAC单位能量、H-tree互连能量、单元面积) 作为系数库：单次$$T$$步前向的能量被分解为DAC驱动、行写入、位线读出与计数累加四项，延迟被分解为DAC建立、sMTJ翻转脉冲、电流积分与计数四段，面积按子阵列规模、外围电路份额与片上互连给出估计，工艺常数表标注校准来源；该层仅作为相对比较的标尺，绝对数值在工艺切换或外围电路重新设计后须重新校准。最上层把上述各层组合为可执行实验：训练循环接受任意网络、运行模式与优化器组合，由YAML配置完整描述；推理流程提供单次采样、$$T$$步集成与不确定性量化三种调用方式；基线对比脚本封装与数字BNN、aihwkit基线在同一数据集与网络拓扑下的精度-能效对照。运行时统一创建带时间戳的输出目录，按轮记录损失、精度与时间至CSV，并在运行结束时落盘JSON摘要，确保任何实验都可以原样回放。
-
-## 4.4 器件层校准与算子验证
+采样层接受$$(\theta_{ij},V_{\mathrm{th},ij},V_{T,ij})$$返回单次$$\pm 1$$样本，沿真实Bernoulli路径而非Gumbel等连续松弛实现，以保证与硬件一致；时域unfold在迭代中维护$$T$$步累加器并在末端归一化为期望估计；调度模块持有$$\beta(t)$$与按层深递增的$$T$$调度，便于扫描采样次数与精度的折线。PPA层引用NeuroSim系列在40nm/28nm工艺下校准的电路级常数 (SRAM和MTJ读写能量、ADC与DAC单位能量、H-tree互连能量、单元面积) 作为系数库：单次$$T$$步前向的能量被分解为DAC驱动、行写入、位线读出与计数累加四项，延迟被分解为DAC建立、sMTJ翻转脉冲、电流积分与计数四段，面积按子阵列规模、外围电路份额与片上互连给出估计，工艺常数表标注校准来源；该层仅作为相对比较的标尺，绝对数值在工艺切换或外围电路重新设计后须重新校准。最上层把上述各层组合为可执行实验：训练循环接受任意网络、运行模式与优化器组合，由YAML配置完整描述；推理流程提供单次采样、$$T$$步集成与不确定性量化三种调用方式；基线对比脚本封装与数字BNN、aihwkit基线在同一数据集与网络拓扑下的精度-能效对照。运行时统一创建带时间戳的输出目录，按轮记录损失、精度与时间至CSV，并在运行结束时落盘JSON摘要，确保任何实验都可以原样回放。
 
 仿真器各层的可信度由三类相互独立的证据支撑。器件层的Sigmoid响应与方差结构由第二章的实测散点直接拟合得到，且其参数化形式由Arrhenius律的过渡区Taylor展开自然导出；算子层的CLT近似由合成线性问题上与显式蒙特卡洛的相对熵收敛行为验证；PPA层的工艺常数借用NeuroSim系列经RRAM-CIM macro post-layout硅验证后的校准值，仅作相对比较用。三类证据各自独立，避免循环论证。
 
@@ -86,7 +84,7 @@ sMTJ器件级仿真器关注随机翻转事件的统计性质而不直接接入�
 
 $$T=4$$时测试精度即达到97.51%，与$$T=64$$的渐近上限97.68%相差仅0.17个百分点；$$T=8$$进一步收敛至97.62%，此后的额外采样收益小于0.1个百分点而能耗按线性递增。因此后文的鲁棒性与能耗对比中默认采用$$T=4$$作为部署目标，这一选择把PBNN的推理能耗压缩至$$T=64$$版本的十六分之一，而精度损失在测量噪声以内。$$T=1$$已能给出96.91%的精度，原因是后训练时把潜参数$$\theta$$作了乘100的标度处理，使得$$\sigma(\theta)$$几乎都饱和在0或1，Bernoulli样本接近确定性，$$T$$主要补偿那些$$\theta$$仍处于0附近的少数权重。CLT路径与显式$$T$$步采样的一致性在合成数据上由单元测试直接验证：随机生成$$M=64,N=256,B=8$$的概率张量，CLT解析均值与500次显式Bernoulli样本的均值差异z-score在所有元素上均小于5；CLT输出的标准差按$$\sqrt{N}$$增长，与理论一致。在MNIST PBNN-MLP上，软件档 (理想Sigmoid) 训练得到的检查点经$$\theta\times 100$$标度后再用全栈$$T=4$$评估，精度从硬件感知训练时的96.98%回升至97.51%，差距与Bernoulli样本数从无穷大降到$$T=4$$的截断误差量级一致。
 
-## 4.5 训练流水线与基础精度
+## 4.4 训练流水线与基础精度
 
 训练以YAML配置完整描述实验：数据集、网络拓扑、运行模式、优化器、学习率调度器、采样次数与变异配置。训练默认使用硬件感知档，该档的硬二值前向使损失函数的梯度面与软件档几乎一致，但在反向传播时让梯度感知到变异引起的Sigmoid斜率变化。训练结束后，将潜参数$$\theta$$统一乘以100作为部署预处理，这一步不改变$$\mathrm{sign}(\theta)$$因而不影响硬件感知档的精度，但可使全栈档的Bernoulli样本几乎确定性，从而让$$T=4$$就能匹配$$T=64$$的精度。MNIST基线使用拓扑$$784\to 1024\to 1024\to 10$$、batch 128、Adam学习率$$10^{-3}$$、20轮，三档下的测试精度依次为96.98% (硬件感知)、97.51% (全栈$$T=4$$) 与97.68% (全栈$$T=64$$)。为分别评估二值随机权重相对高位宽确定性权重以及相对**确定性二值**权重的代价，同时训练了两类基线：相同拓扑的全精度MLP在四档比特宽度下的量化感知训练 (Quantization-Aware Training，QAT) 变体，使用对称INT-N量化加STE反向传播；以及相同拓扑的确定性二值BNN-MLP (DeterministicBinaryLinear+BatchNorm+sign-STE，不引入sMTJ随机翻转)，该基线在数学上等价于PBNN在单点采样且无器件随机性下的退化情形，可定量分离采样统计性与二值权重容量这两个变量各自的代价。MNIST PBNN-MLP的前向流图、训练曲线与$$T$$扫描如图4.4所示，最佳测试精度汇总于表4.2。
 
@@ -105,7 +103,7 @@ $$T=4$$时测试精度即达到97.51%，与$$T=64$$的渐近上限97.68%相差�
 | BNN-MLP (数字二值$$\pm 1$$，sign-STE) | 97.05% | $$-1.46$$pp |
 | PBNN-MLP (二值$$\pm 1$$，sMTJ) | 96.98% | $$-1.53$$pp |
 
-表4.2有四点提示。其一，MNIST足够简单，QAT能把INT2 (三值等价) 拉至FP32的0.3个百分点之内，比特宽度与精度的常识曲线在此被压平。其二，PBNN相对INT2的差距是1.23个百分点，是从三值$$\{-1,0,+1\}$$走至二值$$\{-1,+1\}$$ (无零选项) 的结构性代价，而非训练程序的不足。其三，BNN-MLP以97.05%几乎重合PBNN-MLP的96.98%，二者相差仅0.07个百分点；这一对照把二值架构相对FP32的1.5个百分点差距明确归因于二值权重容量本身，而非采样统计性或sMTJ硬件感知训练，即PBNN没有为接受Bernoulli采样而付出额外训练精度代价，所付出的0.07个百分点裕度可视为sMTJ硬件感知训练相对纯数字sign-STE的微弱噪声损失。其四，PBNN与全精度baseline相差1.53个百分点是在相同epoch预算下的等价值，而非训练失败的表征，这与4.7节中PBNN在硬件能耗上的优势构成对偶取舍。PBNN-MLP的拓扑在UCI六个表格数据集上的迁移结果如图4.5所示，定量精度汇总于表4.3。
+表4.2有四点提示。其一，MNIST足够简单，QAT能把INT2 (三值等价) 拉至FP32的0.3个百分点之内，比特宽度与精度的常识曲线在此被压平。其二，PBNN相对INT2的差距是1.23个百分点，是从三值$$\{-1,0,+1\}$$走至二值$$\{-1,+1\}$$ (无零选项) 的结构性代价，而非训练程序的不足。其三，BNN-MLP以97.05%几乎重合PBNN-MLP的96.98%，二者相差仅0.07个百分点；这一对照把二值架构相对FP32的1.5个百分点差距明确归因于二值权重容量本身，而非采样统计性或sMTJ硬件感知训练，即PBNN没有为接受Bernoulli采样而付出额外训练精度代价，所付出的0.07个百分点裕度可视为sMTJ硬件感知训练相对纯数字sign-STE的微弱噪声损失。其四，PBNN与全精度baseline相差1.53个百分点是在相同epoch预算下的等价值，而非训练失败的表征，这与4.5节中PBNN在硬件能耗上的优势构成对偶取舍。PBNN-MLP的拓扑在UCI六个表格数据集上的迁移结果如图4.5所示，定量精度汇总于表4.3。
 
 ![图4.5 PBNN-MLP在UCI六类表格任务上的训练曲线](figs/Chapter04_local_05.png)
 
@@ -136,7 +134,7 @@ WDBC上PBNN与FP完全持平且超过文献基线2.3个百分点，说明在特�
 
 **图4.7** PBNN-MLP损失景观与checkpoint轨迹。(a) Goff-Li过滤器归一化的二维随机方向投影下，带动量SGD、Adam与Lion三种优化器找到的极小值具有定性不同的曲率与底部深度，Lion底部最深而局部曲率最尖。(b) 27个checkpoint的共享PCA投影显示三条轨迹从同一初始点走向定性不同的方向，PC1加PC2解释92.7%方差。(c) 三对极小值之间的线性插值损失曲线给出SGD-Lion、Adam-Lion、SGD-Adam三道高度递减的损失垒 (0.90/0.65/0.30)，表明Lion在二值权重的STE梯度面上落入与Adam或带动量SGD定性不同的basin。
 
-## 4.6 输入扰动与硬件层鲁棒性
+## 4.5 鲁棒性、非理想性与跨架构能效
 
 工程上一个二值随机权重网络若不具备相对全精度网络的某种独立优势，则没有部署价值。本节通过两组实验回答PBNN到底在哪里占优：推理时的输入扰动鲁棒性与硬件比特翻转鲁棒性。对四种网络架构 (PBNN $$T=4$$、PBNN $$T=64$$、确定性BNN、全精度FP-NN，共享拓扑$$784\to 1024\to 1024\to 10$$) 施加八种扰动，包括加性高斯噪声、椒盐噪声、speckle乘性噪声、高斯模糊、cutout遮挡、亮度位移、权重高斯扰动与十步投影梯度下降 (Projected Gradient Descent，PGD) 对抗攻击。八类扰动在同一MNIST样本上的可视化如图4.8所示，三种架构在八类扰动连续扫描下的精度衰减汇总于图4.9与表4.4。
 
@@ -146,7 +144,7 @@ WDBC上PBNN与FP完全持平且超过文献基线2.3个百分点，说明在特�
 
 ![图4.9 PBNN、BNN、FP-NN在八类扰动下的精度衰减](figs/Chapter04_local_09.png)
 
-**图4.9** PBNN $$T=4$$、确定性BNN与FP-NN在八类输入扰动连续扫描下的测试精度对比。子图 (a)–(h) 分别对应加性高斯、椒盐、speckle、高斯模糊、cutout、亮度位移、权重扰动与PGD-10对抗攻击。FP-NN在保留输入分布的前四类扰动上领先；PBNN在扭曲输入分布的模糊与亮度位移上反超，最大差距出现在权重扰动 (PBNN在$$\sigma_w=0.5$$下仍保93%以上，BNN与FP-NN分别跌至9.4%与14%) 与PGD对抗攻击 (PBNN比FP-NN高出约15个百分点)。
+**图4.9** PBNN $$T=4$$、确定性BNN与FP-NN在八类输入扰动连续扫描下的测试精度对比。子图(a)–(h)分别对应加性高斯、椒盐、speckle、高斯模糊、cutout、亮度位移、权重扰动与PGD-10对抗攻击。FP-NN在保留输入分布的前四类扰动上领先；PBNN在扭曲输入分布的模糊与亮度位移上反超，最大差距出现在权重扰动 (PBNN在$$\sigma_w=0.5$$下仍保93%以上，BNN与FP-NN分别跌至9.4%与14%) 与PGD对抗攻击 (PBNN比FP-NN高出约15个百分点)。
 
 **表4.4** 八类输入、权重与对抗扰动下的MNIST测试精度。
 
@@ -184,8 +182,6 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 **图4.11** 硬件比特翻转鲁棒性扫描。(a) FP-NN将每个权重的某一固定位翻转后的精度衰减随位次指数级放大，MSB (bit 7) 单独翻转把精度从98%打到3%，揭示位置编码的单点故障特性。(b) 同一翻转概率$$p$$下PBNN ($$T=8$$与$$T=64$$)、BNN (1比特) 与FP-NN (8比特) 的测试精度随$$p$$演化，PBNN $$T=64$$在$$p=10\%$$处仍保96.73%、FP-NN跌至52.32%，差距44个百分点。(c) $$p=0.05$$下三种编码的有效权重误差直方图，FP-NN呈现长拖尾、PBNN被严格上界于$$2/T$$，定量解释精度差距的来源。
 
-## 4.7 非理想性消融与跨架构能效
-
 把硬件非理想性的影响逐项拆解，可为DAC校准精度、写电压裕度与脉宽控制等设计参数提供量化优先级。以变异强度$$\sigma_\mathrm{rel}(V_\mathrm{th})$$、$$\sigma_\mathrm{rel}(V_T)$$、循环噪声$$\sigma_\mathrm{C2C}$$与back-hopping平台$$p_\mathrm{max}$$为四个独立扫描轴，固定其余三项为零并以全栈$$T=64$$评估测试精度；各非理想性对Sigmoid响应曲线的形变如图4.12所示，对应的精度衰减扫描结果如图4.13所示。
 
 ![图4.12 非理想性对sMTJ Sigmoid响应曲线的影响](figs/Chapter04_local_12.png)
@@ -194,11 +190,11 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 ![图4.13 非理想性消融下的测试精度](figs/Chapter04_local_13.png)
 
-**图4.13** 各非理想性单变量与组合扫描下全栈$$T=64$$测试精度。(a)–(f) 与图4.12一一对应。$$V_\mathrm{th}$$相对失配是唯一显著瓶颈：$$\sigma_\mathrm{rel}(V_\mathrm{th})=20\%$$时精度从97.5%降至92.8%；$$\sigma_\mathrm{rel}(V_T)=80\%$$与$$\sigma_\mathrm{C2C}=3V_T$$下精度均保97%以上；back-hopping在$$p_\mathrm{max}\ge 0.7$$下精度仅下降0.5个百分点、$$p_\mathrm{max}<0.6$$后急剧崩塌；现实组合 (5%/10%/1$$V_T$$/0.72) 给出97.0%精度，与无非理想的97.5%相差仅0.5个百分点。
+**图4.13** 各非理想性单变量与组合扫描下全栈$$T=64$$测试精度。(a)–(f)与图4.12一一对应。$$V_\mathrm{th}$$相对失配是唯一显著瓶颈：$$\sigma_\mathrm{rel}(V_\mathrm{th})=20\%$$时精度从97.5%降至92.8%；$$\sigma_\mathrm{rel}(V_T)=80\%$$与$$\sigma_\mathrm{C2C}=3V_T$$下精度均保97%以上；back-hopping在$$p_\mathrm{max}\ge 0.7$$下精度仅下降0.5个百分点、$$p_\mathrm{max}<0.6$$后急剧崩塌；现实组合 (5%/10%/1$$V_T$$/0.72) 给出97.0%精度，与无非理想的97.5%相差仅0.5个百分点。
 
-图4.13把硬件设计的优先级清晰地指向DAC校准精度：$$V_T$$的slope抖动会被BN自动吸收，C2C噪声会被$$T$$步平均消除，真正决定网络精度的是$$V_\mathrm{th}$$的绝对位置稳定性。在此之上，给出sMTJ对单次MAC的能量分解：DAC编程 (5 fJ，28 nm数字默认值)、sMTJ SOT写 ($$0.78\,\mathrm{pJ}$$，物理量地)、sMTJ读 (5 fJ，28 nm数字默认值) 与计数器累加 (0.5 fJ)，累计793 fJ每MAC，sMTJ写在其中占98.7%。这一比例的极端不对称给出网络层级的优化优先级：任何缩短脉冲宽度、降低写电压或增大$$R_\mathrm{SOT}$$的器件改进，会按$$V^2 t/R$$线性回报到全网能耗；优化外围DAC或计数器的能耗对全网能耗的影响在1%量级，意义不大。
+图4.13把硬件设计的优先级清晰地指向DAC校准精度：$$V_T$$的slope抖动会被BN自动吸收，C2C噪声会被$$T$$步平均消除，真正决定网络精度的是$$V_\mathrm{th}$$的绝对位置稳定性。在此之上，给出sMTJ对单次MAC的能量分解：DAC编程 (5fJ，28nm数字默认值)、sMTJ SOT写 ($$0.78\,\mathrm{pJ}$$，物理量地)、sMTJ读 (5fJ，28nm数字默认值) 与计数器累加 (0.5fJ)，累计793fJ每MAC，sMTJ写在其中占98.7%。这一比例的极端不对称给出网络层级的优化优先级：任何缩短脉冲宽度、降低写电压或增大$$R_\mathrm{SOT}$$的器件改进，会按$$V^2 t/R$$线性回报到全网能耗；优化外围DAC或计数器的能耗对全网能耗的影响在1%量级，意义不大。
 
-把PBNN sMTJ与多种有竞争性的CIM架构置于同一训练任务上做能耗对比。任务是20轮的MNIST PBNN-MLP训练 (batch 128，共9380个mini-batch)，每个mini-batch包含三次MAC pass：前向、反向输入梯度 ($$W^\top\partial L/\partial y$$) 与反向权重梯度 ($$\partial L/\partial y\cdot x^\top$$)。仿真器内置五种主流CIM存储器 (STT-MRAM[^stt_apalkov]、ReRAM[^reram_wong]、PCRAM[^pcram_burr]、铁电随机存储器 (Ferroelectric RAM，FeRAM) [^feram_mikolajick]、SRAM-CIM[^sram_khwa]) 与三种概率二值存储模式 (sMTJ自身、基于Lin等人模拟ReRAM非理想性研究构造的ReRAM采样对照[^stoch_reram_lin]、Camsari等人2020综述中的CMOS p-bit ASIC[^cmos_pbit_camsari]) 的参数表。每个条目以per-bit读能、per-cell写能、写延迟与每权重比特数四个参数描述，并附文献出处。CMOS p-bit ASIC的per-update能量为5 pJ，已包含加权和、阈值与Bernoulli发生三段操作，5 ns完成；Borders与Sutton等人的实测原型机给出该数据的边界。将此5 pJ作为CMOS p-bit ASIC的per-sample能量，与sMTJ的0.78 pJ每样本 (物理量地标定的Ohmic值) 直接比较。20轮训练总能耗的横向对比汇总于表4.6与图4.14，按总能耗升序排列。
+把PBNN sMTJ与多种有竞争性的CIM架构置于同一训练任务上做能耗对比。任务是20轮的MNIST PBNN-MLP训练 (batch 128，共9380个mini-batch)，每个mini-batch包含三次MAC pass：前向、反向输入梯度 ($$W^\top\partial L/\partial y$$) 与反向权重梯度 ($$\partial L/\partial y\cdot x^\top$$)。仿真器内置五种主流CIM存储器 (STT-MRAM[^stt_apalkov]、ReRAM[^reram_wong]、PCRAM[^pcram_burr]、铁电随机存储器 (Ferroelectric RAM，FeRAM) [^feram_mikolajick]、SRAM-CIM[^sram_khwa]) 与三种概率二值存储模式 (sMTJ自身、基于Lin等人模拟ReRAM非理想性研究构造的ReRAM采样对照[^stoch_reram_lin]、Camsari等人2020综述中的CMOS p-bit ASIC[^cmos_pbit_camsari]) 的参数表。每个条目以per-bit读能、per-cell写能、写延迟与每权重比特数四个参数描述，并附文献出处。CMOS p-bit ASIC的per-update能量为5pJ，已包含加权和、阈值与Bernoulli发生三段操作，5ns完成；Borders与Sutton等人的实测原型机给出该数据的边界。将此5pJ作为CMOS p-bit ASIC的per-sample能量，与sMTJ的0.78pJ每样本 (物理量地标定的Ohmic值) 直接比较。20轮训练总能耗的横向对比汇总于表4.6与图4.14，按总能耗升序排列。
 
 **表4.6** 20轮MNIST PBNN-MLP训练任务下九种存储器/p-bit架构的能耗分解。
 
@@ -216,11 +212,11 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 ![图4.14 九种存储器架构在20轮MNIST PBNN-MLP训练下的总能耗对比](figs/Chapter04_local_14.png)
 
-**图4.14** 九种存储器/p-bit架构在20轮MNIST PBNN-MLP训练下的总能耗对比。横轴为对数刻度的总能耗 (J)，每架构按前向、反向、写或$$\theta$$更新三段堆叠；上方四行为概率二值架构、下方五行为确定性INT8架构。PBNN sMTJ以11.91J排在所有非易失架构第二，仅比STT-MRAM高14%、低于ReRAM与PCRAM；CMOS p-bit以49.52J为sMTJ的4.2倍，反映sMTJ对CMOS Bernoulli发生器的物理优势；随机ReRAM因per-cell写能高达50–100 pJ达到452.80J，在训练阶段不可承受。
+**图4.14** 九种存储器/p-bit架构在20轮MNIST PBNN-MLP训练下的总能耗对比。横轴为对数刻度的总能耗 (J)，每架构按前向、反向、写或$$\theta$$更新三段堆叠；上方四行为概率二值架构、下方五行为确定性INT8架构。PBNN sMTJ以11.91J排在所有非易失架构第二，仅比STT-MRAM高14%、低于ReRAM与PCRAM；CMOS p-bit以49.52J为sMTJ的4.2倍，反映sMTJ对CMOS Bernoulli发生器的物理优势；随机ReRAM因per-cell写能高达50–100pJ达到452.80J，在训练阶段不可承受。
 
-排名显示四点信息。其一，SRAM-CIM以6.71J排在最便宜位置但其易失，在无写保持成本的训练阶段占优，部署阶段需要外部刷新，不在本表的统计范围；在非易失架构中STT-MRAM以10.42J最低。其二，PBNN sMTJ以11.91J排在第四，是STT-MRAM的1.14倍——所有非易失CIM选项中PBNN比STT-MRAM贵14%，比ReRAM、PCRAM都更低，与FeRAM几乎持平。这一定位与4.6节的鲁棒性结果合起来给出明确的取舍：为换取在比特翻转率5%至10%下精度保持在97%以上的属性 (对照FP-NN在同一条件下的52.32%)，付出14%的训练能耗溢价是合理的。其三，把PBNN的随机源从sMTJ换为CMOS p-bit ASIC，总能耗升至49.52J，是sMTJ的4.2倍，这4.2倍不是实现差异而是磁性器件相对CMOS的物理优势：sMTJ的Ohmic写能是$$V^2 t/R$$，在第二章工作点上算出$$0.78\,\mathrm{pJ}$$，而具有可比噪声裕度的CMOS Bernoulli发生器在同等时钟下需要约$$5\,\mathrm{pJ}$$。其四，以PCRAM作权重存储的FP-NN (56.44J) 和以随机ReRAM作概率源的PBNN (452.80J) 都在训练阶段成本不可承受，因为它们的per-cell写能在50至100 pJ量级，无法承受每个mini-batch里数十亿次的读写。
+排名显示四点信息。其一，SRAM-CIM以6.71J排在最便宜位置但其易失，在无写保持成本的训练阶段占优，部署阶段需要外部刷新，不在本表的统计范围；在非易失架构中STT-MRAM以10.42J最低。其二，PBNN sMTJ以11.91J排在第四，是STT-MRAM的1.14倍——所有非易失CIM选项中PBNN比STT-MRAM贵14%，比ReRAM、PCRAM都更低，与FeRAM几乎持平。这一定位与4.5节的鲁棒性结果合起来给出明确的取舍：为换取在比特翻转率5%至10%下精度保持在97%以上的属性 (对照FP-NN在同一条件下的52.32%)，付出14%的训练能耗溢价是合理的。其三，把PBNN的随机源从sMTJ换为CMOS p-bit ASIC，总能耗升至49.52J，是sMTJ的4.2倍，这4.2倍不是实现差异而是磁性器件相对CMOS的物理优势：sMTJ的Ohmic写能是$$V^2 t/R$$，在第二章工作点上算出$$0.78\,\mathrm{pJ}$$，而具有可比噪声裕度的CMOS Bernoulli发生器在同等时钟下需要约$$5\,\mathrm{pJ}$$。其四，以PCRAM作权重存储的FP-NN (56.44J) 和以随机ReRAM作概率源的PBNN (452.80J) 都在训练阶段成本不可承受，因为它们的per-cell写能在50至100pJ量级，无法承受每个mini-batch里数十亿次的读写。
 
-## 4.8 本章小结
+## 4.6 本章小结
 
 本章把全文主线下同一硬件单元在机器学习推断任务上的可达性能与边界这一问题，落到一条端到端硬件仿真流水线之上。其关键设计是让软件基线、硬件感知与全栈评估三档模式共享同一份潜参数检查点：三档既共用$\boldsymbol{\Theta}$张量，也借助硬二值STE技巧复用BN滑动统计，使训练所得检查点无需重新训练即可切换到真实硬件语义下加以评估。这一安排避免了硬件感知训练中常见的训练与推理语义不一致带来的偏差，使同一仿真器能够同时服务于训练循环、PPA估算与鲁棒性扫描。配套的CLT高斯化前向把训练阶段的$T$次显式Bernoulli抽样压缩为一次解析近似，使每步训练复杂度回到与确定性矩阵乘法相近的量级——这是PBNN由算法可行但训练昂贵推进到训练代价与确定性BNN持平的关键。
 
@@ -247,10 +243,10 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 [^cim_aihwkit_apl]: Le Gallo M, Lammie C, Buechel J, Carta F, Fagbohungbe O, Mackin C, Tsai H, Narayanan V, Sebastian A, El Maghraoui K, Rasch M J. Using the IBM analog in-memory hardware acceleration kit for neural network training and inference. *APL Machine Learning*, 2023, 1(4): 041102. [doi:10.1063/5.0168089](https://doi.org/10.1063/5.0168089)
 [^smtj_arm_compact]: Garcia-Redondo F, Lopez-Vallejo M, Stanley-Marbell P. A compact model for scalable MTJ simulation. *Proc. International Conference on Synthesis, Modeling, Analysis and Simulation Methods and Applications to Circuit Design*, 2021: 1–4. [doi:10.1109/SMACD52803.2021.9636229](https://doi.org/10.1109/SMACD52803.2021.9636229)
 [^smtj_ngspice]: Rajpoot J, Paul R, Verma S. Novel STT/SHE MTJ compact model compatible with NGSPICE. *arXiv preprint*, 2022. [arXiv:2208.14055](https://arxiv.org/abs/2208.14055)
-[^psl_gpu_sa]: Onizawa N, Hanyu T. GPU-accelerated simulated annealing based on p-bits with real-world device-variability modeling. *Scientific Reports*, 2025, 15: 6118. [doi:10.1038/s41598-025-90520-3](https://doi.org/10.1038/s41598-025-90520-3)
-[^cmos_pbit_camsari]: Camsari K Y, Sutton B M, Datta S. p-bits for probabilistic spin logic. *Applied Physics Reviews*, 2019, 6(1): 011305. [doi:10.1063/1.5055860](https://doi.org/10.1063/1.5055860)
+[^psl_gpu_sa]: Onizawa N, Sasaki R, Hanyu T. GPU-accelerated simulated annealing based on p-bits with real-world device-variability modeling. *Scientific Reports*, 2025, 15: 6614. [doi:10.1038/s41598-025-90520-3](https://doi.org/10.1038/s41598-025-90520-3)
+[^cmos_pbit_camsari]: Camsari K Y, Sutton B M, Datta S. p-Bits for probabilistic spin logic. *Proceedings of the IEEE*, 2020, 108(8): 1335–1340. [doi:10.1109/JPROC.2020.2966869](https://doi.org/10.1109/JPROC.2020.2966869)
 [^borders_factor]: Borders W A, Pervaiz A Z, Fukami S, Camsari K Y, Ohno H, Datta S. Integer factorization using stochastic magnetic tunnel junctions. *Nature*, 2019, 573: 390–393. [doi:10.1038/s41586-019-1557-9](https://doi.org/10.1038/s41586-019-1557-9)
-[^sutton_pbit]: Sutton B M, Faria R, Ghantasala L A, Jaiswal R, Camsari K Y, Datta S. Autonomous probabilistic coprocessing with petaflips per second. *IEEE Access*, 2020, 8: 157238–157252. [doi:10.1109/ACCESS.2020.3018682](https://doi.org/10.1109/ACCESS.2020.3018682)
+[^sutton_pbit]: Sutton B M, Faria R, Ghantasala L A, Jaiswal R, Camsari K Y, Datta S. Autonomous probabilistic coprocessing with petaflops-equivalent capacity. *Science Advances*, 2020, 6(20): eabb2823. [doi:10.1126/sciadv.abb2823](https://doi.org/10.1126/sciadv.abb2823)
 [^kaiser_insitu_bm]: Kaiser J, Borders W A, Camsari K Y, Fukami S, Ohno H, Datta S. Hardware-aware in situ learning based on stochastic magnetic tunnel junctions. *Physical Review Applied*, 2022, 17: 014016. [doi:10.1103/PhysRevApplied.17.014016](https://doi.org/10.1103/PhysRevApplied.17.014016)
 [^pbnn_peters]: Peters J W T, Welling M. Probabilistic binary neural networks. *arXiv preprint*, 2018. [arXiv:1809.03368](https://arxiv.org/abs/1809.03368)
 [^bnn_bayescnn]: Shridhar K, Laumann F, Liwicki M. A comprehensive guide to Bayesian convolutional neural network with variational inference. *arXiv preprint*, 2019. [arXiv:1901.02731](https://arxiv.org/abs/1901.02731)
