@@ -1,36 +1,24 @@
 # `smtj_pbnn_sim`
 
-PyTorch-based hardware simulator for **stochastic SOT-MTJ-based probabilistic binary neural networks (PBNN)**.
+PyTorch-based hardware simulator for **stochastic SOT-MTJ probabilistic computing**. The same calibrated sMTJ device is used two ways: as a **memoryless Bernoulli p-bit** for **probabilistic binary neural networks (PBNN)**, and as a **stateful random-telegraph node** for **reservoir computing (RC)** — a temporal-processing extension that exploits the device's voltage-tunable relaxation time as fading memory.
 
-## Status
-
-* **Device, calibration, variation, TMR, PPA layers**: implemented and verified against the  measurement data.
-* **Network and training pipeline**: fully working. MNIST PBNN-MLP achieves **96.98% test accuracy** (HARDWARE_AWARE) and **97.68%** (FULL_STACK T=64) after 20 epochs. Sampling count T=8 already reaches 97.62% — the practical sweet spot for both accuracy and energy.
-* **D2D variation**: properly coupled via nominal-calibration write voltage; verified by unit test and experiment 08 non-ideality ablation.
-* **Multi-noise robustness (exp 07, T=4)**: 8 noise types (Gaussian, salt-pepper, speckle, blur, cutout, brightness, weight perturb, PGD-10). PBNN at T=4 (sweet spot from exp 06) wins blur, brightness shift, weight perturbation, and PGD-10 attacks; FP-NN wins additive Gaussian, salt-pepper, speckle, and cutout. T=4 robustness matches T=64 within 1pp on every panel.
-* **Hardware bit-flip robustness (exp 09)**: at p=0.10 cell flip rate, PBNN T=64 holds **96.73%** vs FP-NN **52.32%**. PBNN's per-cell weight equality (1/T) eliminates the MSB-dominance failure mode of digital CIM, where a single MSB flip drops FP-NN from 98.42% to **3.41%**.
-* **Cross-task generalization (exp 10)**: same PBNN-MLP recipe on six UCI tabular datasets (Iris, WDBC, Yeast, Vehicle, Spambase, Satimage). PBNN matches FP-MLP exactly on WDBC (98.84%) and stays within 5pp on larger datasets — validating the architecture as a generic small-MLP replacement, not just an MNIST construction.
-* **Bit-width sweep (exp 05, MNIST)**: PBNN-MLP (binary ±1) compared against FP-MLP at FP32 (98.51%), INT8 (98.33%), INT4 (98.43%), INT2 (98.21%) under matched 20-epoch QAT training. PBNN at 96.98% trails INT2 by 1.23 pp — the structural cost of binary (no zero option) vs ternary, which is small relative to the hardware-side advantages quantified in exps 09 and 13.
-* **Optimizer / scheduler study (exp 11)**: 8 optimizers (SGD, Adam, AdamW, NAdam, RAdam, Adamax, RMSprop, Lion 2023) × 5 LR schedules. All adaptive optimizers cluster within 0.7pp; SGD-mom trails by 2.6pp. Best recipe: **Adam + OneCycleLR**, reaching **97.90%** test accuracy in 15 epochs.
-* **Loss-landscape analysis (exp 12)**: filter-normalized 2D random-direction contours, shared-PCA per-epoch trajectories, and pairwise linear interpolation between optima — explains optimizer accuracy spread by basin geometry.
-* **End-to-end training energy (exp 13, T=4, 9 architectures)**: hardware-mapped energy across **4 PBNN variants** (sMTJ, CMOS p-bit ASIC per Camsari 2020 / Borders 2019 / Sutton 2020, stoch-ReRAM, CMOS-PRNG) and **5 FP-NN variants** (STT-MRAM, ReRAM, PCRAM, FeRAM, SRAM-CIM), all with literature citations. Result spread: SRAM-CIM 6.7 J (cheapest, volatile) → PBNN sMTJ **11.9 J** → CMOS p-bit ASIC 49.5 J → stoch-ReRAM 452.8 J. PBNN sMTJ is **1.14×** the STT-MRAM training cost and **4.2× cheaper** than the published CMOS p-bit ASIC — quantifying sMTJ's intrinsic device-physics advantage over CMOS-only probabilistic computing.
-* **61 unit tests** pass (49 torch-free + 12 torch-dependent).
-* **Experiments 01–13**: all run end-to-end and produce figures.
-
-Full details in [`CHANGELOG.md`](./CHANGELOG.md) and code architecture in [`docs/architecture.md`](./docs/architecture.md).
+> **Project status and per-experiment results**: [`docs/status.md`](./docs/status.md). Full version history: [`CHANGELOG.md`](./CHANGELOG.md). Code architecture: [`docs/architecture.md`](./docs/architecture.md).
 
 ## Layered architecture
 
 | Layer | Modules | Purpose |
 |---|---|---|
-| Device | `device.arrhenius`, `device.tmr`, `device.variation`, `device.calibration`, `device.llg_dynamics` | Compact `P_sw(V, t_p)` Sigmoid + Néel-Brown forms; CV(Δ) = 7.7% wafer variation; SOT-channel write-energy. |
+| Device | `device.arrhenius`, `device.tmr`, `device.variation`, `device.calibration`, `device.llg_dynamics`, `device.telegraph` | Compact `P_sw(V, t_p)` Sigmoid + Néel-Brown forms; CV(Δ) = 7.7% wafer variation; SOT-channel write-energy; stateful two-state telegraph model (RC). |
 | Array  | `array.crossbar`, `array.periphery`, `array.tile`, `array.ir_drop` | XNOR-popcount column current sum, DAC/counter, optional IR-drop. |
 | Network | `nn.pbnn_linear`, `nn.pbnn_conv`, `nn.deterministic_bnn`, `nn.ste`, `nn.clt`, `nn.batchnorm`, `nn.losses` | PyTorch `nn.Module`s; STE backward; CLT-Gaussian forward shortcut; deterministic BNN baseline. |
 | Sampling | `sampling.bernoulli_smtj`, `sampling.unfold`, `sampling.schedules` | Time-domain unfolding, T-step accumulator, β / T schedules. |
-| PPA | `ppa.energy`, `ppa.latency`, `ppa.area`, `ppa.tech_params` | Power/performance/area; SOT write-energy from Ohmic dissipation. |
+| Reservoir | `reservoir.node`, `reservoir.readout`, `reservoir.tasks`, `reservoir.metrics` | Fixed random telegraph-node pool, trained ridge readout, temporal tasks (NARMA-10, memory capacity, Mackey-Glass), NRMSE / memory-capacity metrics. |
+| PPA | `ppa.energy`, `ppa.latency`, `ppa.area`, `ppa.tech_params`, `ppa.reservoir_energy` | Power/performance/area; SOT write-energy from Ohmic dissipation; sMTJ-RC vs digital-ESN energy. |
 | Experiment | `train.train_loop`, `train.inference`, `train.uncertainty`, `train.compare_baseline` | End-to-end training, T-step inference, uncertainty quantification. |
 
-## Three runtime modes
+## Two ways to use the device
+
+### Memoryless p-bit (PBNN)
 
 `PBNNLinear` and `PBNNConv2d` support three forward configurations:
 
@@ -39,6 +27,10 @@ Full details in [`CHANGELOG.md`](./CHANGELOG.md) and code architecture in [`docs
 * `full_stack` — explicit T-step Bernoulli sampling through the device + array layers; matches inference-time hardware behavior.
 
 The same `θ` checkpoint is usable in all three modes without modification.
+
+### Stateful node (reservoir computing)
+
+`SMTJReservoir` (in `reservoir.node`) leaves the *same* device free to evolve instead of resetting it each step, turning it into a random-telegraph dynamical node. The voltage-tunable relaxation time `τ(V) = 1/(r↑+r↓)` supplies fading memory and the `tanh(ΔV/V_c0)` transfer supplies nonlinearity, so only a linear ridge readout is trained — no recurrent weight matrix is stored or learned. A noise-free `meanfield` mode mirrors PBNN's `software` mode. RC favours a lower-barrier (more superparamagnetic) device than PBNN; the device-optimization guidance is summarized in [`docs/status.md`](./docs/status.md).
 
 ## Quick start
 
@@ -49,7 +41,7 @@ pip install -e .
 # Run unit tests (no torch needed for most):
 pytest tests/ -v
 
-# Reproduce  figures (no torch):
+# Reproduce device figures (no torch):
 python experiments/01_device_calibration.py        # fits real Sigmoid data
 python experiments/02_wafer_average_mc.py           # CV-Delta sweep
 python experiments/03_nb_cross_pulse_width.py       # NB inversion
@@ -65,11 +57,22 @@ python experiments/10_uci_benchmarks.py        # needs internet on first run
 python experiments/11_optimizer_scheduler_study.py
 python experiments/12_loss_landscape.py
 python experiments/13_training_energy.py        # analytic, no torch needed
+
+# Reservoir computing (reuses the same device as a stateful node):
+python experiments/14_rc_prototype.py            # viability: memory capacity, NARMA-10
+python experiments/15_rc_device_optimization.py  # barrier / timescale matching guidance
+python experiments/16_rc_hardware_ppa.py         # sMTJ-RC vs digital ESN energy
+python experiments/17_rc_robustness.py           # D2D variation + read-noise limits
+python experiments/18_rc_benchmarks.py           # Mackey-Glass + IPC capacities
+python experiments/19_rc_temperature.py          # temperature as a tau knob
+
+# Principle demos (figures):
+python demo/05_reservoir_computing_principle.py
 ```
 
 ## Calibration data
 
-Real  measurements are shipped at:
+Real device measurements are shipped at:
 ```
 data/smtj_psw_curves/measured_0p75ns.csv
 ```
@@ -79,7 +82,7 @@ To add new measurements, see [`docs/calibration_guide.md`](./docs/calibration_gu
 
 ## Physics grounding
 
-Every default constant in the simulator traces to a specific location in . See [`docs/physics_grounding.md`](./docs/physics_grounding.md) for the audit table.
+Every default constant in the simulator traces to a specific, documented physical source. See [`docs/physics_grounding.md`](./docs/physics_grounding.md) for the audit table.
 
 ## Reproducibility
 
@@ -93,16 +96,19 @@ smtj_pbnn_sim/
 ├── CHANGELOG.md                        (version history + project reference)
 ├── pyproject.toml
 ├── configs/{device, array, experiment} (all parameters live in YAML, not in code)
-├── data/smtj_psw_curves/               (real  measurements)
+├── data/smtj_psw_curves/               (real device measurements)
 ├── docs/
+│   ├── status.md                       (project status + per-experiment results)
+│   ├── architecture.md
 │   ├── calibration_guide.md
 │   ├── experiment_findings.md
 │   └── physics_grounding.md
-├── experiments/                        (01–04 no torch, 05–08 torch)
+├── demo/                               (principle-figure scripts, incl. 05 reservoir computing)
+├── experiments/                        (01–13 PBNN, 14–19 reservoir computing)
 ├── figures/                            (experiment outputs)
 ├── scripts/extract_chapter2_data.py    (data ingestion)
-├── src/smtj_pbnn_sim/                  (the package)
-└── tests/                              (61 unit tests)
+├── src/smtj_pbnn_sim/                  (device · array · nn · sampling · reservoir · ppa · train)
+└── tests/                              (93 unit tests)
 ```
 
 ## License
