@@ -27,6 +27,7 @@
 ```
 eda/
 ├── README.md
+├── STATUS.md                           # ★ 单一续传点：状态/DoD/决策账本/验证账本
 ├── ROADMAP.md                          # 分阶段计划 (可落实为 agentic 工作流)；与 todo 同步
 ├── OPEN_SOURCE_FEASIBILITY.md          # ③ ngspice 各阶段可行性矩阵
 ├── SETUP_opensource.md                 # 开源工具链 (ngspice+OpenVAF) 安装与运行
@@ -37,7 +38,8 @@ eda/
 │   └── smtj_sot.va                     # ★ MIT Verilog-A SOT-sMTJ 紧凑模型 (P1)
 ├── testbenches/
 │   ├── gen_golden.py                   # Python 金标准生成 (已跑: R²=0.9919, 0.78pJ)
-│   ├── golden_psw.csv / golden_summary.json
+│   ├── psw_mc_harness.py               # 随机写 harness (已跑: seeded Bernoulli 复现 Sigmoid)
+│   ├── golden_psw.csv / *_summary.json
 │   ├── regression_psw.spice            # ngspice DC 扫描回归网表
 │   └── run_regression.py               # 编译.va+跑ngspice+对金标准断言 (装好工具一键)
 ├── extraction/                         # 提取的 PPA LUT/能量-面积表 (替换占位符)
@@ -58,6 +60,8 @@ eda/
 > (YAML / Python dataclass)，使「替换占位符」是一次**配置注入**而非代码耦合。
 
 ## 当前状态
+
+> 单一续传点见 [`STATUS.md`](STATUS.md)（状态 / 各阶段 DoD / 决策账本 / 验证账本）。下面是概要。
 
 - [x] 调研完成并事实核查 (research/)
 - [x] 勘误登记并修复 E1/E2 (`../docs/errata.md`)

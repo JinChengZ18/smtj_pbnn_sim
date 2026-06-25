@@ -4,6 +4,8 @@
 有明确输入、可并行的子步骤、产出物、以及**验证门 (gate)**。会话 todo (TaskCreate) 与本文件同步——
 本文件是持久副本 (todo 可能不跨会话保留)。
 
+> **续传入口**：当前状态、各阶段 DoD、决策账本、验证账本见 [`STATUS.md`](STATUS.md)（长时程任务的**单一续传点**）。本文件是阶段细节；STATUS 是"我们到哪了 / 如何续传"。
+
 依赖关系 (拓扑序)：`P0 → P1 → {P2 ∥ P3 ∥ P7a} → {P4 (需P3) ∥ P5 (需P1+版图)} → P6 (汇总) ；P7 全程并行`
 
 图例：⚙️=配置/决策 🔬=仿真 🧪=回归/验证门 🔌=接口回灌 📝=回填论文/勘误
@@ -22,16 +24,17 @@
 
 ---
 
-## P1 — Verilog-A SOT-sMTJ 器件模型 (keystone, 2–3 周)  🔬🧪
-**目标**：一个种子可复现、能重现你 Ch.2.3 标定的 Verilog-A 器件——解锁后续一切。
-并行子步骤：
-- [ ] **(模型)** 三端宏：SOT 写分支 ($R_\mathrm{SOT}=776$)、MTJ 读分支 ($R_P=4.9$k/$R_\mathrm{AP}=9.8$k)、
-      事件驱动随机切换 (概率写：`@(cross/timer)` 触发 seeded `$rdist`；telegraph：精确两态传播子按 dt 步进)。
-- [ ] **(回归)** 对照 Python：重放 46 点 Sigmoid (R²≥0.99、还原 $V_\mathrm{th}/V_T$)、$\tau(V)$ 自相关 vs `relaxation_time()`、
-      $\langle s\rangle=\tanh$ vs `stationary_mean()`、$\int V\!\cdot\!I=0.78$ pJ。镜像 `tests/test_calibration.py`/`test_telegraph.py`。
-- [ ] **(协议)** 种子 + 版本钉死的 MC 协议文档。
+## P1 — Verilog-A SOT-sMTJ 器件模型 (keystone)  🔬🧪  — **进行中**
+**目标**：一个种子可复现、能重现 Ch.2.3 标定的 Verilog-A 器件——解锁后续一切。
+> 实现修正：OpenVAF 不支持可靠的 in-`.va` 随机/`@cross`，故 `.va` 保持**代数** + 把 Sigmoid/τ/⟨s⟩ 作**观测**，随机性放 harness（决策 D4）。
+- [x] **(模型)** `models/smtj_sot.va`：三端宏，SOT 写支路 ($R_\mathrm{SOT}=776$)、双态读支路 ($R_P=4.9$k/$R_\mathrm{AP}=9.8$k，状态由控制节点 `st`)、Sigmoid/τ(V)/⟨s⟩ 观测节点。
+- [x] **(Python 金标准)** `testbenches/gen_golden.py`：对实测 46 点 R²=0.9919、写能量 0.783 pJ、τ(0V)=67.8 ns（PASS）。
+- [x] **(随机写 harness)** `testbenches/psw_mc_harness.py`：seeded Bernoulli 复现 Sigmoid（max\|err\|=0.019 < 4σ）+ 写能量积分（开源路对 in-`.va` 随机的替代）。
+- [ ] **(ngspice 回归)** 装 ngspice+OpenVAF 后 `run_regression.py`：DC 扫描 `V(psw)` vs 金标准，断言 R²≥0.99。 ← **卡点（task #10）**
+- [~] **(telegraph τ(V) 电路级随机轨迹)** 留 P7 / Spectre 全-VA 路。
 
-**产出**：`models/smtj_sot.va`、`testbenches/regression_*`。**门 🧪**：回归全过、种子可复现。
+**产出**：`models/smtj_sot.va`、`testbenches/{gen_golden,psw_mc_harness,run_regression}.py`、`golden_*`。
+**门 🧪**：四项 PASS（前三已过，ngspice 待装工具）。DoD 见 [`STATUS.md`](STATUS.md)。
 
 ---
 
