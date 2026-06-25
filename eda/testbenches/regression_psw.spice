@@ -11,13 +11,8 @@ Vwr  wr  0 dc 0.9
 
 * --- device under test (OSDI): port order  wr rd com st psw tau sinf ---
 * OSDI instance references a .model whose TYPE is the Verilog-A module name.
-.model msmtj smtj_sot
-N1 wr rd com st psw tau sinf msmtj
-
-* observable nodes are driven by the model (V<+); high-ohm tie to gnd keeps a DC path
-Rpsw  psw  0 1e12
-Rtau  tau  0 1e12
-Rsinf sinf 0 1e12
+.model smtj_sot smtj_sot
+N1 wr rd com st psw tau sinf smtj_sot
 
 .control
   dc Vwr 0.80 0.97 0.002

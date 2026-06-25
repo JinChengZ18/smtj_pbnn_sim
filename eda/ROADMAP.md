@@ -15,7 +15,7 @@
 ## P0 — 基础与决策 (无 EDA，1 周)  ⚙️
 **目标**：把后续一切的前提钉死。
 - [ ] 确认大学 Cadence/Synopsys 席位 + Europractice/foundry-PDK 访问；论文算教学/研究用途。
-- [ ] **据访问结果二选一**：商用路线 (Virtuoso+Spectre+ASAP7/FreePDK45) 或 开源路线 (ngspice≥43 + OpenVAF-Reloaded + sky130/IHP SG13G2)。
+- [x] **据访问结果二选一**：采用开源路线 (ngspice≥43 + OpenVAF-Reloaded + sky130/IHP SG13G2)；商用路线留待许可证可用。
 - [ ] 钉死工具链版本 (写入本目录决策备忘)。
 - [ ] **定 Verilog-A 回归目标工作点** = 自动拟合值 $V_\mathrm{th}=895.8$ mV、$V_T=23.4$ mV、$\beta_s=42.7$ V⁻¹ (勘误 N1)。
 - [ ] 确定 MTJ 模型基底：fork ARM s-LLGS (加 SOT 分支) 或 Rajpoot NGSPICE (索取代码)。
@@ -30,7 +30,7 @@
 - [x] **(模型)** `models/smtj_sot.va`：三端宏，SOT 写支路 ($R_\mathrm{SOT}=776$)、双态读支路 ($R_P=4.9$k/$R_\mathrm{AP}=9.8$k，状态由控制节点 `st`)、Sigmoid/τ(V)/⟨s⟩ 观测节点。
 - [x] **(Python 金标准)** `testbenches/gen_golden.py`：对实测 46 点 R²=0.9919、写能量 0.783 pJ、τ(0V)=67.8 ns（PASS）。
 - [x] **(随机写 harness)** `testbenches/psw_mc_harness.py`：seeded Bernoulli 复现 Sigmoid（max\|err\|=0.019 < 4σ）+ 写能量积分（开源路对 in-`.va` 随机的替代）。
-- [x] **(ngspice 回归)** `run_regression.py`：DC 扫描 `V(psw)` vs 金标准 **R²=1.000000**（ngspice-46 + OpenVAF-reloaded；OSDI 经 cwd `.spiceinit` 的 `osdi` 命令在解析前加载，器件用 `.model <name> <模块>` 卡）。
+- [x] **(ngspice 回归)** `run_regression.py`：DC 扫描 `V(psw)` vs 金标准 **R²=1.000000**（ngspice-46 + OpenVAF-reloaded；OSDI 经 cwd `.spiceinit` 的 `osdi` 命令在解析前加载，器件用 `.model smtj_sot smtj_sot` 卡）。
 - [~] **(telegraph τ(V) 电路级随机轨迹)** 留 P7 / Spectre 全-VA 路。
 
 **产出**：`models/smtj_sot.va`、`testbenches/{gen_golden,psw_mc_harness,run_regression}.py`、`golden_*`。

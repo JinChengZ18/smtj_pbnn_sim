@@ -72,8 +72,8 @@ eda/
 - [x] ② vgsot-sim 整合决策：新写 MIT `.va`，不复用 Hikstor PDK；vgsot 作 submodule 真值参考
 - [x] ③ 开源可行性矩阵 (OPEN_SOURCE_FEASIBILITY.md)
 - [x] P0 决策：无许可证 → 开源 ngspice 路线；回归目标钉死 0.8958V/0.0234V (errata N1)
-- [~] **P1 进行中**：`smtj_sot.va` 已写；Python 金标准已验证 (对实测 46 点 R²=0.9919、写能量 0.783 pJ、τ(0V)=67.8ns)；ngspice 回归脚手架就绪
-- [ ] **当前卡点**：装 ngspice≥43 + OpenVAF-Reloaded → `python eda/testbenches/run_regression.py` (见 SETUP_opensource.md)
+- [x] **P1 完成**：`smtj_sot.va` 已写；Python 金标准已验证 (对实测 46 点 R²=0.9919、写能量 0.783 pJ、τ(0V)=67.8ns)；ngspice 46 + OpenVAF-Reloaded OSDI 回归 86 点 PASS (`max|err|=3.51e-4`, R²=1.00000)
+- [ ] **当前阶段**：P2 写路径
 - [ ] P2–P7：见 ROADMAP.md
 
 ## 相关文件

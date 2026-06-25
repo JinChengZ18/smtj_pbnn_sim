@@ -3,7 +3,7 @@
 * Shows: 0.75 ns pulse delivery across 776 ohm, channel-vs-driver energy split, P_sw at the
 * delivered flat-top voltage. A real sky130 CMOS driver replaces Vpulse+Rdrv once the PDK is in.
 * Needs .spiceinit in cwd ("osdi smtj_sot.osdi"); compile smtj_sot.va with OpenVAF first.
-.model msmtj smtj_sot
+.model smtj_sot smtj_sot
 .param Vamp=0.90 Rdrv=10 Cwr=5f tw=0.75n tr=0.05n
 
 Vpulse drvin 0 PULSE(0 {Vamp} 0.2n {tr} {tr} {tw} 10n)
@@ -13,7 +13,7 @@ Cwr  wr 0 {Cwr}
 Vcom com 0 dc 0
 Vrd  rd  0 dc 0
 Vst  st  0 dc 0
-N1 wr rd com st psw tau sinf msmtj
+N1 wr rd com st psw tau sinf smtj_sot
 Rpsw  psw  0 1e12
 Rtau  tau  0 1e12
 Rsinf sinf 0 1e12

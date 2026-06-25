@@ -5,14 +5,14 @@
 
 ## 当前状态  （last update: 2026-06-26）
 
-- **路线**：开源 ngspice（本机无 EDA 许可证）。工具链已装齐并验证：**ngspice-46 + OpenVAF-reloaded 20260616**。回归目标 `Vth=0.895783 V / VT=0.023414 V`。
+- **路线**：开源 ngspice（本机无 EDA 许可证）。工具链已装齐并验证：**ngspice-46 + OpenVAF-reloaded 20260616**（已加入当前用户 PATH；路径亦记于 `eda/tools.local.json`）。回归目标 `Vth=0.895783 V / VT=0.023414 V`。
 - **当前阶段**：**P1 已完成 ✅**；**P2 first-cut 已完成**（理想脉冲+串阻驱动；待 sky130 CMOS 驱动细化）。
 - **已完成**：
   - P1：`.va` 编译通过 → OSDI → ngspice DC 扫描对金标准 **R²=1.000000**（全开源链路打通）。
   - P2 first-cut：`write_mc_harness.py` 跑通 12 次瞬态 — 0.75ns 脉冲 rise≈40ps（可行）；10Ω 理想驱动下信道能量≈0.80 pJ、驱动开销 1.3%；P_sw 在交付电压上复现。
   - vgsot-sim 作 submodule 接入 `eda/vendor/vgsot-sim`（决策 D5 执行）。
 - **下一步**：P2 细化（sky130 CMOS 写驱动替换理想脉冲，量化真实驱动开销/短路能量 → errata R4）；可并行 P3（差分读+SA）。装 sky130 见 SETUP（建议 WSL2）。
-- **ngspice-46 要点（已踩坑，勿重犯）**：OSDI 加载命令是 **`osdi`**（非 `pre_osdi`），经 cwd 的 `.spiceinit` 在**解析前**加载；OSDI 器件需 **`.model <name> <va模块>`** 卡，实例 `N1 ... <name>`。
+- **ngspice-46 要点（已踩坑，勿重犯）**：OSDI 加载命令是 **`osdi`**（非 `pre_osdi`），经 cwd 的 `.spiceinit` 在**解析前**加载；OSDI 器件需 **`.model <name> <va模块>`** 卡（本项目用 `.model smtj_sot smtj_sot`），实例 `N1 ... smtj_sot`。
 
 ## 续传协议（新会话照做）
 
@@ -20,7 +20,7 @@
 2. `git -C <repo> log --oneline -5` 看最近提交。
 3. 跑（无需 EDA，确认 Python 侧仍绿）：
    `python eda/testbenches/gen_golden.py && python eda/testbenches/psw_mc_harness.py`
-4. 跑 `python eda/testbenches/run_regression.py`：打印「未找到 ngspice/openvaf」⇒ 卡点仍是装工具；否则看是否 PASS（R²≥0.99）。
+4. 跑 `python eda/testbenches/run_regression.py`，确认 OSDI 编译和 ngspice DC 扫描仍 PASS（R²≥0.99）。
 5. 读 [`ROADMAP.md`](ROADMAP.md) 找当前阶段，按下方 DoD 推进；每产一个可信数即更新 [`../docs/errata.md`](../docs/errata.md) 与本文件。
 
 ## 决策账本（已钉死，勿重议）

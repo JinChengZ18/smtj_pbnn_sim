@@ -4,6 +4,8 @@ tools.local.json
 *.exp
 *.lib
 testbenches/ngspice_psw.csv
+testbenches/*.exp
+testbenches/*.lib
 *.raw
 *.out
 __pycache__/
