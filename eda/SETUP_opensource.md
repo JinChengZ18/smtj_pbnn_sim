@@ -1,10 +1,20 @@
 # 开源 EDA 工具链安装与运行 (Windows)
 
 P1 及之后的开源路线需要两件核心工具：**ngspice ≥ 43**（含 OSDI 接口）与
-**OpenVAF-Reloaded**（把 Verilog-A 编译成 `.osdi`）。目前本机均未安装。
+**OpenVAF-Reloaded**（把 Verilog-A 编译成 `.osdi`）。
 
 > 钉死版本（勘误 N3）：`ngspice ≥ 43`、`OpenVAF-Reloaded`（OSDI 0.4）。
 > 不要用原 OpenVAF（2023 末停维护）或 Xyce（未集成 OpenVAF/OSDI）。
+
+### 本机安装状态（2026-06-26）
+
+- ngspice 46：
+  `C:\Users\Lenovo\AppData\Local\Programs\EDA\ngspice-46\Spice64\bin`
+- OpenVAF-Reloaded `20260616-2-gc592eed6`：
+  `C:\Users\Lenovo\AppData\Local\Programs\EDA\openvaf-reloaded-20260616-2-gc592eed6`
+- 两个目录已加入**当前 Windows 用户**的 `PATH`。新开的 PowerShell/CMD/终端可在任意目录直接运行
+  `ngspice`、`openvaf` 和 `openvaf-r`；这不是管理员级、所有用户共享的系统安装。
+- 已执行 P1 回归：86 个 DC 扫描点，`max|err|=3.51e-4`、`R²=1.00000`，PASS。
 
 ## 1. ngspice (≥ 43)
 
@@ -43,5 +53,6 @@ python eda/testbenches/run_regression.py
 
 - `pre_osdi` 报未知命令 → ngspice 版本 < 39 或非 OSDI 构建，换 ≥43 的官方包。
 - OSDI 加载失败 → 确认 `openvaf` 与 ngspice 同为 64-bit；`.osdi` 与 `.spice` 同目录。
-- `pre_osdi` 时机问题（版本相关）→ 改用 `ngspice -b --command "pre_osdi smtj_sot.osdi" regression_psw.spice`。
+- `Unable to find definition of model` → OSDI 实例前需有
+  `.model <model-name> <Verilog-A-module-type>`；本项目使用 `.model smtj_sot smtj_sot`。
 - 观测节点 `v(psw)` 为空 → 个别 ngspice 构建对"只有电压源支路、无其它连接"的节点敏感，可在网表里给 `psw/tau/sinf` 各挂一个 `Rdummy psw 0 1e12` 高阻到地。

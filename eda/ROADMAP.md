@@ -15,7 +15,7 @@
 ## P0 — 基础与决策 (无 EDA，1 周)  ⚙️
 **目标**：把后续一切的前提钉死。
 - [ ] 确认大学 Cadence/Synopsys 席位 + Europractice/foundry-PDK 访问；论文算教学/研究用途。
-- [ ] **据访问结果二选一**：商用路线 (Virtuoso+Spectre+ASAP7/FreePDK45) 或 开源路线 (ngspice≥43 + OpenVAF-Reloaded + sky130/IHP SG13G2)。
+- [x] **据访问结果二选一**：采用开源路线 (ngspice≥43 + OpenVAF-Reloaded + sky130/IHP SG13G2)；商用路线留待许可证可用。
 - [ ] 钉死工具链版本 (写入本目录决策备忘)。
 - [ ] **定 Verilog-A 回归目标工作点** = 自动拟合值 $V_\mathrm{th}=895.8$ mV、$V_T=23.4$ mV、$\beta_s=42.7$ V⁻¹ (勘误 N1)。
 - [ ] 确定 MTJ 模型基底：fork ARM s-LLGS (加 SOT 分支) 或 Rajpoot NGSPICE (索取代码)。
@@ -24,17 +24,17 @@
 
 ---
 
-## P1 — Verilog-A SOT-sMTJ 器件模型 (keystone)  🔬🧪  — **进行中**
+## P1 — Verilog-A SOT-sMTJ 器件模型 (keystone)  🔬🧪  — **完成**
 **目标**：一个种子可复现、能重现 Ch.2.3 标定的 Verilog-A 器件——解锁后续一切。
 > 实现修正：OpenVAF 不支持可靠的 in-`.va` 随机/`@cross`，故 `.va` 保持**代数** + 把 Sigmoid/τ/⟨s⟩ 作**观测**，随机性放 harness（决策 D4）。
 - [x] **(模型)** `models/smtj_sot.va`：三端宏，SOT 写支路 ($R_\mathrm{SOT}=776$)、双态读支路 ($R_P=4.9$k/$R_\mathrm{AP}=9.8$k，状态由控制节点 `st`)、Sigmoid/τ(V)/⟨s⟩ 观测节点。
 - [x] **(Python 金标准)** `testbenches/gen_golden.py`：对实测 46 点 R²=0.9919、写能量 0.783 pJ、τ(0V)=67.8 ns（PASS）。
 - [x] **(随机写 harness)** `testbenches/psw_mc_harness.py`：seeded Bernoulli 复现 Sigmoid（max\|err\|=0.019 < 4σ）+ 写能量积分（开源路对 in-`.va` 随机的替代）。
-- [ ] **(ngspice 回归)** 装 ngspice+OpenVAF 后 `run_regression.py`：DC 扫描 `V(psw)` vs 金标准，断言 R²≥0.99。 ← **卡点（task #10）**
+- [x] **(ngspice 回归)** ngspice 46 + OpenVAF-Reloaded：86 点 DC 扫描 `V(psw)` vs 金标准，`max|err|=3.51e-4`、R²=1.00000。
 - [~] **(telegraph τ(V) 电路级随机轨迹)** 留 P7 / Spectre 全-VA 路。
 
 **产出**：`models/smtj_sot.va`、`testbenches/{gen_golden,psw_mc_harness,run_regression}.py`、`golden_*`。
-**门 🧪**：四项 PASS（前三已过，ngspice 待装工具）。DoD 见 [`STATUS.md`](STATUS.md)。
+**门 🧪**：四项全部 PASS。DoD 见 [`STATUS.md`](STATUS.md)。
 
 ---
 

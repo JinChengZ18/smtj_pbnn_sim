@@ -1,6 +1,8 @@
 # Generated EDA / sim artifacts (regenerable; keep out of git)
 *.osdi
 testbenches/ngspice_psw.csv
+testbenches/*.exp
+testbenches/*.lib
 *.raw
 *.out
 __pycache__/

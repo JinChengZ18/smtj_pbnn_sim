@@ -14,6 +14,7 @@ Vst  st  0 dc 0
 Vwr  wr  0 dc 0.9
 
 * --- device under test (OSDI): port order wr rd com st psw tau sinf ---
+.model smtj_sot smtj_sot
 N1 wr rd com st psw tau sinf smtj_sot
 
 .control
