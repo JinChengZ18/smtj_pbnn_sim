@@ -36,9 +36,10 @@ eda/models/smtj_sot.va (Verilog-A, 电路仿真)                     ← P1 产�
 - **不并入 `smtj_pbnn_sim` 核心**：核心已有自己的校准 `device/` 层（与 vgsot 同源、同 §2.3 数据），并入会重复且增加耦合。保持单向引用即可。
 - ⚠️ **版权隔离**：submodule 引入后，`scripts/02_pdk/sotmodel.va`（Hikstor）**不得**复制进本 MIT 仓库或论文交付物；如需在论文里引用其行为，注明厂商来源与 NDA 状态。
 
-> 待你确认后我可以执行 `git submodule add git@github.com:JinChengZ18/vgsot-sim.git eda/vendor/vgsot-sim`
-> 并加一个 `eda/interface/vgsot_crosscheck.py`（可选，让 LLG τ(V)/V_th 与紧凑模型/`.va` 三方对一遍）。
-> 在此之前不擅自改仓库结构（submodule 会动 `.gitmodules`）。
+> **已执行（2026-06-26）**：`git submodule add git@github.com:JinChengZ18/vgsot-sim.git eda/vendor/vgsot-sim`
+> （at v0.1.1-11-gf35123c，`.gitmodules` 已落仓）。可选后续：`eda/interface/vgsot_crosscheck.py`
+> 让 LLG τ(V)/V_th 与紧凑模型 / `.va` 三方对账（P7 用）。
+> ⚠️ 版权隔离：submodule 内含 Hikstor 专有 `scripts/02_pdk/sotmodel.va`，**不得**复制进本 MIT 仓库或论文交付物。
 
 ## 小结
 

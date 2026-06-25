@@ -41,7 +41,10 @@ eda/
 │   ├── psw_mc_harness.py               # 随机写 harness (已跑: seeded Bernoulli 复现 Sigmoid)
 │   ├── golden_psw.csv / *_summary.json
 │   ├── regression_psw.spice            # ngspice DC 扫描回归网表
-│   └── run_regression.py               # 编译.va+跑ngspice+对金标准断言 (装好工具一键)
+│   ├── run_regression.py               # P1: 编译.va+跑ngspice+对金标准断言 (R²=1.0)
+│   ├── write_path.spice                # P2: 写路径瞬态网表
+│   └── write_mc_harness.py             # P2: Python-in-the-loop 能量/开销/可行性/随机写
+├── vendor/vgsot-sim/                   # submodule: 用户 LLG 全物理模型 (真值参考)
 ├── extraction/                         # 提取的 PPA LUT/能量-面积表 (替换占位符)
 └── interface/                          # 回灌 smtj_pbnn_sim 的 Python 胶水 (「新接口」)
 ```

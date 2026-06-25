@@ -24,22 +24,23 @@
 
 ---
 
-## P1 — Verilog-A SOT-sMTJ 器件模型 (keystone)  🔬🧪  — **进行中**
+## P1 — Verilog-A SOT-sMTJ 器件模型 (keystone)  🔬🧪  — ✅ **完成**
 **目标**：一个种子可复现、能重现 Ch.2.3 标定的 Verilog-A 器件——解锁后续一切。
 > 实现修正：OpenVAF 不支持可靠的 in-`.va` 随机/`@cross`，故 `.va` 保持**代数** + 把 Sigmoid/τ/⟨s⟩ 作**观测**，随机性放 harness（决策 D4）。
 - [x] **(模型)** `models/smtj_sot.va`：三端宏，SOT 写支路 ($R_\mathrm{SOT}=776$)、双态读支路 ($R_P=4.9$k/$R_\mathrm{AP}=9.8$k，状态由控制节点 `st`)、Sigmoid/τ(V)/⟨s⟩ 观测节点。
 - [x] **(Python 金标准)** `testbenches/gen_golden.py`：对实测 46 点 R²=0.9919、写能量 0.783 pJ、τ(0V)=67.8 ns（PASS）。
 - [x] **(随机写 harness)** `testbenches/psw_mc_harness.py`：seeded Bernoulli 复现 Sigmoid（max\|err\|=0.019 < 4σ）+ 写能量积分（开源路对 in-`.va` 随机的替代）。
-- [ ] **(ngspice 回归)** 装 ngspice+OpenVAF 后 `run_regression.py`：DC 扫描 `V(psw)` vs 金标准，断言 R²≥0.99。 ← **卡点（task #10）**
+- [x] **(ngspice 回归)** `run_regression.py`：DC 扫描 `V(psw)` vs 金标准 **R²=1.000000**（ngspice-46 + OpenVAF-reloaded；OSDI 经 cwd `.spiceinit` 的 `osdi` 命令在解析前加载，器件用 `.model <name> <模块>` 卡）。
 - [~] **(telegraph τ(V) 电路级随机轨迹)** 留 P7 / Spectre 全-VA 路。
 
 **产出**：`models/smtj_sot.va`、`testbenches/{gen_golden,psw_mc_harness,run_regression}.py`、`golden_*`。
-**门 🧪**：四项 PASS（前三已过，ngspice 待装工具）。DoD 见 [`STATUS.md`](STATUS.md)。
+**门 🧪**：四项全 PASS ✅ — **P1 完成**。DoD 见 [`STATUS.md`](STATUS.md)。
 
 ---
 
-## P2 — 写路径 (单次最高价值仿真, 2–3 周；P1 后)  🔬📝
+## P2 — 写路径 (单次最高价值仿真；P1 后)  🔬📝  — first-cut ✅
 **目标**：验证 (b)(d) 并测可行性。
+> **first-cut 已完成**（`testbenches/write_path.spice` + `write_mc_harness.py`，Python-in-the-loop）：理想脉冲+串阻驱动下 0.75ns rise≈40ps 可行、信道能量≈0.80pJ、10Ω 驱动开销 1.3%、P_sw 在交付电压上复现（errata R4 首个电路级数）。**待**：sky130 CMOS 写驱动替换理想脉冲，量化真实开销/短路能量 + 5-bit DAC。
 - [ ] 5 比特 DAC + SOT 电流驱动 + 0.75ns 脉冲发生器 + 随机写测试台。
 - [ ] 瞬态：0.75ns 脉冲在 776Ω 上是否真能建立 (slew + 线 RC)。
 - [ ] 含驱动/DAC 开销的**真实写能量** (预期 > 0.78 pJ) → 勘误 R4。

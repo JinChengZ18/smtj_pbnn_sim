@@ -1,11 +1,7 @@
 * P1 regression: smtj_sot.va calibrated-sigmoid observable vs golden_psw.csv
-* Driven by run_regression.py, which first compiles smtj_sot.va -> smtj_sot.osdi
-* with OpenVAF. DC-sweeps the write voltage and writes the model observables
-* V(psw), V(sinf), V(tau) for comparison against the Python golden reference.
-*
-* NOTE: exact `pre_osdi` placement is ngspice-version-dependent (>=39 for OSDI).
-* If your build needs it loaded before parsing, move the pre_osdi line into
-* spinit or invoke: ngspice -b --command "pre_osdi smtj_sot.osdi" regression_psw.spice
+* Driven by run_regression.py. The OSDI model is loaded via .spiceinit
+* (pre_osdi smtj_sot.osdi) in the run dir, BEFORE the deck is parsed --
+* putting pre_osdi in a .control block fails (deck is parsed before .control runs).
 
 * --- bias / state sources ---
 Vcom com 0 dc 0
@@ -13,11 +9,17 @@ Vrd  rd  0 dc 0
 Vst  st  0 dc 0
 Vwr  wr  0 dc 0.9
 
-* --- device under test (OSDI): port order wr rd com st psw tau sinf ---
-N1 wr rd com st psw tau sinf smtj_sot
+* --- device under test (OSDI): port order  wr rd com st psw tau sinf ---
+* OSDI instance references a .model whose TYPE is the Verilog-A module name.
+.model msmtj smtj_sot
+N1 wr rd com st psw tau sinf msmtj
+
+* observable nodes are driven by the model (V<+); high-ohm tie to gnd keeps a DC path
+Rpsw  psw  0 1e12
+Rtau  tau  0 1e12
+Rsinf sinf 0 1e12
 
 .control
-  pre_osdi smtj_sot.osdi
   dc Vwr 0.80 0.97 0.002
   wrdata ngspice_psw.csv v(psw) v(sinf) v(tau)
   quit

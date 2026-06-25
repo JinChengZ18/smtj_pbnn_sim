@@ -1,0 +1,26 @@
+* P2 write-path first-cut (standalone example; write_mc_harness.py drives the sweep).
+* Ideal pulse -> driver output resistance Rdrv -> SOT write branch (smtj_sot, R_SOT internal).
+* Shows: 0.75 ns pulse delivery across 776 ohm, channel-vs-driver energy split, P_sw at the
+* delivered flat-top voltage. A real sky130 CMOS driver replaces Vpulse+Rdrv once the PDK is in.
+* Needs .spiceinit in cwd ("osdi smtj_sot.osdi"); compile smtj_sot.va with OpenVAF first.
+.model msmtj smtj_sot
+.param Vamp=0.90 Rdrv=10 Cwr=5f tw=0.75n tr=0.05n
+
+Vpulse drvin 0 PULSE(0 {Vamp} 0.2n {tr} {tr} {tw} 10n)
+Rdrv drvin wr {Rdrv}
+Cwr  wr 0 {Cwr}
+
+Vcom com 0 dc 0
+Vrd  rd  0 dc 0
+Vst  st  0 dc 0
+N1 wr rd com st psw tau sinf msmtj
+Rpsw  psw  0 1e12
+Rtau  tau  0 1e12
+Rsinf sinf 0 1e12
+
+.control
+  tran 0.5p 4n
+  wrdata write_tran.csv v(wr) v(drvin)
+  quit
+.endc
+.end

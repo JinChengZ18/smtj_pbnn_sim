@@ -1,0 +1,3 @@
+[submodule "eda/vendor/vgsot-sim"]
+	path = eda/vendor/vgsot-sim
+	url = git@github.com:JinChengZ18/vgsot-sim.git

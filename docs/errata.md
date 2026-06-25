@@ -64,7 +64,7 @@
 - **位置**：`article/chapter04.md` §2.3/§4.3/§4.5；`tech_params.py` `e_smtj_write` 属性。
 - **问题**：$E=V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$ 不含写驱动晶体管 IR/短路能量、DAC 充电能量、BL/SL 寄生；且 0.75 ns 脉冲的上升/下降沿占比非小。端到端写能量预计 **> 0.78 pJ**。
 - **行动**：EDA 阶段 2 transient 测量含开销的真实写能量；论文中**并列报告**器件级 (0.78 pJ) 与含驱动端到端两个数。
-- **状态**：`待EDA验证`。
+- **状态**：`进行中(first-cut)`。`eda/testbenches/write_mc_harness.py` 给出首个电路级数：10Ω 理想驱动下信道能量 E_sot≈0.80 pJ、驱动开销仅 **1.3%**、0.75ns 脉冲 rise≈40 ps（可行），但分压使交付电压降至 0.889 V（驱动需低输出阻抗）。**待 sky130 CMOS 驱动**替换理想脉冲后给含短路/开关能量的端到端数。
 
 ### R5 — 「sMTJ 0.78 pJ vs CMOS p-bit 5 pJ = 4.2×」(论断 d) 的基准与口径
 - **位置**：`article/chapter04.md` §4.5；`tech_params.py` (Camsari 2020 / 5 pJ 引用块)。
