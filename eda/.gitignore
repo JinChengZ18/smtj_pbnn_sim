@@ -1,6 +1,8 @@
 # Generated EDA / sim artifacts (regenerable; keep out of git)
 tools.local.json
 *.osdi
+*.exp
+*.lib
 testbenches/ngspice_psw.csv
 *.raw
 *.out
