@@ -1,0 +1,69 @@
+{
+  "MC0": 6.379094098173054,
+  "adc_sweep": [
+    {
+      "adc_bits": "3",
+      "mc": 1.11848550858176,
+      "frac": 0.1753361043697552
+    },
+    {
+      "adc_bits": "4",
+      "mc": 1.5872456548599652,
+      "frac": 0.24881991556050972
+    },
+    {
+      "adc_bits": "5",
+      "mc": 1.9755489068686676,
+      "frac": 0.3096911374037352
+    },
+    {
+      "adc_bits": "6",
+      "mc": 2.500656166875199,
+      "frac": 0.3920080388203361
+    },
+    {
+      "adc_bits": "8",
+      "mc": 3.0434075743957867,
+      "frac": 0.4770908733369219
+    },
+    {
+      "adc_bits": "10",
+      "mc": 3.9686412999122274,
+      "frac": 0.622132428027489
+    },
+    {
+      "adc_bits": "inf",
+      "mc": 6.379094098173054,
+      "frac": 1.0
+    }
+  ],
+  "noise_sweep": [
+    {
+      "read_noise_frac": 0.0,
+      "mc": 6.379094098173054,
+      "frac": 1.0
+    },
+    {
+      "read_noise_frac": 0.02,
+      "mc": 2.9777210759831716,
+      "frac": 0.4667937218289316
+    },
+    {
+      "read_noise_frac": 0.05,
+      "mc": 2.239396318661198,
+      "frac": 0.35105240402435073
+    },
+    {
+      "read_noise_frac": 0.1,
+      "mc": 1.936680736160534,
+      "frac": 0.3035980824793275
+    },
+    {
+      "read_noise_frac": 0.2,
+      "mc": 1.648349818426842,
+      "frac": 0.2583987307694556
+    }
+  ],
+  "bits_for_95pct_MC": ">10",
+  "note": "mean-field isolates the readout; readout precision (ADC bits + TIA noise) gates RC memory capacity. Energy mapping (NeuroSim ADC) is the next step (R6)."
+}

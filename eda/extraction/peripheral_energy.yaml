@@ -1,0 +1,7 @@
+# EDA-extracted PPA peripheral energies for the smtj_pbnn_sim TechParams override (P6 interface).
+# Only EDA-extracted entries replace the 28 nm placeholders; the others remain placeholders
+# pending sky130 (P4). One-way injection: smtj_pbnn_sim is not modified. Units: joules.
+e_smtj_write: 8.07e-13     # P2 write_mc_harness: channel+driver, Vamp=0.9V, Rdrv=10ohm (vs 0.783e-12 Ohmic-only)
+e_smtj_read: 5.0e-15       # PLACEHOLDER 28nm -- awaits sky130 sense-amp / ADC (P4, errata R1)
+e_dac_step: 5.0e-15        # PLACEHOLDER 28nm -- awaits sky130 DAC (P4)
+e_count_inc: 5.0e-16       # PLACEHOLDER 28nm -- awaits sky130 counter (P4)

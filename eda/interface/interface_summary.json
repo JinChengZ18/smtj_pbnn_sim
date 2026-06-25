@@ -1,0 +1,26 @@
+{
+  "per_mac_default_fJ": 793.3608247422682,
+  "per_mac_extracted_fJ": 817.5,
+  "e_write_extracted_pJ": 0.8069999999999999,
+  "write_fraction_pct": 98.71559633027523,
+  "extracted_fields": [
+    "e_smtj_write"
+  ],
+  "pending_sky130": [
+    "e_smtj_read",
+    "e_dac_step",
+    "e_count_inc (P4/R1)"
+  ],
+  "mnist": [
+    {
+      "T": 4,
+      "default_uJ": 5.907783595546393,
+      "extracted_uJ": 6.08753664
+    },
+    {
+      "T": 8,
+      "default_uJ": 11.815567191092786,
+      "extracted_uJ": 12.17507328
+    }
+  ]
+}

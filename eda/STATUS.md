@@ -48,6 +48,8 @@
 | P3 差分列偏置消除（匹配，claim a） | `diff_column.py` | 线性 max-err 9e-6 popcount | ✅ |
 | P3 失配残余失调 vs N（σ_Rp7%/σ_TMR4%） | `diff_column.py` | ~0.06·√N popcount（16/64/256→0.30/0.62/0.97，sub-LSB 至 N≈256） | ✅ first-cut |
 | P7a 低势垒 τ(V)/⟨s⟩（Δ=3.8） | `telegraph_lowbarrier.py` | τ_max(0V)=22.35 ns，τ rel-err<1.6e-4 | ✅ |
+| P6 接口：提取值回灌 → MNIST PPA | `interface/load_tech_params.py` | per-MAC 793→818 fJ (+3%，写+驱动)；MNIST T=4 5.91→6.09µJ；read/ADC 待 P4 | ✅ first-cut |
+| P7 读出 ADC/噪声 → 记忆容量 (R6) | `rc_readout_noise.py` | MC0=6.38；ADC≤10bit/读噪声≥2% 显著掉 MC（10bit→62%，2%噪→47%）→ 读出精度是限制者 | ✅ first-cut |
 
 ## 各阶段 Definition of Done（DoD）
 
@@ -59,8 +61,8 @@
 | **P3** | first-cut ✅（MTJ 差分消除精确；失配残余 ~0.06√N popcount，sub-LSB 至 N≈256）；待 sky130 SA 晶体管失调 vs V_T → errata R2 | ◑ 部分 |
 | **P4** | CSA/ADC 读出能量/延迟/噪底；子阵列上限；外围占比重算 → errata R1 | ⬜ |
 | **P5** | 单列/小 tile PEX；IR-drop vs 尺寸（含 776Ω 写线）→ errata R3 | ⬜ |
-| **P6** | extraction LUT → interface 构造 extracted TechParams → 重跑 MNIST PPA → errata R1/R2 resolved | ⬜ |
-| **P7** | τ(V)/⟨s⟩ first-cut ✅（Δ=3.8 τ_max=22.35ns）；待无扰动读+读回作用界、读出 TIA+ADC 噪声 (R6)、三位一体势垒冲突 (R7) | ◑ 部分 |
+| **P6** | first-cut ✅（interface 读 extraction → 重跑 MNIST PPA，写+驱动 per-MAC +3%）；待 P4 ADC 数落地后报外围占比位移 (R1) | ◑ 部分 |
+| **P7** | τ(V)/⟨s⟩ ✅ + 读出 ADC/噪声→MC (R6) ✅first-cut（读出精度是限制者）；待无扰动读+读回作用界、读出能量映射(NeuroSim)、三位一体势垒冲突 (R7) | ◑ 部分 |
 
 ## 工件清单
 
@@ -78,6 +80,8 @@
 | `tools.local.json` | 机器本地工具路径（gitignored） | — |
 | `vendor/vgsot-sim` (submodule) | 用户 LLG 全物理模型（真值参考；含 Hikstor PDK，版权隔离） | 需 `pip install -e` |
 | `testbenches/golden_*.{csv,json}`, `mc_summary.json` | 金标准/验证结果（已提交） | — |
-| `interface/`, `extraction/` | 回灌仿真器的接口与提取数据（P6） | 待填 |
+| `testbenches/rc_readout_noise.py` | P7 读出 ADC/噪声→记忆容量 (R6)（纯 Python，复用 reservoir） | ✅ 纯 Python |
+| `interface/load_tech_params.py` | P6 接口：extraction → 重跑 MNIST PPA（单向回灌） | ✅ 纯 Python |
+| `extraction/peripheral_energy.yaml` | 提取的外围能量（写=P2；读/DAC/计数待 P4） | — |
 | `SETUP_opensource.md` / `OPEN_SOURCE_FEASIBILITY.md` | 安装运行 / ③ 可行性矩阵 | — |
 | `research/*` | 调研报告 + vgsot 整合决策 | — |

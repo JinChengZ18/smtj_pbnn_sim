@@ -80,8 +80,9 @@
 
 ---
 
-## P6 — 接口：回灌 `smtj_pbnn_sim` (2 周；汇总 P2/P4(/P5))  🔌📝
+## P6 — 接口：回灌 `smtj_pbnn_sim` (汇总 P2/P4(/P5))  🔌📝  — first-cut ✅
 **目标**：把提取数值变成仿真器可读配置——「替换不成熟内容」落地。
+> **first-cut 已完成**（`interface/load_tech_params.py` + `extraction/peripheral_energy.yaml`）：单向读 extraction → 重算 per-MAC + MNIST PPA。当前仅写能量为 P2 提取（per-MAC 793→818 fJ +3%，MNIST T=4 5.91→6.09µJ）；read/DAC/counter 仍占位。**待 P4** 把 sky130 ADC/sense 数填入同一 YAML，本脚本即报外围占比 <1%→20–40% 的位移（R1，无需改码）。
 - [ ] `extraction/` 把列在 (θ,T,corner) 上特征化成 LUT/能量-面积表。
 - [ ] `interface/` Python 胶水：由提取值构造 `TechParams`/重写 `per_mac_energy`/替换 `estimate_ir_drop`；单向注入，仿真器不依赖 `eda/`。
 - [ ] 用提取数重跑 MNIST PPA；(可选) wreal AMS 把一小撮 MAC 从 PyTorch 流过提取网表 → 「一个 MNIST 数字穿过提取的 sMTJ 列」杀手图。
@@ -92,7 +93,8 @@
 
 ## P7 — 储池 (RC) 路径 (并行轨)  🔬📝  — P7a first-cut ✅
 **目标**：验证/修正 (e)，文档化三位一体限制。
-> **P7a first-cut 已完成**（`testbenches/telegraph_lowbarrier.py`）：低势垒 Δ=3.8（`.model` 卡覆盖）下 `.va` 的 τ(V)/⟨s⟩ 观测对照解析，τ_max(0V)=22.35ns、τ rel-err<1.6e-4、⟨s⟩ abs-err<1.2e-4——RC 两旋钮（衰落记忆+非线性）器件级成立。**待**：无扰动读+读回作用界、读出 TIA+ADC 噪声→记忆容量损失（R6）、三位一体势垒冲突（R7）。
+> **P7a first-cut 已完成**（`testbenches/telegraph_lowbarrier.py`）：低势垒 Δ=3.8（`.model` 卡覆盖）下 `.va` 的 τ(V)/⟨s⟩ 观测对照解析，τ_max(0V)=22.35ns、τ rel-err<1.6e-4、⟨s⟩ abs-err<1.2e-4——RC 两旋钮（衰落记忆+非线性）器件级成立。
+> **读出噪声 first-cut 已完成**（`testbenches/rc_readout_noise.py`，R6）：mean-field MC0=6.38，per-node ADC≤10bit 或读噪声≥2% 显著掉 MC（10bit→62%、2%噪→47%）→ **读出精度是限制者**，与 `reservoir_energy.py` 把读出当~免费矛盾。**待**：读出能量映射（NeuroSim ADC/TIA）、无扰动读+读回作用界、三位一体势垒冲突（R7）。
 - [ ] **(P7a, 可与 P1 并行)** 低势垒 (Δ≈3.8) telegraph 节点瞬态噪声验证 τ(V)/tanh。
 - [ ] 无扰动 4 端读 + 读回作用界 (读偏置移动 τ 多少)。
 - [ ] 模拟读出 TIA+ADC 噪声 → 脊回归记忆容量损失 (论断 e)；解决 `reservoir_energy.py` 读出近乎免费 vs 正文矛盾。
