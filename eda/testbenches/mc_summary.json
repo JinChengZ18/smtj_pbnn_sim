@@ -1,0 +1,9 @@
+{
+  "seed": 20260626,
+  "n_trials": 2000,
+  "backend": "analytic",
+  "max_abs_err_vs_analytic": 0.019064751739097496,
+  "binomial_1sigma": 0.011180339887498949,
+  "pass_within_4sigma": true,
+  "write_energy_pJ": 0.7828608247422681
+}

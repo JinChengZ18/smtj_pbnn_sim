@@ -1,0 +1,22 @@
+{
+  "params": {
+    "Vth": 0.895783,
+    "VT": 0.023414,
+    "beta_s": 42.70949004868882,
+    "Delta": 4.91,
+    "Vc0": 0.857,
+    "tau0": 1e-09,
+    "Rsot": 776.0
+  },
+  "sigmoid_vs_measured_A_PtoAP": {
+    "n_points": 12,
+    "R2": 0.991940410695987,
+    "RMSE": 0.03465725135562055,
+    "pass_R2_ge_0p99": true
+  },
+  "tau_zero_bias_ns": 67.81970720423261,
+  "sinf_at_0p1V": 0.5175069707378637,
+  "write_energy_pJ": 0.7828608247422681,
+  "write_energy_pass_0p78pJ": true,
+  "sweep_rows": 86
+}

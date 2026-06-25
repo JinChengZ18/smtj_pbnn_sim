@@ -7,6 +7,12 @@ read sense) follow standard 28 nm order-of-magnitude figures and SHOULD
 be replaced with NeuroSim V1.5 floorplan output before reporting absolute
 numbers.
 
+NOTE (see ``docs/errata.md``, item E1): NeuroSim does NOT model the sMTJ
+stochastic SOT write -- that energy is physically grounded here via
+``V_wr**2 / R_SOT * t_write``. The NeuroSim/Spectre replacement above
+applies only to the CMOS-peripheral constants (DAC, read sense, counter,
+areas). The transistor-level extraction effort lives under ``eda/``.
+
 Per-operation primitives are listed; layer-level energy is composed in
 :mod:`energy` and :mod:`latency`.
 """

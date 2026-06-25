@@ -1,0 +1,26 @@
+* P1 regression: smtj_sot.va calibrated-sigmoid observable vs golden_psw.csv
+* Driven by run_regression.py, which first compiles smtj_sot.va -> smtj_sot.osdi
+* with OpenVAF. DC-sweeps the write voltage and writes the model observables
+* V(psw), V(sinf), V(tau) for comparison against the Python golden reference.
+*
+* NOTE: exact `pre_osdi` placement is ngspice-version-dependent (>=39 for OSDI).
+* If your build needs it loaded before parsing, move the pre_osdi line into
+* spinit or invoke: ngspice -b --command "pre_osdi smtj_sot.osdi" regression_psw.spice
+
+* --- bias / state sources ---
+Vcom com 0 dc 0
+Vrd  rd  0 dc 0
+Vst  st  0 dc 0
+Vwr  wr  0 dc 0.9
+
+* --- device under test (OSDI): port order wr rd com st psw tau sinf ---
+N1 wr rd com st psw tau sinf smtj_sot
+
+.control
+  pre_osdi smtj_sot.osdi
+  dc Vwr 0.80 0.97 0.002
+  wrdata ngspice_psw.csv v(psw) v(sinf) v(tau)
+  quit
+.endc
+
+.end
