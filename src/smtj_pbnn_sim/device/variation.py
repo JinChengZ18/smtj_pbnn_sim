@@ -41,6 +41,11 @@ class VariationConfig:
         sigma_V_T_rel:  Relative std-dev of V_T for ``sigmoid_direct`` mode.
         sigma_RP_rel:   Relative std-dev of parallel-state resistance.
         sigma_TMR_rel:  Relative std-dev of TMR ratio.
+        sigma_sense_offset_V: Std-dev [V] of an additive per-cell decision-threshold
+            shift that models the readout sense-amplifier input-referred offset
+            (errata R2): an SA offset acts as a per-column V_th shift -- exactly the
+            error class Exp.08 finds dominant. Fed by the EDA hero block's extracted
+            offset distribution. Default 0.0 = no sense offset (legacy behaviour).
         seed: RNG seed for the variation draw. None = nondeterministic.
     """
     mode: Literal["delta", "sigmoid_direct"] = "delta"
@@ -49,6 +54,7 @@ class VariationConfig:
     sigma_V_T_rel: float = 0.10
     sigma_RP_rel: float = 0.05
     sigma_TMR_rel: float = 0.10
+    sigma_sense_offset_V: float = 0.0
     seed: Optional[int] = None
 
 
@@ -128,6 +134,13 @@ class VariationSampler:
             V_T = np.maximum(_draw_rel(V_T_nom, self.cfg.sigma_V_T_rel), 1e-4)
         else:
             raise ValueError(f"Unknown variation mode: {self.cfg.mode!r}")
+
+        # Readout sense-amp input-referred offset (errata R2): an additive per-cell
+        # decision-threshold shift on top of V_th. Fed by the EDA hero block's
+        # extracted SA-offset distribution (eda/interface/hero_closed_loop.py).
+        if self.cfg.sigma_sense_offset_V > 0.0:
+            V_th = (V_th + self.cfg.sigma_sense_offset_V
+                    * rng.standard_normal(shape)).astype(np.float32)
 
         if device is not None:
             return VariationFields(

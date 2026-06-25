@@ -5,7 +5,7 @@
 
 ## 当前状态  （last update: 2026-06-27）
 
-- **⭐ 战略转向（2026-06-27 顶刊重审）**：计划从"验证优先 P1–P7"改为**创新优先**。验证 ≠ 顶刊贡献，且多数候选新电路 2024–26 已被做掉；新颖性 = **规格反转 + 闭环 + 反向设计方法学**。主线：**Hero=斜率匹配 p-bit 读出（C1+C2，SA 失调按 V_T 预算 + 闭环 MNIST 92.8%→~97%，关 R2）**；**第二篇=RC 等能量 {N,M,b} 套利（C3，修 R6）**。**P1–P7 first-cut 降为基础/支撑层**。目标期刊 TCAS-I/TVLSI/TED（不投 Nat.Electron./ISSCC）。详见 [`research/2026-06-27_innovation_replan.md`](research/2026-06-27_innovation_replan.md) 与 ROADMAP 顶部「创新优先重排」。
+- **⭐ 战略转向（2026-06-27 顶刊重审）**：计划从"验证优先 P1–P7"改为**创新优先**。验证 ≠ 顶刊贡献，且多数候选新电路 2024–26 已被做掉；新颖性 = **规格反转 + 闭环 + 反向设计方法学**。主线：**Hero=斜率匹配 p-bit 读出（C1+C2，SA 失调按 V_T 预算 + 闭环 MNIST 92.8%→~97%，关 R2）**；**第二篇=RC 等能量 {N,M,b} 套利（C3，修 R6）**。**P1–P7 first-cut 降为基础/支撑层**。目标期刊 TCAS-I/TVLSI/TED（不投 Nat.Electron./ISSCC）。详见 [`research/2026-06-27_innovation_replan.md`](research/2026-06-27_innovation_replan.md) 与 ROADMAP 顶部「创新优先重排」。ROADMAP 另列**两层贡献层级**：Tier A=创新（A0 方法学 / A1-A2 Hero / A3 第二篇），Tier B=大论文基础工程（B1–B9，引先验为实现基础，单独不投顶刊但是合格学位工作），+ 大论文章节映射。
 - **路线**：开源 ngspice（本机无 EDA 许可证）。工具链已装齐并验证：**ngspice-46 + OpenVAF-reloaded 20260616**（已加入当前用户 PATH；路径亦记于 `eda/tools.local.json`）。回归目标 `Vth=0.895783 V / VT=0.023414 V`。
 - **当前阶段**：**P1 已完成 ✅**；**P2 first-cut 已完成**（理想脉冲+串阻驱动；待 sky130 CMOS 驱动细化）。
 - **已完成**：
@@ -51,6 +51,7 @@
 | P7a 低势垒 τ(V)/⟨s⟩（Δ=3.8） | `telegraph_lowbarrier.py` | τ_max(0V)=22.35 ns，τ rel-err<1.6e-4 | ✅ |
 | P6 接口：提取值回灌 → MNIST PPA | `interface/load_tech_params.py` | per-MAC 793→818 fJ (+3%，写+驱动)；MNIST T=4 5.91→6.09µJ；read/ADC 待 P4 | ✅ first-cut |
 | P7 读出 ADC/噪声 → 记忆容量 (R6) | `rc_readout_noise.py` | MC0=6.38；ADC≤10bit/读噪声≥2% 显著掉 MC（10bit→62%，2%噪→47%）→ 读出精度是限制者 | ✅ first-cut |
+| Hero(A1) 闭环基础设施：R2 通道 + 决策位移 | `hero_closed_loop.py` + `variation.py` | `sigma_sense_offset_V` 通道已接(10mV→9.89mV)；offset=V_T 时 Δp_sw=0.23（per-列系统偏置）；精度终图待 Phase-1 MNIST 跑 | ✅ first-cut |
 
 ## 各阶段 Definition of Done（DoD）
 

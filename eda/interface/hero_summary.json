@@ -1,0 +1,74 @@
+{
+  "VT_mV": 23.414,
+  "channel_wired": true,
+  "exp08_anchors": [
+    [
+      0.0,
+      97.5
+    ],
+    [
+      0.2,
+      92.8
+    ]
+  ],
+  "offset_budget_mV_for_dp_lt_0p15": 10,
+  "rows": [
+    {
+      "offset_mV": 0,
+      "offset_over_VT": 0.0,
+      "dp_sw": 0.0,
+      "sigma_rel_vth": 0.0,
+      "acc_firstcut": 97.5
+    },
+    {
+      "offset_mV": 5,
+      "offset_over_VT": 0.2135474502434441,
+      "dp_sw": 0.05318490224063133,
+      "sigma_rel_vth": 0.0055817089629966185,
+      "acc_firstcut": 97.36882983936958
+    },
+    {
+      "offset_mV": 7,
+      "offset_over_VT": 0.2989664303408217,
+      "dp_sw": 0.07418983269835455,
+      "sigma_rel_vth": 0.007814392548195267,
+      "acc_firstcut": 97.31636177511741
+    },
+    {
+      "offset_mV": 10,
+      "offset_over_VT": 0.4270949004868882,
+      "dp_sw": 0.10517974454816115,
+      "sigma_rel_vth": 0.011163417925993237,
+      "acc_firstcut": 97.23765967873916
+    },
+    {
+      "offset_mV": 15,
+      "offset_over_VT": 0.6406423507303323,
+      "dp_sw": 0.15489865042890694,
+      "sigma_rel_vth": 0.016745126888989856,
+      "acc_firstcut": 97.10648951810875
+    },
+    {
+      "offset_mV": 20,
+      "offset_over_VT": 0.8541898009737764,
+      "dp_sw": 0.20144530960472184,
+      "sigma_rel_vth": 0.022326835851986474,
+      "acc_firstcut": 96.97531935747831
+    },
+    {
+      "offset_mV": 23.4,
+      "offset_over_VT": 0.9994020671393183,
+      "dp_sw": 0.23094100165367748,
+      "sigma_rel_vth": 0.026122397946824177,
+      "acc_firstcut": 96.88612364824964
+    },
+    {
+      "offset_mV": 30,
+      "offset_over_VT": 1.2812847014606645,
+      "dp_sw": 0.2826683816802281,
+      "sigma_rel_vth": 0.03349025377797971,
+      "acc_firstcut": 96.71297903621748
+    }
+  ],
+  "note": "First-cut: device-physics decision shift is exact; accuracy via Exp.08 V_th-D2D anchors (sense offset = per-column V_th shift). FINAL curve: run full-stack PBNN MNIST with VariationConfig(sigma_sense_offset_V=...) swept."
+}
