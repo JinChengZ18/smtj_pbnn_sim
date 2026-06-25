@@ -12,6 +12,27 @@
 
 ---
 
+## ⭐ 创新优先重排（2026-06-27 顶刊重审后；详见 [`research/2026-06-27_innovation_replan.md`](research/2026-06-27_innovation_replan.md)）
+
+**判断**：下面的 P1–P7 是**验证层**（复现/确认/打通），不是顶刊贡献；且多数"新电路"2024–26 已被做掉（V_th 驱动、自调零 SA、可调势垒三位一体均有 2024–26 先验）。真正的新颖性 = **① 规格反转 + ② 闭环 + ③ 反向设计方法学**，非新原语。**P1–P7 first-cut 自此降为「基础/支撑层」**，主线改为：
+
+- **Hero（C1+C2，~60%，唯一 strong）**：斜率匹配 p-bit 读出 —— SA 输入失调按器件 **V_T=23.4mV（伯努利判决窗口）** 预算（非 TMR 余量；非显然：finding(c) 说 V_T 被 BN 吸收"无关精度"，但它决定读出成本）；闭环 σ_offset→`device/variation.py`→MNIST **92.8%→~97%**；摊销写-DAC 微调（写占 98.7%，校准近免费）。**关 errata R2**。
+- **第二篇（C3）**：RC 等能量三方套利 **{N,M,b}** 的 MC/焦耳 + **列共享低分辨 ADC**，修复 `rc_readout_noise`(读出限制) vs `reservoir_energy`(读出免费) 矛盾；证明 MC-最优读出是廉价低分辨/时域。**修 R6**。
+- **降级（引为先验，不独立成文）**：V_th 跟踪驱动、自调零 SA-as-invention、三位一体可调势垒（Kent A-sMTJ 2025 / HKUST VLSI 2026 已抢先）、自适应-T、开源 `.va`。
+- **目标期刊**：IEEE **TCAS-I / TVLSI / TED**（**不投 Nat.Electron./ISSCC**——2025 已有实测 130nm CMOS p-bit ASIC，sky130 纯仿会秒拒；46 点晶圆校准是"近硅"锚点）。
+
+**新阶段序（替换验证优先）**：
+- **Phase 0 网关**：WSL2 + IIC-OSIC-TOOLS Docker（Xschem/Magic/Netgen/ngspice + sky130A）+ 共享 OpenVAF `.osdi`。← 即用户正在装的 PDK，解锁所有版图/GDS/PEX。
+- **Phase 1 Hero**：C1+C2 设计→优化→版图→PEX→闭环 MNIST（全工件集 + hero 图）。
+- **Phase 2**：C3 读出协同（MC/焦耳等高线 + 一个 sky130 TIA+低分辨 ADC 切片）。
+- **Phase 3**：旧 P2/P3/V_th 驱动/自适应-T/.va → 支撑证据/复现性支柱。
+- **纪律**：阵列只到单列/原理图标注级，**绝不做 256×256 全 DRC-clean GDS**。
+- **诚实支柱（必写）**：RNG 在 Python harness；结论用比值不报绝对(130nm 悲观)；Magic 电阻 PEX 仅量级级；能量基准用端到端 6.95 pJ/bit；`.va` RC 低势垒区未独立验证。
+
+> 下面的 P0–P7 保留作**基础层记录**：已完成的 first-cut 是这条创新主线的脚手架与证据（P1 模型、P3 差分残余、P6 接口、P7 读出噪声都直接喂入上面的 Hero/第二篇）。
+
+---
+
 ## P0 — 基础与决策 (无 EDA，1 周)  ⚙️
 **目标**：把后续一切的前提钉死。
 - [ ] 确认大学 Cadence/Synopsys 席位 + Europractice/foundry-PDK 访问；论文算教学/研究用途。
