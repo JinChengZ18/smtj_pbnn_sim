@@ -9,9 +9,9 @@ P1 及之后的开源路线需要两件核心工具：**ngspice ≥ 43**（含 O
 ### 本机安装状态（2026-06-26）
 
 - ngspice 46：
-  `C:\Users\Lenovo\AppData\Local\Programs\EDA\ngspice-46\Spice64\bin`
+  `E:\EDA\ngspice-46\Spice64\bin`
 - OpenVAF-Reloaded `20260616-2-gc592eed6`：
-  `C:\Users\Lenovo\AppData\Local\Programs\EDA\openvaf-reloaded-20260616-2-gc592eed6`
+  `E:\EDA\openvaf-reloaded-20260616-2-gc592eed6`
 - 两个目录已加入**当前 Windows 用户**的 `PATH`。新开的 PowerShell/CMD/终端可在任意目录直接运行
   `ngspice`、`openvaf` 和 `openvaf-r`；这不是管理员级、所有用户共享的系统安装。
 - 已执行 P1 回归：86 个 DC 扫描点，`max|err|=3.51e-4`、`R²=1.00000`，PASS。
