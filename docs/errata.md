@@ -51,8 +51,8 @@
 ### R2 — 「$V_\mathrm{th}$ 绝对位置稳定性是唯一精度瓶颈」(论断 c)
 - **位置**：`article/chapter04.md` §4.5 非理想性消融。
 - **问题**：精度模型全在写域 ($\sigma_\mathrm{rel}(V_\mathrm{th})=20\%\to92.8\%$)，未含读出灵敏放大的输入折合失调。28nm StrongARM/CLSA SA 失调约 **10–30 mV (1σ)，与 $V_T=23.4$ mV 同量级**，与 $V_\mathrm{th}$ 漂移争夺决策阈值。若 MC 证实其竞争，硬件优先级须从「DAC 校准」扩为「DAC 校准 **+ 灵敏放大失调消除 (auto-zero/chopping/trim)**」。
-- **行动**：EDA 阶段 3 的 Spectre MC 失配 → 给 `device/variation.py` 增 `sigma_sense_offset` 通道，回灌 MNIST 精度扫描；据结果更新 §4.5 结论。
-- **状态**：`待EDA验证`。
+- **行动**：EDA 阶段 3 的 MC 失配 → 给 `device/variation.py` 增 `sigma_sense_offset` 通道，回灌 MNIST 精度扫描；据结果更新 §4.5 结论。
+- **状态**：`进行中(first-cut)`。P3 `diff_column.py` 证实 MTJ 级差分消除（匹配线性 err 9e-6 popcount），器件失配（σ_Rp7%/σ_TMR4%）残余仅 ~0.06·√N popcount（N=256 仍 sub-LSB）——claim(a) 在 MTJ 层稳健。**SA 晶体管输入折合失调（~10–30mV vs V_T=23.4mV）待 sky130** 才能测其是否与 V_th 漂移竞争、撼动 claim c。
 
 ### R3 — 「256×256、$R_P\sim5$k 下 IR-drop 可忽略」(论断 c2)
 - **位置**：`article/chapter04.md` §4.3；`src/smtj_pbnn_sim/array/ir_drop.py` (文档化空桩，从不被调用)。
@@ -76,7 +76,7 @@
 - **位置**：`src/smtj_pbnn_sim/ppa/reservoir_energy.py` (读出仅计 `e_int8_mac*n_nodes*n_outputs`) vs `article/chapter05`/RC 论述正文。
 - **问题**：行为模型把读出当作微小 INT8-MAC 项，正文却称读出散粒噪声/ADC 是真正能量与精度限制者——二者自相矛盾。
 - **行动**：EDA 阶段 7 仿真模拟读出 TIA+ADC 噪声 → 脊回归记忆容量损失；用 NeuroSim/CrossSim 给 ADC+TIA 能量/面积替换 `e_int8_mac` 占位；并列报告 amortized-ADC 与 per-node-ADC 两个括号，复核 ~38× vs 数字 ESN。
-- **状态**：`待EDA验证`。
+- **状态**：`待EDA验证`（读出部分）。P7a `telegraph_lowbarrier.py` 已器件级验证低势垒 τ(V)/⟨s⟩ 旋钮（Δ=3.8，τ_max=22.35ns，rel-err<1.6e-4）——RC 前提成立；本条核心（读出 TIA+ADC 噪声 → 记忆容量损失）仍待做。
 
 ### R7 — 「三位一体」时分复用隐含势垒冲突
 - **位置**：RC 论述 / 全文主线 (第 1、4、5 章「同一阵列承担两类任务」)。

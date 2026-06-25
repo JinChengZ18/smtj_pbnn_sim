@@ -1,0 +1,8 @@
+{
+  "Delta": 3.8,
+  "tau_max_ns_sim": 22.3505922,
+  "tau_max_ns_analytic": 22.35059224665041,
+  "tau_rel_err_max": 0.0001572900162685434,
+  "sinf_abs_err_max": 0.00012107294132768232,
+  "pass_": true
+}

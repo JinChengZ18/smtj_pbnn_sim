@@ -12,7 +12,7 @@
   - P2 first-cut：`write_mc_harness.py` 跑通 12 次瞬态 — 0.75ns 脉冲 rise≈40ps（可行）；10Ω 理想驱动下信道能量≈0.80 pJ、驱动开销 1.3%；P_sw 在交付电压上复现。
   - vgsot-sim 作 submodule 接入 `eda/vendor/vgsot-sim`（决策 D5 执行）。
 - **下一步**：P2 细化（sky130 CMOS 写驱动替换理想脉冲，量化真实驱动开销/短路能量 → errata R4）；可并行 P3（差分读+SA）。装 sky130 见 SETUP（建议 WSL2）。
-- **ngspice-46 要点（已踩坑，勿重犯）**：OSDI 加载命令是 **`osdi`**（非 `pre_osdi`），经 cwd 的 `.spiceinit` 在**解析前**加载；OSDI 器件需 **`.model <name> <va模块>`** 卡（本项目用 `.model smtj_sot smtj_sot`），实例 `N1 ... smtj_sot`。
+- **ngspice-46 要点（已踩坑，勿重犯）**：OSDI 加载命令是 **`osdi`**（非 `pre_osdi`），经 cwd 的 `.spiceinit` 在**解析前**加载；OSDI 器件需 **`.model <name> <va模块>`** 卡（本项目用 `.model smtj_sot smtj_sot`），实例 `N1 ... smtj_sot`；**SPICE 首行=标题**（Python 生成的网表必须以 `*` 注释开头，否则首条 `.model`/元件被当标题吞掉）；`.va` 参数可经 `.model smtj_sot smtj_sot Delta=3.8` 覆盖（P7 用）。
 
 ## 续传协议（新会话照做）
 
@@ -45,6 +45,9 @@
 | ngspice DC 扫描 V(psw) vs 金标准 | `run_regression.py` | 86 点 max\|err\|=3.5e-4, **R²=1.000000** | ✅ |
 | P2 写路径瞬态：0.75ns 脉冲可行性 | `write_mc_harness.py` | rise≈40 ps ≪ 0.75 ns | ✅ |
 | P2 信道能量 + 驱动开销（10Ω 理想驱动） | `write_mc_harness.py` | E_sot≈0.80 pJ, overhead 1.3% | ✅ first-cut |
+| P3 差分列偏置消除（匹配，claim a） | `diff_column.py` | 线性 max-err 9e-6 popcount | ✅ |
+| P3 失配残余失调 vs N（σ_Rp7%/σ_TMR4%） | `diff_column.py` | ~0.06·√N popcount（16/64/256→0.30/0.62/0.97，sub-LSB 至 N≈256） | ✅ first-cut |
+| P7a 低势垒 τ(V)/⟨s⟩（Δ=3.8） | `telegraph_lowbarrier.py` | τ_max(0V)=22.35 ns，τ rel-err<1.6e-4 | ✅ |
 
 ## 各阶段 Definition of Done（DoD）
 
@@ -53,11 +56,11 @@
 | **P0** | 工具/PDK 路线定、回归目标钉死、模型基底定 | ✅ |
 | **P1** | `.va` ✅ + Python 金标准 ✅ + 随机写 harness ✅ + ngspice `run_regression` R²=1.0 ✅ | ✅ Done |
 | **P2** | first-cut ✅（理想驱动：能量/开销/0.75ns 可行性/P_sw）；待 sky130 CMOS 驱动端到端 → errata R4 | ◑ 部分 |
-| **P3** | 差分列 + SA；CMRR/残余失调 vs N；SA 失调 vs V_T → errata R2 | ⬜ |
+| **P3** | first-cut ✅（MTJ 差分消除精确；失配残余 ~0.06√N popcount，sub-LSB 至 N≈256）；待 sky130 SA 晶体管失调 vs V_T → errata R2 | ◑ 部分 |
 | **P4** | CSA/ADC 读出能量/延迟/噪底；子阵列上限；外围占比重算 → errata R1 | ⬜ |
 | **P5** | 单列/小 tile PEX；IR-drop vs 尺寸（含 776Ω 写线）→ errata R3 | ⬜ |
 | **P6** | extraction LUT → interface 构造 extracted TechParams → 重跑 MNIST PPA → errata R1/R2 resolved | ⬜ |
-| **P7** | 低势垒 τ(V) 验证；无扰动读 + 读回作用界；读出 TIA+ADC 噪声 → MC 损失 → errata R6/R7 | ⬜ |
+| **P7** | τ(V)/⟨s⟩ first-cut ✅（Δ=3.8 τ_max=22.35ns）；待无扰动读+读回作用界、读出 TIA+ADC 噪声 (R6)、三位一体势垒冲突 (R7) | ◑ 部分 |
 
 ## 工件清单
 
@@ -70,6 +73,8 @@
 | `testbenches/run_regression.py` | P1：编译 `.va` + 跑 ngspice + 断言（工具缺失则优雅退出） | 需 ngspice+OpenVAF |
 | `testbenches/write_path.spice` | P2 写路径瞬态网表（脉冲 + 驱动 + SOT 写支路） | 需 ngspice |
 | `testbenches/write_mc_harness.py` | P2 Python-in-the-loop：能量/开销/0.75ns 可行性/随机写 | 需 ngspice+OpenVAF |
+| `testbenches/diff_column.py` | P3 差分列 claim(a)：偏置消除 + 失配残余 MC（电阻级，无需 .va） | 需 ngspice |
+| `testbenches/telegraph_lowbarrier.py` | P7a 低势垒 τ(V)/⟨s⟩ 验证（.va 观测 vs 解析，Δ=3.8） | 需 ngspice+OpenVAF |
 | `tools.local.json` | 机器本地工具路径（gitignored） | — |
 | `vendor/vgsot-sim` (submodule) | 用户 LLG 全物理模型（真值参考；含 Hikstor PDK，版权隔离） | 需 `pip install -e` |
 | `testbenches/golden_*.{csv,json}`, `mc_summary.json` | 金标准/验证结果（已提交） | — |

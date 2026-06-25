@@ -1,0 +1,16 @@
+* P7a low-barrier telegraph tau(V)/<s> validation (first line = title)
+.model smtj_sot smtj_sot Delta=3.8
+Vcom com 0 dc 0
+Vrd  rd  0 dc 0
+Vst  st  0 dc 0
+Vwr  wr  0 dc 0
+N1 wr rd com st psw tau sinf smtj_sot
+Rpsw  psw  0 1e12
+Rtau  tau  0 1e12
+Rsinf sinf 0 1e12
+.control
+  dc Vwr -0.2 0.2 0.004
+  wrdata tele_out.csv v(tau) v(sinf)
+  quit
+.endc
+.end

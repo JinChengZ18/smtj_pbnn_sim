@@ -50,8 +50,9 @@
 
 ---
 
-## P3 — 差分读 + 灵敏放大 (2–3 周；P1 后，可与 P2 并行)  🔬📝
+## P3 — 差分读 + 灵敏放大 (P1 后，可与 P2 并行)  🔬📝  — first-cut ✅
 **目标**：把 (a) 从代数断言变成实测；测 (c)。
+> **first-cut 已完成**（`testbenches/diff_column.py`，MTJ 电阻级，无需 sky130）：匹配时差分消除精确（线性 err 9e-6 popcount）；MTJ 失配（σ_Rp7%/σ_TMR4%）残余失调 ~0.06·√N popcount（N=16/64/256→0.30/0.62/0.97，sub-LSB 至 N≈256）——claim(a) 在 MTJ 层稳健。**待**：sky130 晶体管电流型灵敏放大 + 其输入失调（~10–30mV vs V_T，errata R2）。
 - [ ] 2T2MTJ 差分列 + 电流型灵敏放大；±V_read/2 驱动。
 - [ ] Spectre MC 失配 (注入 CV(Δ)=7.7% + SA 失配) → 残余共模/CMRR vs 列高 N、TMR。
 - [ ] 量化 SA 输入折合失调 (~10–30mV) 是否与 $V_T=23.4$mV 竞争。
@@ -89,8 +90,9 @@
 
 ---
 
-## P7 — 储池 (RC) 路径 (并行轨, 3–4 周)  🔬📝
+## P7 — 储池 (RC) 路径 (并行轨)  🔬📝  — P7a first-cut ✅
 **目标**：验证/修正 (e)，文档化三位一体限制。
+> **P7a first-cut 已完成**（`testbenches/telegraph_lowbarrier.py`）：低势垒 Δ=3.8（`.model` 卡覆盖）下 `.va` 的 τ(V)/⟨s⟩ 观测对照解析，τ_max(0V)=22.35ns、τ rel-err<1.6e-4、⟨s⟩ abs-err<1.2e-4——RC 两旋钮（衰落记忆+非线性）器件级成立。**待**：无扰动读+读回作用界、读出 TIA+ADC 噪声→记忆容量损失（R6）、三位一体势垒冲突（R7）。
 - [ ] **(P7a, 可与 P1 并行)** 低势垒 (Δ≈3.8) telegraph 节点瞬态噪声验证 τ(V)/tanh。
 - [ ] 无扰动 4 端读 + 读回作用界 (读偏置移动 τ 多少)。
 - [ ] 模拟读出 TIA+ADC 噪声 → 脊回归记忆容量损失 (论断 e)；解决 `reservoir_energy.py` 读出近乎免费 vs 正文矛盾。

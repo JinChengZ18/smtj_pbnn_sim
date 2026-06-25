@@ -1,0 +1,27 @@
+{
+  "RP": 4900.0,
+  "TMR": 1.0,
+  "Vr": 0.1,
+  "sigma_Rp": 0.07,
+  "sigma_TMR": 0.04,
+  "LSB_current_uA": 5.102040816326531,
+  "matched_linearity_maxerr": 9.199999997377972e-06,
+  "residual": [
+    {
+      "N": 16,
+      "residual_sigma_popcount": 0.3025940962428291,
+      "per_sqrtN": 0.07564852406070728
+    },
+    {
+      "N": 64,
+      "residual_sigma_popcount": 0.6244387380126442,
+      "per_sqrtN": 0.07805484225158052
+    },
+    {
+      "N": 256,
+      "residual_sigma_popcount": 0.9742889202872274,
+      "per_sqrtN": 0.06089305751795171
+    }
+  ],
+  "note": "matched -> bias cancels (residual~0); mismatch -> residual offset ~sqrt(N)*per-cell. Transistor sense-amp offset added with sky130 (P3 full)."
+}
