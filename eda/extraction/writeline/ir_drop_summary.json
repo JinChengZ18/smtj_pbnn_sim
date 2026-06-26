@@ -1,0 +1,261 @@
+{
+  "operating_point": {
+    "I_write_mA": 1.1597938144329898,
+    "R_dev_ohm": 776.0,
+    "t_write_ns": 0.75,
+    "E_dev_pJ": 0.7828608247422679
+  },
+  "sheet_R_validation": {
+    "poly_extracted_ohm_sq": 47.96,
+    "poly_techfile_ohm_sq": 48.2
+  },
+  "sheet_R_TT": {
+    "li1": 12.8,
+    "met1": 0.125,
+    "met2": 0.125,
+    "met3": 0.047,
+    "met4": 0.047,
+    "met5": 0.029
+  },
+  "contacts_ohm": {
+    "mcon": 9.3,
+    "via1": 4.5,
+    "via2": 3.41
+  },
+  "realistic_met2_W1_pitch2": [
+    {
+      "N": 16,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 8.0,
+      "IR_mV": 9.278350515463918,
+      "headroom_loss_pct": 1.0309278350515463,
+      "pct_of_776": 1.0309278350515463,
+      "E_extra_fJ": 8.070730151982143,
+      "E_overhead_pct": 1.0309278350515463
+    },
+    {
+      "N": 64,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 32.0,
+      "IR_mV": 37.11340206185567,
+      "headroom_loss_pct": 4.123711340206185,
+      "pct_of_776": 4.123711340206185,
+      "E_extra_fJ": 32.282920607928574,
+      "E_overhead_pct": 4.123711340206185
+    },
+    {
+      "N": 256,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 128.0,
+      "IR_mV": 148.4536082474227,
+      "headroom_loss_pct": 16.49484536082474,
+      "pct_of_776": 16.49484536082474,
+      "E_extra_fJ": 129.1316824317143,
+      "E_overhead_pct": 16.49484536082474
+    },
+    {
+      "N": 1024,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 512.0,
+      "IR_mV": 593.8144329896908,
+      "headroom_loss_pct": 65.97938144329896,
+      "pct_of_776": 65.97938144329896,
+      "E_extra_fJ": 516.5267297268572,
+      "E_overhead_pct": 65.97938144329896
+    }
+  ],
+  "n256_layer_width_sweep": [
+    {
+      "N": 256,
+      "layer": "li1",
+      "pitch_um": 2.0,
+      "w_um": 0.5,
+      "R_par_ohm": 26214.4,
+      "IR_mV": 30403.298969072166,
+      "headroom_loss_pct": 3378.1443298969075,
+      "pct_of_776": 3378.1443298969075,
+      "E_extra_fJ": 26446.168562015097,
+      "E_overhead_pct": 3378.1443298969075
+    },
+    {
+      "N": 256,
+      "layer": "li1",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 13107.2,
+      "IR_mV": 15201.649484536083,
+      "headroom_loss_pct": 1689.0721649484537,
+      "pct_of_776": 1689.0721649484537,
+      "E_extra_fJ": 13223.084281007548,
+      "E_overhead_pct": 1689.0721649484537
+    },
+    {
+      "N": 256,
+      "layer": "li1",
+      "pitch_um": 2.0,
+      "w_um": 2.0,
+      "R_par_ohm": 6553.6,
+      "IR_mV": 7600.8247422680415,
+      "headroom_loss_pct": 844.5360824742269,
+      "pct_of_776": 844.5360824742269,
+      "E_extra_fJ": 6611.542140503774,
+      "E_overhead_pct": 844.5360824742269
+    },
+    {
+      "N": 256,
+      "layer": "met1",
+      "pitch_um": 2.0,
+      "w_um": 0.5,
+      "R_par_ohm": 256.0,
+      "IR_mV": 296.9072164948454,
+      "headroom_loss_pct": 32.98969072164948,
+      "pct_of_776": 32.98969072164948,
+      "E_extra_fJ": 258.2633648634286,
+      "E_overhead_pct": 32.98969072164948
+    },
+    {
+      "N": 256,
+      "layer": "met1",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 128.0,
+      "IR_mV": 148.4536082474227,
+      "headroom_loss_pct": 16.49484536082474,
+      "pct_of_776": 16.49484536082474,
+      "E_extra_fJ": 129.1316824317143,
+      "E_overhead_pct": 16.49484536082474
+    },
+    {
+      "N": 256,
+      "layer": "met1",
+      "pitch_um": 2.0,
+      "w_um": 2.0,
+      "R_par_ohm": 64.0,
+      "IR_mV": 74.22680412371135,
+      "headroom_loss_pct": 8.24742268041237,
+      "pct_of_776": 8.24742268041237,
+      "E_extra_fJ": 64.56584121585715,
+      "E_overhead_pct": 8.24742268041237
+    },
+    {
+      "N": 256,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 0.5,
+      "R_par_ohm": 256.0,
+      "IR_mV": 296.9072164948454,
+      "headroom_loss_pct": 32.98969072164948,
+      "pct_of_776": 32.98969072164948,
+      "E_extra_fJ": 258.2633648634286,
+      "E_overhead_pct": 32.98969072164948
+    },
+    {
+      "N": 256,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 128.0,
+      "IR_mV": 148.4536082474227,
+      "headroom_loss_pct": 16.49484536082474,
+      "pct_of_776": 16.49484536082474,
+      "E_extra_fJ": 129.1316824317143,
+      "E_overhead_pct": 16.49484536082474
+    },
+    {
+      "N": 256,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 2.0,
+      "R_par_ohm": 64.0,
+      "IR_mV": 74.22680412371135,
+      "headroom_loss_pct": 8.24742268041237,
+      "pct_of_776": 8.24742268041237,
+      "E_extra_fJ": 64.56584121585715,
+      "E_overhead_pct": 8.24742268041237
+    },
+    {
+      "N": 256,
+      "layer": "met3",
+      "pitch_um": 2.0,
+      "w_um": 0.5,
+      "R_par_ohm": 96.256,
+      "IR_mV": 111.63711340206186,
+      "headroom_loss_pct": 12.404123711340205,
+      "pct_of_776": 12.404123711340207,
+      "E_extra_fJ": 97.10702518864916,
+      "E_overhead_pct": 12.404123711340207
+    },
+    {
+      "N": 256,
+      "layer": "met3",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 48.128,
+      "IR_mV": 55.81855670103093,
+      "headroom_loss_pct": 6.202061855670102,
+      "pct_of_776": 6.202061855670103,
+      "E_extra_fJ": 48.55351259432458,
+      "E_overhead_pct": 6.202061855670103
+    },
+    {
+      "N": 256,
+      "layer": "met3",
+      "pitch_um": 2.0,
+      "w_um": 2.0,
+      "R_par_ohm": 24.064,
+      "IR_mV": 27.909278350515464,
+      "headroom_loss_pct": 3.101030927835051,
+      "pct_of_776": 3.1010309278350516,
+      "E_extra_fJ": 24.27675629716229,
+      "E_overhead_pct": 3.1010309278350516
+    }
+  ],
+  "high_corner_met2": [
+    {
+      "N": 64,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 37.12,
+      "IR_mV": 43.051546391752574,
+      "headroom_loss_pct": 4.783505154639174,
+      "pct_of_776": 4.783505154639175,
+      "E_extra_fJ": 37.44818790519715,
+      "E_overhead_pct": 4.783505154639175
+    },
+    {
+      "N": 256,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 148.48,
+      "IR_mV": 172.2061855670103,
+      "headroom_loss_pct": 19.134020618556697,
+      "pct_of_776": 19.1340206185567,
+      "E_extra_fJ": 149.7927516207886,
+      "E_overhead_pct": 19.1340206185567
+    },
+    {
+      "N": 1024,
+      "layer": "met2",
+      "pitch_um": 2.0,
+      "w_um": 1.0,
+      "R_par_ohm": 593.92,
+      "IR_mV": 688.8247422680412,
+      "headroom_loss_pct": 76.53608247422679,
+      "pct_of_776": 76.5360824742268,
+      "E_extra_fJ": 599.1710064831544,
+      "E_overhead_pct": 76.5360824742268
+    }
+  ],
+  "end_via_stacks_ohm": 27.6,
+  "conclusion": "R3 finding: column write-line IR-drop is NEGLIGIBLE for small columns (N<=64 on metal: <5% of the 776 ohm device) but becomes SIGNIFICANT for tall columns (N=256 -> ~16% on met1/met2 W=1um; ~6% on met3), and is CATASTROPHIC on li1 (kohm). Design guidance: route the write line on met2+ (never li1/poly), widen it, or segment tall columns; budget ~10-20% write headroom/energy for N>=256. This refines errata R3 (IR-drop) and adds the R_par/776 series overhead to the R5 end-to-end write energy (E_dev=0.783 pJ -> +16.5% at N=256 met2)."
+}

@@ -70,26 +70,26 @@ operational root.
 
 ---
 
-## 3. Install the LVS netgen (Tim Edwards / open_pdks)  — needed for the LVS step  — ~10 min
+## 3. Install the LVS netgen (Tim Edwards / open_pdks)  — ✅ completed 2026-06-26
 
-**Why:** with Magic upgraded (§1), the next step on the SA layout is **LVS** (layout vs
-`eda/hero/strongarm_sa.spice`). But the only `netgen` on `Ubuntu-24.04-EDA` is `/usr/bin/netgen` —
-the **mesh generator** (Joachim Schoeberl / Vienna, `NETGEN-6.2.x`), a completely different program
-that happens to share the binary name. The **LVS netgen** (R. Timothy Edwards, shipped with
-open_pdks; prints `netgen LVS …` / sources `sky130A_setup.tcl`) is **not installed** (confirmed:
-`find / -name netgen -type f` returns only the apt mesh one). LVS cannot run until the right netgen
-is present.
+**Done.** The LVS netgen (R. Timothy Edwards) was built from source to **Netgen 1.5.321** at
+`~/eda/netgen/bin/netgen` (user prefix, no sudo — leaves the apt mesh netgen untouched). Verified:
+`netgen -batch lvs` prints `should be "lvs name1 name2 ?setupfile? ..."` (the LVS-tool usage), not
+the mesh-generator banner.
 
-**Fix** (build from source into `/usr/local`, so it doesn't clash with the apt mesh netgen):
+**Background (why it was needed):** the only `netgen` on `Ubuntu-24.04-EDA` was `/usr/bin/netgen` —
+the **mesh generator** (Joachim Schoeberl / Vienna, `NETGEN-6.2.x`), a different program sharing the
+binary name. The LVS step needs the open_pdks netgen.
+
+Run LVS with the sky130A setup:
 ```bash
-cd ~ && rm -rf netgen-lvs && git clone https://github.com/RTimothyEdwards/netgen.git netgen-lvs
-cd ~/netgen-lvs && ./configure && make -j$(nproc) && sudo make install   # -> /usr/local/bin/netgen
-hash -r
-/usr/local/bin/netgen -batch lvs    # should print netgen LVS usage, NOT mesh-generator banner
+~/eda/netgen/bin/netgen -batch lvs \
+  "<extracted>.spice <topcell>" "strongarm_sa.spice strongarm_sa" \
+  /opt/pdk/sky130A/libs.tech/netgen/sky130A_setup.tcl
 ```
-(Or just use the IIC-OSIC-TOOLS Docker image, which bundles the correct netgen + magic + sky130A —
-the Phase-0 gate in `STATUS.md`.) After install, run LVS with the sky130A setup:
-`netgen -batch lvs "<extracted>.spice <topcell>" "strongarm_sa.spice <topcell>" /opt/pdk/sky130A/libs.tech/netgen/sky130A_setup.tcl`.
+(Recipe used: `git clone https://github.com/RTimothyEdwards/netgen.git`,
+`./configure --prefix=$HOME/eda/netgen && make -j$(nproc) && make install`.) The IIC-OSIC-TOOLS
+Docker image also bundles the correct netgen + magic + sky130A (the Phase-0 gate in `STATUS.md`).
 
 ---
 
