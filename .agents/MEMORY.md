@@ -22,3 +22,9 @@
   - **Track B (R3/R5)** `eda/extraction/writeline/`: Magic `extresist` validated (poly 47.96 vs 48.2 Ω/sq); column write-line round-trip metal R vs 776 Ω — N≤64 negligible, **N=256 met1/met2 = 16.5%** (IR 148 mV → pushes far cell below the 0.8958 V write point → p_sw shift), li1 catastrophic. Route write on met2+/widen/segment.
   - **Track A (R1/R2/R5)** SA layout device set fixed **9→11** (added Mp3/Mp4), DRC 0 violations, 11 MOSFETs + 35.25 fF extract; post-layout SA energy ~23–74 fJ/decision (5–15× the 5 fF read placeholder → R1); netgen LVS toolchain validated (device-level). **SA routing + full LVS = GUI last-mile** (`eda/hero/layout/LVS_GUI_CHECKLIST.md`).
   - **Step-executable plan** = `eda/PLAN_execution.md` (innovation main line A0/A1+A2/A3 broken into steps 1.1…3.5 with DoD + this session's status + "5 immediately-actionable" list).
+
+- 2026-06-26: **3 top scriptable plan steps done (1.11/2.3/3.1) — errata R2/R4/R6 closed as design boundaries.**
+  - 1.11 (`eda/hero/pareto_offset_cancellation.py`): plain StrongARM SA is Pareto-optimal at V_in≥0.5V/MNIST fan-in; auto-zero only earns its cost at V_in≤0.4V/wide fan-in → **R2 = quantified boundary** (budget offset vs V_T, not TMR).
+  - 2.3 (`eda/testbenches/rc_isoenergy.py`): readout not free but efficiency-frontier; MC/Joule knee at moderate-res column-shared ADC b~5–6 (b=10 = 230× energy for 3.66× MC) → **R6 resolved**.
+  - 3.1 (`eda/testbenches/run_write_driver.sh`): 1.8V sky130 driver into 776Ω → end-to-end ~1.61pJ = **2.05× the 0.783pJ Ohmic** at 0.9V delivery; needs regulated write rail → **R4 closed**.
+  - Errata: E1/E2 done; R2/R4/R6 closed; R1/R3/R5 first-cut; R7 untouched. Commits FF'd to master through 65916ed. Work kept LOCAL (no push, per user). Remaining plan items need GUI (1.7) / installs (1.13 Xschem) / are larger (1.12, 2.4, 1.14).
