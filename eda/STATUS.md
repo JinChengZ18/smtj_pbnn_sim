@@ -35,6 +35,8 @@
 | D4 | 随机性：harness 拥有 RNG（seeded、event-driven）；`.va` 保持代数（OpenVAF 安全） |
 | D5 | vgsot-sim 已作 submodule 接入 `eda/vendor/vgsot-sim`（LLG 真值参考；内含 Hikstor 专有 PDK，**勿复制进 MIT 仓库/论文**） |
 | D6 | `article/` 为交付稿，不放本地引用（见 memory: article-dir-is-deliverable） |
+| D7 | 路径：**保留仓库现位置 + 用 ASCII build dir** `~/smtj_eda_build` 跑工具（`run_drc.sh` 模式）；不整体迁移仓库（迁移要重连 5 个 worktree + 孤立 MEMORY.md，高成本低收益）。详见 [`MANUAL_SETUP_NEEDED.md`](MANUAL_SETUP_NEEDED.md) §2 |
+| D8 | Magic/TCL 版图+PEX 被版本卡（8.3.105 < 需 8.3.306）→ 当前用 KLayout PCell 出 GDS；更新 Magic 的手动步骤记于 [`MANUAL_SETUP_NEEDED.md`](MANUAL_SETUP_NEEDED.md) §1（建议从源码编译 8.3.667，**先装 tcl-dev/tk-dev/libcairo2-dev** 否则静默编出无 Tcl 版） |
 
 ## 验证账本（checkpoints，可复现）
 
