@@ -1,0 +1,35 @@
+* Hero (A1) -- StrongARM latched comparator, sky130, single-run sanity test.
+* The differential current-mode sense amp that reads the 2T2MTJ XNOR-popcount column.
+* Here driven by an ideal differential input around Vcm; vinp>vinn -> outp HIGH.
+* Run in WSL: ngspice -b eda/hero/strongarm_sa.spice  (PDK_ROOT=/opt/pdk PDK=sky130A)
+.lib /opt/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+.param vdd=1.8 vcm=0.9 vind=0.02
+
+Vdd vdd 0 {vdd}
+Vss vss 0 0
+Vclk clk 0 PULSE(0 {vdd} 1n 50p 50p 2n 10n)
+Vinp vinp 0 {vcm+vind/2}
+Vinn vinn 0 {vcm-vind/2}
+
+* --- StrongARM core (sky130 fd_pr devices are subckts -> X prefix) ---
+XMtail ntail clk   vss  vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM1    da    vinp  ntail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM2    db    vinn  ntail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM3    outn  outp  da   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM4    outp  outn  db   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM5    outn  outp  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XM6    outp  outn  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+* precharge (clk low -> nodes to vdd)
+XMp1   outp  clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp2   outn  clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp3   da    clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp4   db    clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+
+.control
+  tran 5p 4n
+  * evaluate window is ~1.05n..3.05n (clk high); measure resolved outputs at 2.9n
+  meas tran vop find v(outp) at=2.9n
+  meas tran von find v(outn) at=2.9n
+  quit
+.endc
+.end

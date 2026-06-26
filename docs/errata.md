@@ -52,7 +52,7 @@
 - **位置**：`article/chapter04.md` §4.5 非理想性消融。
 - **问题**：精度模型全在写域 ($\sigma_\mathrm{rel}(V_\mathrm{th})=20\%\to92.8\%$)，未含读出灵敏放大的输入折合失调。28nm StrongARM/CLSA SA 失调约 **10–30 mV (1σ)，与 $V_T=23.4$ mV 同量级**，与 $V_\mathrm{th}$ 漂移争夺决策阈值。若 MC 证实其竞争，硬件优先级须从「DAC 校准」扩为「DAC 校准 **+ 灵敏放大失调消除 (auto-zero/chopping/trim)**」。
 - **行动**：EDA 阶段 3 的 MC 失配 → 给 `device/variation.py` 增 `sigma_sense_offset` 通道，回灌 MNIST 精度扫描；据结果更新 §4.5 结论。
-- **状态**：`进行中(first-cut)`。P3 `diff_column.py` 证实 MTJ 级差分消除（匹配线性 err 9e-6 popcount），器件失配（σ_Rp7%/σ_TMR4%）残余仅 ~0.06·√N popcount（N=256 仍 sub-LSB）——claim(a) 在 MTJ 层稳健。**SA 晶体管输入折合失调（~10–30mV vs V_T=23.4mV）待 sky130** 才能测其是否与 V_th 漂移竞争、撼动 claim c。
+- **状态**：`进行中(first-cut)`。P3 `diff_column.py` 证实 MTJ 级差分消除（匹配线性 err 9e-6 popcount），器件失配（σ_Rp7%/σ_TMR4%）残余仅 ~0.06·√N popcount（N=256 仍 sub-LSB）——claim(a) 在 MTJ 层稳健。**SA 失调已在 sky130 真测**（`eda/hero/run_offset_mc.py`，WSL ngspice+sky130，N=24 MC）：plain StrongARM σ_offset=**11.05mV=0.47·V_T**、3σ=1.42·V_T —— SA 输入折合失调确与器件 Sigmoid 斜率 V_T 同级，再注入 Exp.08 认定致命的每列 V_th 偏移类误差。**这把 claim(a)/(c) 改写为「MTJ 层偏置消除，但 SA 失调重新引入它」——hero 发现**。精度侧（`hero_mnist_sweep.py`：注入 sigma_sense_offset_V → MNIST 精度恢复曲线）跑中；缓解=自调零/斩波（引 ISSCC2018 为先验）。注：AVT 是 sky130 量级假设、130nm 偏悲观，报比值 σ_offset/V_T 而非绝对 mV。
 
 ### R3 — 「256×256、$R_P\sim5$k 下 IR-drop 可忽略」(论断 c2)
 - **位置**：`article/chapter04.md` §4.3；`src/smtj_pbnn_sim/array/ir_drop.py` (文档化空桩，从不被调用)。

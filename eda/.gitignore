@@ -9,5 +9,5 @@ testbenches/*.lib
 *.raw
 *.out
 __pycache__/
-_write_run.spice
+_*.spice
 write_tran.csv

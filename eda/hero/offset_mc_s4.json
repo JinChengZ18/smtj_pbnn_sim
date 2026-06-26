@@ -1,0 +1,18 @@
+{
+  "N": 24,
+  "scale": 4.0,
+  "Win_um": 16.0,
+  "AVT_N_mV_um": 5.0,
+  "sigma_Vth_mV": [
+    3.227486121839514,
+    3.227486121839514,
+    9.12870929175277,
+    9.12870929175277
+  ],
+  "offset_mean_mV": -1.2500000000278089,
+  "offset_sigma_mV": 5.425633603643047,
+  "VT_mV": 23.414,
+  "sigma_offset_over_VT": 0.23172604440262437,
+  "three_sigma_over_VT": 0.695178133207873,
+  "note": "AVT is a sky130-class assumption (not PDK mismatch model); 130nm/1.8V -> ratio sigma_offset/V_T transfers, not absolute mV. Area sweep: sigma ~ 1/sqrt(area) (Pelgrom) gives the SA area to meet an offset budget."
+}

@@ -51,7 +51,10 @@
 | P7a 低势垒 τ(V)/⟨s⟩（Δ=3.8） | `telegraph_lowbarrier.py` | τ_max(0V)=22.35 ns，τ rel-err<1.6e-4 | ✅ |
 | P6 接口：提取值回灌 → MNIST PPA | `interface/load_tech_params.py` | per-MAC 793→818 fJ (+3%，写+驱动)；MNIST T=4 5.91→6.09µJ；read/ADC 待 P4 | ✅ first-cut |
 | P7 读出 ADC/噪声 → 记忆容量 (R6) | `rc_readout_noise.py` | MC0=6.38；ADC≤10bit/读噪声≥2% 显著掉 MC（10bit→62%，2%噪→47%）→ 读出精度是限制者 | ✅ first-cut |
-| Hero(A1) 闭环基础设施：R2 通道 + 决策位移 | `hero_closed_loop.py` + `variation.py` | `sigma_sense_offset_V` 通道已接(10mV→9.89mV)；offset=V_T 时 Δp_sw=0.23（per-列系统偏置）；精度终图待 Phase-1 MNIST 跑 | ✅ first-cut |
+| Hero(A1) 闭环基础设施：R2 通道 + 决策位移 | `hero_closed_loop.py` + `variation.py` | `sigma_sense_offset_V` 通道已接(10mV→9.89mV)；offset=V_T 时 Δp_sw=0.23（per-列系统偏置） | ✅ first-cut |
+| **Hero(A1) SA 输入折合失调 MC（sky130 真跑）** | `eda/hero/run_offset_mc.py`（WSL ngspice+sky130） | StrongARM σ_offset=**11.05mV=0.47·V_T**，3σ=1.42·V_T → 平 SA 再注入近半判决窗的 V_th 偏移（N=24 MC，AVT 假设） | ✅ |
+| Hero(A1) 失调-面积协同 | `run_offset_mc.py 24 4` | 4× 输入对面积 → σ/V_T 降到 <0.1（远低于 0.3·V_T 预算；exact 值受网格分辨率限） | ◑ 定性 |
+| Hero(A1) 精度轴：sense offset → MNIST | `interface/hero_mnist_sweep.py`（GPU，12ep→97.4%train） | baseline **96.80%**；per-cell sense offset 0→30mV(1.28·V_T) 精度**几乎不变**(96.8%) → **per-cell 模型欠估**；SA 失调是 per-输出列系统性(一列一个 SA)，需 per-column 模型才显真实退化：**per-column σ=0→8 popcount → 97.0%→96.35%**（随 σ 增大；per-cell 平）。SA 伏特→popcount 精确映射待 B5 读出跨阻 | ◑ first-cut |
 
 ## 各阶段 Definition of Done（DoD）
 

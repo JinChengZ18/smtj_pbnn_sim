@@ -1,0 +1,69 @@
+{
+  "epochs": 12,
+  "VT_mV": 23.414,
+  "acc_at_offset0_pct": 96.8,
+  "rows": [
+    {
+      "offset_mV": 0,
+      "off_over_VT": 0.0,
+      "acc_pct": 96.8
+    },
+    {
+      "offset_mV": 5,
+      "off_over_VT": 0.2135474502434441,
+      "acc_pct": 96.95
+    },
+    {
+      "offset_mV": 10,
+      "off_over_VT": 0.4270949004868882,
+      "acc_pct": 96.83
+    },
+    {
+      "offset_mV": 15,
+      "off_over_VT": 0.6406423507303323,
+      "acc_pct": 96.91
+    },
+    {
+      "offset_mV": 20,
+      "off_over_VT": 0.8541898009737764,
+      "acc_pct": 96.85000000000001
+    },
+    {
+      "offset_mV": 23.4,
+      "off_over_VT": 0.9994020671393182,
+      "acc_pct": 96.8
+    },
+    {
+      "offset_mV": 30,
+      "off_over_VT": 1.2812847014606645,
+      "acc_pct": 96.78
+    }
+  ],
+  "per_column_sweep": [
+    {
+      "sigma_popcount": 0.0,
+      "acc_pct": 97.0
+    },
+    {
+      "sigma_popcount": 0.5,
+      "acc_pct": 96.87
+    },
+    {
+      "sigma_popcount": 1.0,
+      "acc_pct": 96.88
+    },
+    {
+      "sigma_popcount": 2.0,
+      "acc_pct": 96.83
+    },
+    {
+      "sigma_popcount": 4.0,
+      "acc_pct": 96.81
+    },
+    {
+      "sigma_popcount": 8.0,
+      "acc_pct": 96.35000000000001
+    }
+  ],
+  "note": "Hero accuracy axis: SA offset injected at inference via the R2 sigma_sense_offset_V channel. Extracted sky130 SA sigma (run_offset_mc.py) drops onto this curve. Per-cell first-cut; per-column-systematic refinement is future work."
+}
