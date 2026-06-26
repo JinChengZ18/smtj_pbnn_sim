@@ -14,6 +14,8 @@ exactly the error class Exp.08 finds fatal.
 | `strongarm_sa.spice` | StrongARM latched comparator in sky130 (the differential current-mode SA) | `ngspice -b` (WSL) |
 | `run_offset_mc.py` | input-referred offset Monte-Carlo (Pelgrom Vth mismatch) vs V_T; `[N] [area-scale]` | WSL python3 |
 | `offset_mc_summary.json` / `offset_mc_s4.json` | offset MC results (1x / 4x input-pair area) | — |
+| `readout_mapping.py` | **B5: readout transimpedance bridges SA mV -> popcount -> accuracy (closes the loop)** | python (reads upstream JSON) |
+| `layout/gen_sa_layout.py` + `sa_devices.gds` | scripted sky130 SA device layout -> GDS ("导出版图" deliverable) | WSL KLayout |
 | `../interface/hero_closed_loop.py` | device-physics decision shift + first-cut accuracy (Exp.08 anchors) | Windows python |
 | `../interface/hero_mnist_sweep.py` | RIGOROUS accuracy axis: train PBNN-MLP, inject `sigma_sense_offset_V`, sweep -> acc | Windows GPU |
 
@@ -40,6 +42,22 @@ exactly the error class Exp.08 finds fatal.
   (one SA per column), so the **per-column model is the needed refinement** for the real
   accuracy curve (inject a per-output offset on the preactivation before sign, mapped from the
   SA volts via P3's popcount LSB). This is the key modeling decision for the hero accuracy axis.
+- **Readout mapping (B5, `readout_mapping.py`) — the loop is now CLOSED end-to-end.** The
+  three upstream numbers live in different units (LSB_I=5.1 µA/popcount from P3; σ_offset=11.05 mV
+  from the SA MC; accuracy vs σ_popcount from the sweep). The current-sense readout's
+  transimpedance bridges them: `LSB_V = LSB_I·R_TI` [V/popcount] ⇒ `σ_pc = σ_offset_V / LSB_V`.
+  **Co-design law**: set R_TI to the max the column dynamic range allows
+  (`PC_FS·LSB_V ≤ V_in/2` ⇒ `σ_pc = σ_offset_V·2·PC_FS/V_in`).
+  **Result (honest, and more nuanced than a scare-story)**: at max-gain readout (R_TI≈400–700 Ω),
+  the plain SA's 0.47·V_T maps to only **σ_pc≈3–5 popcount → accuracy drop <0.15 pp** — a
+  correctly-budgeted readout transimpedance largely absorbs the plain SA offset. It only bites
+  when V_in is small (0.4 V) AND fan-in is large (layer-2, PC_FS=96): σ_pc=5.3 → −0.14 pp. So the
+  contribution is a **quantified design boundary**, not "auto-zero is mandatory": for MNIST-scale
+  fan-in with V_in≥0.5 V a plain SA suffices (save the auto-zero area/energy); low-voltage,
+  wide-fan-in, or under-budgeted gain is where auto-zero / larger SA area earn their keep. This
+  also reconciles the Exp.08 paradox quantitatively (V_T-scale per-column shift IS tolerated by
+  BN+network up to the curve knee ~4–8 popcount — but only if the readout maps it below the knee,
+  which costs transimpedance gain / dynamic range).
 
 ## Honest caveats (must appear in the paper)
 - AVT is a sky130-class assumption (not the PDK statistical mismatch model); 130nm/1.8V is

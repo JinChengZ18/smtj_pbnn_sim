@@ -57,6 +57,7 @@
 | Hero(A1) 失调-面积协同 | `run_offset_mc.py 24 4` | 4× 输入对面积 → σ/V_T 降到 <0.1（远低于 0.3·V_T 预算；exact 值受网格分辨率限） | ◑ 定性 |
 | Hero(A1) 精度轴：sense offset → MNIST | `interface/hero_mnist_sweep.py`（GPU，12ep→97.4%train） | baseline **96.80%**；per-cell sense offset 0→30mV(1.28·V_T) 精度**几乎不变**(96.8%) → **per-cell 模型欠估**；SA 失调是 per-输出列系统性(一列一个 SA)，需 per-column 模型才显真实退化：**per-column σ=0→8 popcount → 97.0%→96.35%**（随 σ 增大；per-cell 平）。SA 伏特→popcount 精确映射待 B5 读出跨阻 | ◑ first-cut |
 | **Hero(A1) 版图导出 → GDS（"导出版图"交付）** | `eda/hero/layout/gen_sa_layout.py`（WSL KLayout sky130 PCells） | StrongARM 9 器件（5 NMOS+4 PMOS，带保护环）→ `sa_devices.gds`：top `strongarm_sa_devs`，17.5×18.7µm，**611 shapes，sky130 真层号**（diff 65/20, poly 66/20, li1 67/20, met1 68/20…）。Magic/TCL 路线被版本卡（Magic 8.3.105 < 需 8.3.306）→改 KLayout PCell 流。DRC 因 WSL 批处理链摩擦（非 ASCII 路径/`/tmp` 易失）未在批处理跑通，需原生/GUI 跑（PCell 本身 DRC-clean） | ✅ 器件版图 / ◑ DRC 待原生跑 |
+| **Hero(A1) B5 读出映射：mV→popcount→精度（闭环合拢）** | `eda/hero/readout_mapping.py`（纯 Python，吃上游 JSON） | 跨阻 `LSB_V=LSB_I·R_TI` 桥接 P3 的 5.1µA/pc、SA 的 11.05mV、per-column 精度曲线；协同律 `σ_pc=σ_offset_V·2·PC_FS/V_in`。**最大增益读出下 plain SA 0.47·V_T → σ_pc≈3–5 → 精度跌<0.15pp**（R_TI≈400–700Ω）；仅 V_in=0.4V+宽扇入越膝点（−0.14pp）。结论=**量化设计边界**（何时省/需自调零），非「必须自调零」 | ✅ first-cut（闭环 mV→精度合拢）|
 
 ## 各阶段 Definition of Done（DoD）
 
@@ -90,6 +91,7 @@
 | `testbenches/rc_readout_noise.py` | P7 读出 ADC/噪声→记忆容量 (R6)（纯 Python，复用 reservoir） | ✅ 纯 Python |
 | `interface/load_tech_params.py` | P6 接口：extraction → 重跑 MNIST PPA（单向回灌） | ✅ 纯 Python |
 | `hero/layout/gen_sa_layout.py` + `sa_devices.gds` | Hero(A1) SA 器件版图导出 → GDS（sky130 PCells，611 shapes；"导出版图"交付） | 需 KLayout |
+| `hero/readout_mapping.py` | Hero(A1) B5：读出跨阻把 SA mV→popcount→MNIST 精度（闭环合拢 + 协同律） | ✅ 纯 Python |
 | `extraction/peripheral_energy.yaml` | 提取的外围能量（写=P2；读/DAC/计数待 P4） | — |
 | `SETUP_opensource.md` / `OPEN_SOURCE_FEASIBILITY.md` | 安装运行 / ③ 可行性矩阵 | — |
 | `research/*` | 调研报告 + vgsot 整合决策 | — |
