@@ -21,6 +21,8 @@
 - **降级（引为先验，不独立成文）**：V_th 跟踪驱动、自调零 SA-as-invention、三位一体可调势垒（Kent A-sMTJ 2025 / HKUST VLSI 2026 已抢先）、自适应-T、开源 `.va`。
 - **目标期刊**：IEEE **TCAS-I / TVLSI / TED**（**不投 Nat.Electron./ISSCC**——2025 已有实测 130nm CMOS p-bit ASIC，sky130 纯仿会秒拒；46 点晶圆校准是"近硅"锚点）。
 
+**👉 可分步执行清单（带 DoD + 本会话状态）见 [`PLAN_execution.md`](PLAN_execution.md)** —— 把下面的阶段拆成有序步骤 1.1…3.5 与"立即可开工的 5 个动作"。
+
 **新阶段序（替换验证优先）**：
 - **Phase 0 网关**：WSL2 + IIC-OSIC-TOOLS Docker（Xschem/Magic/Netgen/ngspice + sky130A）+ 共享 OpenVAF `.osdi`。← 即用户正在装的 PDK，解锁所有版图/GDS/PEX。
 - **Phase 1 Hero**：C1+C2 设计→优化→版图→PEX→闭环 MNIST（全工件集 + hero 图）。

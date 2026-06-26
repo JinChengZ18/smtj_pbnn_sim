@@ -14,6 +14,7 @@
   - vgsot-sim 作 submodule 接入 `eda/vendor/vgsot-sim`（决策 D5 执行）。
   - **Hero(A1)：sky130 StrongARM SA**（`hero/strongarm_sa.spice`，vind=+20mV→outp=1.8V）→ **输入折合失调 σ=11.05mV=0.47·V_T**（`run_offset_mc.py`，关 R2 的核心可信数）→ **闭环 MNIST**（per-column σ=8→96.35%）→ **版图导出 GDS**（`hero/layout/`，sky130 PCell 9 器件，611 shapes）。Magic/TCL 被版本卡（需 Magic≥8.3.306），改用 KLayout PCell 流。
 - **下一步（创新优先）**：**Phase 0 网关** = WSL2 + IIC-OSIC-TOOLS Docker（Xschem/Magic/Netgen/ngspice + sky130A）+ 共享 `.osdi`（即用户正在装的 PDK）；随后 **Phase 1 Hero** = 斜率匹配 p-bit 读出 SA（C1）→ 版图/PEX → 闭环 MNIST。旧 P2/P3/P4/P5 细化并入 Hero/第二篇作支撑证据。
+- **🗺️ 可分步执行清单**：创新主线（A0/A1+A2 Hero/A3 第二篇）已拆成带 DoD 的有序步骤 + "立即可开工 5 动作"，见 [`PLAN_execution.md`](PLAN_execution.md)。**Phase 0 工具链网关本会话已原生达成**（Magic 8.3.668 + netgen 1.5.321 + ngspice/OpenVAF/sky130A/KLayout 全齐，Docker 改为可选）。
 - **⚡ 可立刻开工（2026-06-26 Magic 升级新解锁）**：Magic 8.3.668 解除版本卡 → Hero(A1) SA 的 **routing → Netgen LVS → Magic `ext2spice` PEX → 版后 offset/能量**（喂 errata **R3 IR-drop / R5 端到端能量**，即原 P5）。**已完成第一步**：`run_pex.sh` 验证 Magic extract→ext2spice 工具链通（9 器件 + 寄生 C，器件级）。**接下来**：①给 `sa_devices.gds` 加器件间互连(routing)；②确认/装对 LVS netgen（apt 的是网格生成器）；③重跑 PEX 含 `extresist` 取可信 R/C。
 - **ngspice-46 要点（已踩坑，勿重犯）**：OSDI 加载命令是 **`osdi`**（非 `pre_osdi`），经 cwd 的 `.spiceinit` 在**解析前**加载；OSDI 器件需 **`.model <name> <va模块>`** 卡（本项目用 `.model smtj_sot smtj_sot`），实例 `N1 ... smtj_sot`；**SPICE 首行=标题**（Python 生成的网表必须以 `*` 注释开头，否则首条 `.model`/元件被当标题吞掉）；`.va` 参数可经 `.model smtj_sot smtj_sot Delta=3.8` 覆盖（P7 用）。
 

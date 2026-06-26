@@ -48,8 +48,11 @@
 - **路径迁移（2026-06-26）已完成**：旧 CJK 路径 `D:\Documents\毕业设计-2026年5月10日\04PBNN仿真`
   → 新英文路径（见 §0）。worktree 已重连新路径（`git worktree list` 无 prunable）。
   详细 append-only 日志见 [`MEMORY.md`](MEMORY.md)。
-- **当前最高杠杆的可立刻开工方向**：Magic 已升级解锁 ⇒ 跑 Hero(A1) SA 的
-  **routing → Netgen LVS → Magic ext2spice PEX → 版后 offset/能量**，喂 errata
-  **R3（IR-drop）/ R5（端到端能量）**。第一步（设备级 PEX 工具链）已验证通过；
-  下一步 = 给 `sa_devices.gds` 加器件间互连(routing) → LVS → 重跑 PEX 取可信寄生 R/C。
-  续传细节在 `eda/STATUS.md`。
+- **Phase 0 工具链网关已原生达成**（本会话）：Magic 8.3.668 + netgen 1.5.321 (`~/eda/netgen/bin`)
+  + ngspice/OpenVAF/sky130A/KLayout 全齐，IIC-OSIC-TOOLS Docker 改为可选。
+- **本会话已落地的真实提取数**：写线 IR-drop（R3，`eda/extraction/writeline/`：N=256→16.5%·776Ω，
+  li1 灾难）、SA 版后寄生/能量（R1/R5，`eda/hero/sa_postlayout.py`：35.25fF，23–74fJ/决策）、
+  SA 器件集 9→11 + DRC 0 违例 + netgen LVS 工具链打通。
+- **可分步执行清单（带 DoD + 状态）= [`../eda/PLAN_execution.md`](../eda/PLAN_execution.md)**（创新主线
+  A0/A1+A2 Hero/A3 第二篇拆成步骤 + "立即可开工 5 动作"）。**SA 的 routing→全 LVS 是 GUI 收尾**
+  （`eda/hero/layout/LVS_GUI_CHECKLIST.md`）。续传真相源仍是 `eda/STATUS.md`。
