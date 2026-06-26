@@ -65,6 +65,7 @@
 | **Hero(A1) Magic PEX 工具链解锁验证**（Magic 升级后） | `eda/hero/layout/run_pex.sh`（WSL Magic 8.3.668） | `gds read→load→extract all→ext2spice` 跑通：从 `sa_devices.gds` 提出器件 + 器件/局部互连寄生 C（cthresh 0）→ `sa_pex.spice` | ✅ 工具链通 |
 | **Track B 写线 IR-drop（R3）+ 写能量开销（R5）** | `eda/extraction/writeline/`（KLayout 标定带 + Magic `extresist` + Python 标度） | extresist 自校验 poly 47.96 vs techfile 48.2 Ω/sq；往返金属 R vs 776Ω：N≤64 可忽略(<5%)、**N=256 met1/2 W=1µm=128Ω=16.5%**(IR148mV，高角19%)、N=1024=66%、**li1 灾难(kΩ)**。148mV 跌破 0.8958V 写点→p_sw 位移（高列上限）。指引=写线 met2+/加宽/分段，N≥256 预算 ~10–20% | ✅ first-cut（真实提取数）|
 | **Track A SA 版后（器件集修正 + 寄生 + LVS 工具链）** | `gen_sa_layout.py`(11器件) + `run_pex.sh` + `sa_postlayout.py` + netgen | 版图器件集 9→**11**（补 Mp3/Mp4，匹配原理图），**DRC 0 违例**，提取 **11 MOSFET + 35.25 fF 器件 C**；SA 动态能 ~**23–74 fJ/决策**（5–15× 5fF 占位→R1 读出低估）；失调对称布线设计律→R2。netgen 1.5.321 LVS 工具链打通（设备级；完整 LVS 待布线，见 `layout/LVS_GUI_CHECKLIST.md`） | ◑ first-cut（布线/全 LVS 待 GUI 收尾）|
+| **1.11 C1 失调消除 Pareto（accuracy vs V_offset/V_T）** | `eda/hero/pareto_offset_cancellation.py`（纯 Python，吃 hero_mnist_summary + 协同律）| {无/4×面积/单容自调零/两相斩波}×读出工作点；噪声地板 0.15pp。**V_in≥0.5V/MNIST 扇入 → plain SA Pareto 最优**（差落噪声内）；**仅 V_in≤0.4V/宽扇入 → 自调零挣回成本**（边界 layer1≤0.35V、layer2≤0.40V）。规格反转=按 V_T 预算失调、非 TMR 余量 | ✅（关 R2 设计边界）|
 
 ## 各阶段 Definition of Done（DoD）
 

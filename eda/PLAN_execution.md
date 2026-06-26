@@ -42,7 +42,7 @@
 |1.8| **Netgen LVS = layout vs `strongarm_sa_core.spice`** | netgen | "Circuits match uniquely" | 🖱️ 待 1.7 |
 |1.9| **路由后 PEX (extresist R+C) → tt/ss/ff 后仿** | Magic+ngspice | 版后失调/延迟/能量含寄生 | ⬜ 待 1.8 |
 |1.10| **回填**：真实 `e_smtj_read`(~50fJ 量级)→P6 接口→重跑 MNIST PPA | Python | 外围占比位移数 | ⬜ 待 1.9（关 R1）|
-|1.11| Pareto：accuracy vs (V_offset/V_T)，{无/单容自调零/两相斩波} | Python | Pareto 图 + 设计边界结论 | ◑ 由 1.4 边界扩成扫描 |
+|1.11| Pareto：accuracy vs (V_offset/V_T)，{无/4×面积/单容自调零/两相斩波} | Python | Pareto + 设计边界 | ✅ `pareto_offset_cancellation.py`（V_in≥0.5 plain 最优；≤0.4 才需自调零）|
 |1.12| **C2 摊销写-DAC**：3–4 trim-bit V_th 微调，代价<1% 写预算 | ngspice+Python | trim→精度恢复曲线 | ⬜（B3 并入；关 R4 校准侧）|
 |1.13| Xschem 原理图+`.sym`+测试台 → SVG/PDF（"导出原理图"工件）| Xschem | hero 原理图图 | ⬜（需装 Xschem）|
 |1.14| Hero 闭环图（σ_offset→栈→92.8%→~97% @ iso 读能）| Python/绘图 | 论文 hero 图 | ⬜ 汇总 1.10/1.11 |
