@@ -7,6 +7,7 @@
 - `sa_devices.gds` — the output GDS (✅ **verified**: top cell `strongarm_sa_devs`, 17.5×18.7 µm,
   **611 shapes on the correct sky130 layers** — diff 65/20, poly 66/20, licon 66/44, li1 67/20,
   mcon 67/44, met1 68/20, nwell 64/20, …).
+- `run_drc.sh` — reproducible sky130 DRC via an ASCII build dir (✅ **0 violations**; see below).
 
 Run (in WSL):  `klayout -b -r eda/hero/layout/gen_sa_layout.py`
 
@@ -18,21 +19,29 @@ fatal, no layers load). So the Magic/TCL route is **version-blocked — needs a 
 instead and produces the same GDS deliverable. (KLayout uses system python 3.12; the sky130
 PCell package needs `pandas`, installed via `pip3 install --break-system-packages pandas`.)
 
-## DRC status (environment caveat, not a layout problem)
-`sky130A_mr.drc` read 0 polygons in every batch attempt. Root cause is **WSL-batch-invocation
-friction**, not the layout — three compounding issues in the Windows→GitBash→WSL→KLayout chain:
-1. the **non-ASCII project path** (`毕业设计/仿真`) breaks KLayout's `-rd input=<path>` UTF-8
-   argument parsing (it truncated the value to `/sa_devices.gds`);
-2. copying to `/tmp` doesn't survive — WSL2 stops the idle distro between tool calls and **wipes
-   the `/tmp` tmpfs**, so the GDS vanishes before DRC reads it (copy + DRC must be one call);
-3. heredoc/`$HOME` expansion through the GitBash→`wsl.exe -- bash -lc '…'` chain is unreliable.
+## DRC status — ✅ PASS (0 violations), via the ASCII build-dir runner
+**`sa_devices.gds` passes `sky130A_mr.drc` with 0 violations** (device-level; routing DRC follows
+once interconnect is drawn). Reproduce with **`run_drc.sh`**:
 
-**To DRC this layout, run it natively** (inside a WSL shell or Linux box, *not* the batch chain),
-from an ASCII working dir on a persistent FS — copy `sa_devices.gds` next to the deck and run
-`klayout -b -r .../sky130A_mr.drc -rd input=sa.gds -rd report=sa_drc.xml -rd top_cell=strongarm_sa_devs`,
-or simply open the GDS in the KLayout GUI and run the sky130 DRC menu. The PCell devices are
-DRC-clean by construction (foundry PCells; placement uses 1.5 µm gaps + per-device guard rings),
-so violations would only come from later inter-device routing, which isn't drawn yet.
+```bash
+wsl -d Ubuntu-24.04-EDA -- bash -lc \
+  'cd "<repo>/eda/hero/layout" && bash run_drc.sh'
+# -> staged 123626 bytes ; DRC done: 0 violations
+```
+
+It stages the GDS into a persistent ASCII ext4 dir (`/home/lenovo/smtj_eda_build`) and runs DRC
+there, so the report lands in `$BUILD/sa_drc.xml` + `$BUILD/drc.log`.
+
+**Why the build dir** (this tripped up several earlier attempts — kept here so it isn't re-hit):
+the batch chain Windows→GitBash→`wsl.exe -- bash -lc`→KLayout has three compounding gotchas, none
+of them a layout problem: (1) the **non-ASCII project path** (`毕业设计/仿真`) breaks KLayout's
+`-rd input=<path>` UTF-8 arg parsing (truncates the value); (2) `/tmp` is **tmpfs and is wiped when
+the WSL distro idle-stops** between calls; (3) ASCII `$VAR`/`$HOME` set *inside the `bash -lc '…'`
+arg string* get lost in the GitBash→wsl marshalling. The runner sidesteps all three: a literal `cd`
+into the CJK dir (which the chain tolerates) + a **relative** GDS name + a **script file** bash reads
+directly (so its variables are real) + a **persistent ASCII ext4** staging dir. The PCell devices
+are foundry-correct and spaced 1.5 µm with guard rings, so 0 device-level violations is expected;
+real DRC content will appear when inter-device routing is added.
 
 ## Next steps (the routing/interactive boundary)
 - **Routing**: connect the devices per the StrongARM schematic (tail→gnd, latch cross-couple,
