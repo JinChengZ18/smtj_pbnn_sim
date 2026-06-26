@@ -11,3 +11,8 @@ testbenches/*.lib
 __pycache__/
 _*.spice
 write_tran.csv
+# layout scratch (keep gen_sa_layout.py + sa_devices.gds)
+hero/layout/_*.py
+hero/layout/*.log
+hero/layout/*_drc.xml
+hero/layout/*_flat.gds

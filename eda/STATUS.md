@@ -3,7 +3,7 @@
 > **这是长时程任务的单一续传点。** 新会话从这里开始：读本文件 →（如需细节）读 [`ROADMAP.md`](ROADMAP.md) → 看 task 板。
 > 每完成一步就更新「当前状态」与「验证账本」，并 commit。本文件优先级高于 README 的状态段。
 
-## 当前状态  （last update: 2026-06-27）
+## 当前状态  （last update: 2026-06-26，Hero 版图导出）
 
 - **⭐ 战略转向（2026-06-27 顶刊重审）**：计划从"验证优先 P1–P7"改为**创新优先**。验证 ≠ 顶刊贡献，且多数候选新电路 2024–26 已被做掉；新颖性 = **规格反转 + 闭环 + 反向设计方法学**。主线：**Hero=斜率匹配 p-bit 读出（C1+C2，SA 失调按 V_T 预算 + 闭环 MNIST 92.8%→~97%，关 R2）**；**第二篇=RC 等能量 {N,M,b} 套利（C3，修 R6）**。**P1–P7 first-cut 降为基础/支撑层**。目标期刊 TCAS-I/TVLSI/TED（不投 Nat.Electron./ISSCC）。详见 [`research/2026-06-27_innovation_replan.md`](research/2026-06-27_innovation_replan.md) 与 ROADMAP 顶部「创新优先重排」。ROADMAP 另列**两层贡献层级**：Tier A=创新（A0 方法学 / A1-A2 Hero / A3 第二篇），Tier B=大论文基础工程（B1–B9，引先验为实现基础，单独不投顶刊但是合格学位工作），+ 大论文章节映射。
 - **路线**：开源 ngspice（本机无 EDA 许可证）。工具链已装齐并验证：**ngspice-46 + OpenVAF-reloaded 20260616**（已加入当前用户 PATH；路径亦记于 `eda/tools.local.json`）。回归目标 `Vth=0.895783 V / VT=0.023414 V`。
@@ -12,6 +12,7 @@
   - P1：`.va` 编译通过 → OSDI → ngspice DC 扫描对金标准 **R²=1.000000**（全开源链路打通）。
   - P2 first-cut：`write_mc_harness.py` 跑通 12 次瞬态 — 0.75ns 脉冲 rise≈40ps（可行）；10Ω 理想驱动下信道能量≈0.80 pJ、驱动开销 1.3%；P_sw 在交付电压上复现。
   - vgsot-sim 作 submodule 接入 `eda/vendor/vgsot-sim`（决策 D5 执行）。
+  - **Hero(A1)：sky130 StrongARM SA**（`hero/strongarm_sa.spice`，vind=+20mV→outp=1.8V）→ **输入折合失调 σ=11.05mV=0.47·V_T**（`run_offset_mc.py`，关 R2 的核心可信数）→ **闭环 MNIST**（per-column σ=8→96.35%）→ **版图导出 GDS**（`hero/layout/`，sky130 PCell 9 器件，611 shapes）。Magic/TCL 被版本卡（需 Magic≥8.3.306），改用 KLayout PCell 流。
 - **下一步（创新优先）**：**Phase 0 网关** = WSL2 + IIC-OSIC-TOOLS Docker（Xschem/Magic/Netgen/ngspice + sky130A）+ 共享 `.osdi`（即用户正在装的 PDK）；随后 **Phase 1 Hero** = 斜率匹配 p-bit 读出 SA（C1）→ 版图/PEX → 闭环 MNIST。旧 P2/P3/P4/P5 细化并入 Hero/第二篇作支撑证据。
 - **ngspice-46 要点（已踩坑，勿重犯）**：OSDI 加载命令是 **`osdi`**（非 `pre_osdi`），经 cwd 的 `.spiceinit` 在**解析前**加载；OSDI 器件需 **`.model <name> <va模块>`** 卡（本项目用 `.model smtj_sot smtj_sot`），实例 `N1 ... smtj_sot`；**SPICE 首行=标题**（Python 生成的网表必须以 `*` 注释开头，否则首条 `.model`/元件被当标题吞掉）；`.va` 参数可经 `.model smtj_sot smtj_sot Delta=3.8` 覆盖（P7 用）。
 
@@ -55,6 +56,7 @@
 | **Hero(A1) SA 输入折合失调 MC（sky130 真跑）** | `eda/hero/run_offset_mc.py`（WSL ngspice+sky130） | StrongARM σ_offset=**11.05mV=0.47·V_T**，3σ=1.42·V_T → 平 SA 再注入近半判决窗的 V_th 偏移（N=24 MC，AVT 假设） | ✅ |
 | Hero(A1) 失调-面积协同 | `run_offset_mc.py 24 4` | 4× 输入对面积 → σ/V_T 降到 <0.1（远低于 0.3·V_T 预算；exact 值受网格分辨率限） | ◑ 定性 |
 | Hero(A1) 精度轴：sense offset → MNIST | `interface/hero_mnist_sweep.py`（GPU，12ep→97.4%train） | baseline **96.80%**；per-cell sense offset 0→30mV(1.28·V_T) 精度**几乎不变**(96.8%) → **per-cell 模型欠估**；SA 失调是 per-输出列系统性(一列一个 SA)，需 per-column 模型才显真实退化：**per-column σ=0→8 popcount → 97.0%→96.35%**（随 σ 增大；per-cell 平）。SA 伏特→popcount 精确映射待 B5 读出跨阻 | ◑ first-cut |
+| **Hero(A1) 版图导出 → GDS（"导出版图"交付）** | `eda/hero/layout/gen_sa_layout.py`（WSL KLayout sky130 PCells） | StrongARM 9 器件（5 NMOS+4 PMOS，带保护环）→ `sa_devices.gds`：top `strongarm_sa_devs`，17.5×18.7µm，**611 shapes，sky130 真层号**（diff 65/20, poly 66/20, li1 67/20, met1 68/20…）。Magic/TCL 路线被版本卡（Magic 8.3.105 < 需 8.3.306）→改 KLayout PCell 流。DRC 因 WSL 批处理链摩擦（非 ASCII 路径/`/tmp` 易失）未在批处理跑通，需原生/GUI 跑（PCell 本身 DRC-clean） | ✅ 器件版图 / ◑ DRC 待原生跑 |
 
 ## 各阶段 Definition of Done（DoD）
 
@@ -87,6 +89,7 @@
 | `testbenches/golden_*.{csv,json}`, `mc_summary.json` | 金标准/验证结果（已提交） | — |
 | `testbenches/rc_readout_noise.py` | P7 读出 ADC/噪声→记忆容量 (R6)（纯 Python，复用 reservoir） | ✅ 纯 Python |
 | `interface/load_tech_params.py` | P6 接口：extraction → 重跑 MNIST PPA（单向回灌） | ✅ 纯 Python |
+| `hero/layout/gen_sa_layout.py` + `sa_devices.gds` | Hero(A1) SA 器件版图导出 → GDS（sky130 PCells，611 shapes；"导出版图"交付） | 需 KLayout |
 | `extraction/peripheral_energy.yaml` | 提取的外围能量（写=P2；读/DAC/计数待 P4） | — |
 | `SETUP_opensource.md` / `OPEN_SOURCE_FEASIBILITY.md` | 安装运行 / ③ 可行性矩阵 | — |
 | `research/*` | 调研报告 + vgsot 整合决策 | — |
