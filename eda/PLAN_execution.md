@@ -58,7 +58,7 @@
 |2.2| 读出 ADC/噪声→记忆容量 first-cut | Python | 读出是限制者 | ◑ `rc_readout_noise.py`(MC0=6.38) |
 |2.3| **三方 {N,M,b} MC/焦耳等高线** | Python | iso-能量 frontier | ✅ `rc_isoenergy.py`（读出非免费；效率拐点 b~5–6 列共享；b10=230×能量换3.66×MC）|
 |2.4| **sky130 ADC 能量地标**（SAR 比较器=提取的 SA 48fJ）→ 回灌 2.3 | Python（吃 sa_postlayout）| 地标 E_adc(b) | ✅ 迭代进 `rc_isoenergy.py`（读出主导88–99%；b线性→惩罚温和；杠杆=摊销比较器）；TIA 前端偏置能量待 |
-|2.5| 重算 ~38× vs 数字 ESN（端到端口径）| Python | 诚实比值 | ⬜ 待 2.3/2.4 |
+|2.5| 重算 ~38× vs 数字 ESN（端到端口径，含 2.4 地标 ADC 读出）| Python | 诚实比值 | ⬜ 2.4 已解锁（读出主导已证）；**需 Ch5 RC 规范配置**（n_nodes/ensemble/n_outputs/memory/n_steps）方能对上 38×，勿臆造 |
 
 ---
 
