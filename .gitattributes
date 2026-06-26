@@ -1,0 +1,10 @@
+# EDA toolchain scripts run under WSL/Linux (bash, ngspice, OpenVAF, Magic, KLayout).
+# core.autocrlf=true on Windows would rewrite them to CRLF and break the tools
+# (bash chokes on \r in the shebang; ngspice/openvaf mis-parse). Force LF.
+*.sh    text eol=lf
+*.va    text eol=lf
+*.spice text eol=lf
+*.cir   text eol=lf
+*.tcl   text eol=lf
+*.drc   text eol=lf
+*.spiceinit text eol=lf
