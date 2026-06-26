@@ -56,7 +56,7 @@
 |---|---|---|---|---|
 |2.1| 低势垒 τ(V)/⟨s⟩ 器件级验证 | .va+ngspice | Δ=3.8 旋钮成立 | ✅ `telegraph_lowbarrier.py` |
 |2.2| 读出 ADC/噪声→记忆容量 first-cut | Python | 读出是限制者 | ◑ `rc_readout_noise.py`(MC0=6.38) |
-|2.3| **三方 {N,M,b} MC/焦耳等高线** | Python | iso-能量 frontier 图 | ⬜ 扩 2.2 |
+|2.3| **三方 {N,M,b} MC/焦耳等高线** | Python | iso-能量 frontier | ✅ `rc_isoenergy.py`（读出非免费；效率拐点 b~5–6 列共享；b10=230×能量换3.66×MC）|
 |2.4| **sky130 TIA + 列共享低分辨 ADC 切片**（提取能量）| ngspice+sky130+PEX | ADC/TIA 能量数 | ⬜ |
 |2.5| 重算 ~38× vs 数字 ESN（端到端口径）| Python | 诚实比值 | ⬜ 待 2.3/2.4 |
 

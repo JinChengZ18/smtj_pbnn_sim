@@ -1,0 +1,188 @@
+{
+  "E_dev_fJ": 5.0,
+  "E_adc0_fJ": 2.0,
+  "grid_N": [
+    60,
+    120,
+    240,
+    480
+  ],
+  "grid_b": [
+    3,
+    4,
+    5,
+    6,
+    8,
+    10
+  ],
+  "frontier": [
+    {
+      "N": 60,
+      "M": 15,
+      "frac": 0.25,
+      "b": 3,
+      "MC": 1.243,
+      "E_fJ": 540.0,
+      "MC_per_nJ": 2301.458
+    },
+    {
+      "N": 60,
+      "M": 30,
+      "frac": 0.5,
+      "b": 3,
+      "MC": 1.567,
+      "E_fJ": 780.0,
+      "MC_per_nJ": 2009.029
+    },
+    {
+      "N": 60,
+      "M": 30,
+      "frac": 0.5,
+      "b": 4,
+      "MC": 2.013,
+      "E_fJ": 1260.0,
+      "MC_per_nJ": 1597.913
+    },
+    {
+      "N": 60,
+      "M": 30,
+      "frac": 0.5,
+      "b": 5,
+      "MC": 2.373,
+      "E_fJ": 2220.0,
+      "MC_per_nJ": 1068.744
+    },
+    {
+      "N": 60,
+      "M": 30,
+      "frac": 0.5,
+      "b": 6,
+      "MC": 3.0,
+      "E_fJ": 4140.0,
+      "MC_per_nJ": 724.58
+    },
+    {
+      "N": 120,
+      "M": 30,
+      "frac": 0.25,
+      "b": 6,
+      "MC": 3.0,
+      "E_fJ": 4440.0,
+      "MC_per_nJ": 675.765
+    },
+    {
+      "N": 60,
+      "M": 15,
+      "frac": 0.25,
+      "b": 8,
+      "MC": 3.087,
+      "E_fJ": 7980.0,
+      "MC_per_nJ": 386.89
+    },
+    {
+      "N": 60,
+      "M": 30,
+      "frac": 0.5,
+      "b": 8,
+      "MC": 3.652,
+      "E_fJ": 15660.0,
+      "MC_per_nJ": 233.233
+    },
+    {
+      "N": 120,
+      "M": 30,
+      "frac": 0.25,
+      "b": 8,
+      "MC": 3.824,
+      "E_fJ": 15960.0,
+      "MC_per_nJ": 239.572
+    },
+    {
+      "N": 60,
+      "M": 15,
+      "frac": 0.25,
+      "b": 10,
+      "MC": 3.83,
+      "E_fJ": 31020.0,
+      "MC_per_nJ": 123.463
+    },
+    {
+      "N": 60,
+      "M": 30,
+      "frac": 0.5,
+      "b": 10,
+      "MC": 4.462,
+      "E_fJ": 61740.0,
+      "MC_per_nJ": 72.266
+    },
+    {
+      "N": 120,
+      "M": 30,
+      "frac": 0.25,
+      "b": 10,
+      "MC": 4.466,
+      "E_fJ": 62040.0,
+      "MC_per_nJ": 71.988
+    },
+    {
+      "N": 240,
+      "M": 60,
+      "frac": 0.25,
+      "b": 10,
+      "MC": 4.549,
+      "E_fJ": 124080.0,
+      "MC_per_nJ": 36.66
+    }
+  ],
+  "budget_optima": [
+    {
+      "budget_fJ": 20000.0,
+      "N": 120,
+      "M": 30,
+      "b": 8,
+      "MC": 3.8235707463872277,
+      "E_fJ": 15960.0
+    },
+    {
+      "budget_fJ": 50000.0,
+      "N": 60,
+      "M": 15,
+      "b": 10,
+      "MC": 3.829822189263294,
+      "E_fJ": 31020.0
+    },
+    {
+      "budget_fJ": 100000.0,
+      "N": 120,
+      "M": 30,
+      "b": 10,
+      "MC": 4.466145664181217,
+      "E_fJ": 62040.0
+    },
+    {
+      "budget_fJ": 300000.0,
+      "N": 240,
+      "M": 60,
+      "b": 10,
+      "MC": 4.548826804795897,
+      "E_fJ": 124080.0
+    },
+    {
+      "budget_fJ": 1000000.0,
+      "N": 240,
+      "M": 60,
+      "b": 10,
+      "MC": 4.548826804795897,
+      "E_fJ": 124080.0
+    }
+  ],
+  "frontier_bits": [
+    3,
+    4,
+    5,
+    6,
+    8,
+    10
+  ],
+  "conclusion": "R6 resolved (as an efficiency frontier, not a single point): readout precision DOES gate MC -- so readout is NOT free (contra reservoir_energy.py) -- but chasing absolute MC is brutally energy-inefficient. The MC-per-Joule peak sits at b=3 (MC=1.24 @ 540 fJ/step), with the ADC already >=85% of energy; pushing to b=10 (absolute-MC max, MC=4.55) costs 230x the energy for only 3.66x the MC. Subsampled readout (M<N) stays on the frontier (column-shared ADC). => design rule: pick ADC bits to your ENERGY budget, and the efficient operating point is MODERATE-res column-shared (b~5-6), not >=10-bit per node -- that is where reservoir_energy.py's 'free readout' should instead carry a real, moderate ADC cost. Honesty: mean-field MC, order-of-magnitude E_dev/E_adc; the claim is the FRONTIER SHAPE (efficiency knee), reported as ratios."
+}

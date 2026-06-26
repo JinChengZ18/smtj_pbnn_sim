@@ -76,7 +76,7 @@
 - **位置**：`src/smtj_pbnn_sim/ppa/reservoir_energy.py` (读出仅计 `e_int8_mac*n_nodes*n_outputs`) vs `article/chapter05`/RC 论述正文。
 - **问题**：行为模型把读出当作微小 INT8-MAC 项，正文却称读出散粒噪声/ADC 是真正能量与精度限制者——二者自相矛盾。
 - **行动**：EDA 阶段 7 仿真模拟读出 TIA+ADC 噪声 → 脊回归记忆容量损失；用 NeuroSim/CrossSim 给 ADC+TIA 能量/面积替换 `e_int8_mac` 占位；并列报告 amortized-ADC 与 per-node-ADC 两个括号，复核 ~38× vs 数字 ESN。
-- **状态**：`待EDA验证`（读出部分）。P7a `telegraph_lowbarrier.py` 已器件级验证低势垒 τ(V)/⟨s⟩ 旋钮（Δ=3.8，τ_max=22.35ns，rel-err<1.6e-4）——RC 前提成立。`rc_readout_noise.py` first-cut 进一步证实**读出精度是限制者**：mean-field MC0=6.38，per-node ADC≤10bit 或读噪声≥2% 显著掉 MC（10bit→62%、2%噪→47%），与 `reservoir_energy.py` 把读出当 ~免费直接矛盾。**待**：读出能量映射（NeuroSim ADC/TIA）量化 amortized vs per-node 两括号、复核 ~38× vs 数字 ESN。注：bit 数为简单均匀 per-node ADC 的一阶（偏保守）上界，分布匹配/列共享 ADC 会更省。
+- **状态**：`进行中(first-cut)`。P7a `telegraph_lowbarrier.py` 已器件级验证低势垒 τ(V)/⟨s⟩ 旋钮（Δ=3.8，τ_max=22.35ns，rel-err<1.6e-4）——RC 前提成立。`rc_readout_noise.py` first-cut 证实**读出精度是限制者**：mean-field MC0=6.38，per-node ADC≤10bit 或读噪声≥2% 显著掉 MC（10bit→62%、2%噪→47%）。**矛盾已用等能量套利解开**（`eda/testbenches/rc_isoenergy.py`，三方 {N, M=读出节点数, b=ADC位}）：读出**确非免费**（精度 gate MC，与 `reservoir_energy.py` 矛盾），但这是一条**效率前沿**——MC/焦耳峰在 b=3（MC 低），实用拐点 **b~5–6 列共享低分辨 ADC**（b6：MC≈3.0=47%·MC0 @ 724 MC/nJ）；冲绝对 MC 的 b=10 要 **230× 能量换 3.66× MC**（ADC 占能量 ≥99%）；下采样 M<N 仍在前沿（列共享）。**故 R6 终结为**：`reservoir_energy.py` 应给读出**真实但中等**的 ADC 成本（非 0、非 ≥10bit/节点）；MC-最优-每焦耳读出是**中分辨列共享**。**待**：sky130 TIA+低分辨 ADC 切片提取真实 E_adc（替 order-of-magnitude 模型）、复核 ~38× vs 数字 ESN。注：mean-field MC、E_dev/E_adc 量级假设，结论为**前沿形状/比值**。
 
 ### R7 — 「三位一体」时分复用隐含势垒冲突
 - **位置**：RC 论述 / 全文主线 (第 1、4、5 章「同一阵列承担两类任务」)。
