@@ -1,15 +1,18 @@
 # `eda/hero/layout/` — Hero (A1) layout export → GDS (the "导出版图/GDS" deliverable)
 
 ## What's here
-- `gen_sa_layout.py` — KLayout-Python generator: instantiates the StrongARM's 9 transistors
-  (5 NMOS input-pair/tail/latch + 4 PMOS latch/precharge) as **guard-ringed sky130 PCells**
-  (`nmos18`/`pmos18`, library `SKY130`), flattens, and writes GDS.
-- `sa_devices.gds` — the output GDS (✅ **verified**: top cell `strongarm_sa_devs`, 17.5×18.7 µm,
-  **611 shapes on the correct sky130 layers** — diff 65/20, poly 66/20, licon 66/44, li1 67/20,
-  mcon 67/44, met1 68/20, nwell 64/20, …).
+- `gen_sa_layout.py` — KLayout-Python generator: instantiates the StrongARM's **11 transistors**
+  (5 NMOS tail/input-pair/latch + 6 PMOS latch/precharge — matching `../strongarm_sa.spice`) as
+  **guard-ringed sky130 PCells** (`nmos18`/`pmos18`, library `SKY130`), flattens, and writes GDS.
+  *(2026-06-26: device count fixed 9→11 — the first cut omitted the Mp3/Mp4 da/db precharge PMOS.)*
+- `sa_devices.gds` — the output GDS (✅ top cell `strongarm_sa_devs`, **23.1×18.7 µm, 11 devices**, on
+  the correct sky130 layers — diff 65/20, poly 66/20, licon 66/44, li1 67/20, mcon 67/44, met1 68/20,
+  nwell 64/20, …).
 - `run_drc.sh` — reproducible sky130 DRC via an ASCII build dir (✅ **0 violations**; see below).
 - `run_pex.sh` — reproducible Magic parasitic extraction (`gds read → extract → ext2spice`), via the
-  same ASCII build dir (✅ toolchain validated: 9 devices + parasitic C; see "Next steps").
+  same ASCII build dir (✅ **11 devices + 35.25 fF** parasitic C extracted; see "Next steps").
+- `LVS_GUI_CHECKLIST.md` — the routing/LVS last-mile (per-net connection table + GUI steps); LVS
+  toolchain (netgen 1.5.321 + sky130A_setup) is validated, routing is the remaining interactive step.
 
 Run (in WSL):  `klayout -b -r eda/hero/layout/gen_sa_layout.py`
 

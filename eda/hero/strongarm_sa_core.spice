@@ -1,0 +1,16 @@
+* Hero (A1) StrongARM core -- 11-device SUBCKT for LVS (no sources/testbench).
+* Ports: vdd vss clk vinp vinn outp outn  (da/db/ntail are internal nets).
+* This is the LVS reference for the layout cell strongarm_sa_devs (eda/hero/layout/).
+.subckt strongarm_sa_core vdd vss clk vinp vinn outp outn
+XMtail ntail clk   vss  vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM1    da    vinp  ntail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM2    db    vinn  ntail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM3    outn  outp  da   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM4    outp  outn  db   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM5    outn  outp  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XM6    outp  outn  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp1   outp  clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp2   outn  clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp3   da    clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp4   db    clk   vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+.ends

@@ -46,19 +46,19 @@
 - **位置**：`article/chapter04.md` §4.5；`ppa/energy.py` `per_mac_energy`。
 - **问题**：读出仅以 `e_smtj_read=5 fJ` 单项建模，**完全没有**电流灵敏放大、列求和/积分 ADC、参考生成、写驱动、计数器真实翻转能量等条目。已发表 28nm CIM macro 中 SA+模拟+ADC 约占 macro 功耗 36%；模拟 CIM 里 ADC 常是单项最大能耗。提取后外围占比预计从 <1% 升至 **20–40%**，「外围优化无意义」很可能不再成立，设计结论从「优化器件」转向「协同优化 ADC」。
 - **行动**：EDA 阶段 4 (读出+ADC) 与阶段 2 (写驱动开销) 完成后，重算 `per_mac_energy`、更新 §4.5 与图 4.14 附近结论。
-- **状态**：`进行中`。P6 接口已通（`interface/load_tech_params.py` 读 `extraction/peripheral_energy.yaml` → 重跑 MNIST PPA）；写+驱动开销使 per-MAC 793→818 fJ (+3%，写占比仍 98.7%，因 read/DAC/counter 仍占位)。**核心位移（外围 <1%→20–40%）待 P4/sky130 的 ADC/sense 数填入同一 YAML** — 届时脚本无需改码即重算。
+- **状态**：`进行中`。P6 接口已通（`interface/load_tech_params.py` 读 `extraction/peripheral_energy.yaml` → 重跑 MNIST PPA）；写+驱动开销使 per-MAC 793→818 fJ (+3%，写占比仍 98.7%，因 read/DAC/counter 仍占位)。**首个 sky130 读出能量地标**（`eda/hero/sa_postlayout.py`）：StrongARM SA 动态能 ~**23–74 fJ/决策**（器件 C 提取 35.25 fF + 布线 C 估算），是 `e_smtj_read=5 fJ` 占位的 **5–15×** → 印证读出外围被严重低估、占比将上移。**核心位移（外围 <1%→20–40%）待 P4/sky130 的 ADC/sense 数填入同一 YAML** — 届时脚本无需改码即重算（SA 这块可先以 ~50 fJ 量级回填 `e_smtj_read`）。
 
 ### R2 — 「$V_\mathrm{th}$ 绝对位置稳定性是唯一精度瓶颈」(论断 c)
 - **位置**：`article/chapter04.md` §4.5 非理想性消融。
 - **问题**：精度模型全在写域 ($\sigma_\mathrm{rel}(V_\mathrm{th})=20\%\to92.8\%$)，未含读出灵敏放大的输入折合失调。28nm StrongARM/CLSA SA 失调约 **10–30 mV (1σ)，与 $V_T=23.4$ mV 同量级**，与 $V_\mathrm{th}$ 漂移争夺决策阈值。若 MC 证实其竞争，硬件优先级须从「DAC 校准」扩为「DAC 校准 **+ 灵敏放大失调消除 (auto-zero/chopping/trim)**」。
 - **行动**：EDA 阶段 3 的 MC 失配 → 给 `device/variation.py` 增 `sigma_sense_offset` 通道，回灌 MNIST 精度扫描；据结果更新 §4.5 结论。
-- **状态**：`进行中(first-cut)`。P3 `diff_column.py` 证实 MTJ 级差分消除（匹配线性 err 9e-6 popcount），器件失配（σ_Rp7%/σ_TMR4%）残余仅 ~0.06·√N popcount（N=256 仍 sub-LSB）——claim(a) 在 MTJ 层稳健。**SA 失调已在 sky130 真测**（`eda/hero/run_offset_mc.py`，WSL ngspice+sky130，N=24 MC）：plain StrongARM σ_offset=**11.05mV=0.47·V_T**、3σ=1.42·V_T —— SA 输入折合失调确与器件 Sigmoid 斜率 V_T 同级，再注入 Exp.08 认定致命的每列 V_th 偏移类误差。**这把 claim(a)/(c) 改写为「MTJ 层偏置消除，但 SA 失调重新引入它」——hero 发现**。精度侧（`hero_mnist_sweep.py`）：per-cell 随机失调被平均化（欠估），但 SA 失调是**每输出列系统性**（一列一个 SA），per-column 模型 σ=0→8 popcount → 97.0%→96.35%。**闭环已合拢**（`eda/hero/readout_mapping.py`，B5 读出映射）：读出跨阻 R_TI 把 mV 桥到 popcount，`LSB_V=LSB_I·R_TI`、`σ_pc=σ_offset_V/LSB_V`，协同律 `σ_pc=σ_offset_V·2·PC_FS/V_in`（取动态范围允许的最大增益）。**精炼结论**：在最大增益读出下，plain SA 的 0.47·V_T 仅映射到 σ_pc≈3–5 popcount → 精度跌 **<0.15pp**（R_TI≈400–700Ω）——即**正确预算的读出跨阻大体吸收了 plain SA 失调**；仅当 V_in 偏小（0.4V）且扇入大（layer2）时 σ_pc 越过曲线膝点。故论断从「必须自调零」精炼为**量化设计边界**：MNIST 级扇入 + V_in≥0.5V 时 plain SA 即够（可省自调零面积/能量），低压/宽扇入/欠预算增益才需自调零或加大 SA 面积。注：AVT 是 sky130 量级假设、130nm 偏悲观，报比值 σ_offset/V_T 而非绝对 mV；PC_FS=3√F、线性跨阻、BN 参考理想为 first-cut。
+- **状态**：`进行中(first-cut)`。P3 `diff_column.py` 证实 MTJ 级差分消除（匹配线性 err 9e-6 popcount），器件失配（σ_Rp7%/σ_TMR4%）残余仅 ~0.06·√N popcount（N=256 仍 sub-LSB）——claim(a) 在 MTJ 层稳健。**SA 失调已在 sky130 真测**（`eda/hero/run_offset_mc.py`，WSL ngspice+sky130，N=24 MC）：plain StrongARM σ_offset=**11.05mV=0.47·V_T**、3σ=1.42·V_T —— SA 输入折合失调确与器件 Sigmoid 斜率 V_T 同级，再注入 Exp.08 认定致命的每列 V_th 偏移类误差。**这把 claim(a)/(c) 改写为「MTJ 层偏置消除，但 SA 失调重新引入它」——hero 发现**。精度侧（`hero_mnist_sweep.py`）：per-cell 随机失调被平均化（欠估），但 SA 失调是**每输出列系统性**（一列一个 SA），per-column 模型 σ=0→8 popcount → 97.0%→96.35%。**闭环已合拢**（`eda/hero/readout_mapping.py`，B5 读出映射）：读出跨阻 R_TI 把 mV 桥到 popcount，`LSB_V=LSB_I·R_TI`、`σ_pc=σ_offset_V/LSB_V`，协同律 `σ_pc=σ_offset_V·2·PC_FS/V_in`（取动态范围允许的最大增益）。**精炼结论**：在最大增益读出下，plain SA 的 0.47·V_T 仅映射到 σ_pc≈3–5 popcount → 精度跌 **<0.15pp**（R_TI≈400–700Ω）——即**正确预算的读出跨阻大体吸收了 plain SA 失调**；仅当 V_in 偏小（0.4V）且扇入大（layer2）时 σ_pc 越过曲线膝点。故论断从「必须自调零」精炼为**量化设计边界**：MNIST 级扇入 + V_in≥0.5V 时 plain SA 即够（可省自调零面积/能量），低压/宽扇入/欠预算增益才需自调零或加大 SA 面积。注：AVT 是 sky130 量级假设、130nm 偏悲观，报比值 σ_offset/V_T 而非绝对 mV；PC_FS=3√F、线性跨阻、BN 参考理想为 first-cut。**版后（2026-06-26）**：SA 版图器件集已修正为 **11 器件**（补 Mp3/Mp4）、**DRC 0 违例**、Magic extract+ext2spice 与 netgen LVS 工具链已打通（设备级；完整 LVS 待器件间布线，见 `eda/hero/layout/LVS_GUI_CHECKLIST.md`）。`sa_postlayout.py` 给出版后设计律：失调由失配主导（11.05mV），**对称的 da/db、outp/outn 布线**可使版图不对称失调 ≪11mV → 「两侧布线匹配」为 R2 的版图级规则。
 
 ### R3 — 「256×256、$R_P\sim5$k 下 IR-drop 可忽略」(论断 c2)
 - **位置**：`article/chapter04.md` §4.3；`src/smtj_pbnn_sim/array/ir_drop.py` (文档化空桩，从不被调用)。
 - **问题**：`estimate_ir_drop()` 仅返回 $r_\mathrm{line}/(r_\mathrm{line}+r_\mathrm{cell})$ 的朴素最坏比值，**无求解器**；「可忽略」无任何求解支撑。尤其**低阻 (776 Ω) 的 SOT 写线** 被空桩完全忽略，远端 $V_\mathrm{wr}$ 跌破 $V_\mathrm{th}$ 是真实风险。
 - **行动**：EDA 阶段 5 版图 + Quantus/开源 PEX，DC 线扫描给真实压降与 popcount 误差 vs 阵列尺寸；据结果坐实或推翻「可忽略」。
-- **状态**：`待EDA验证`。
+- **状态**：`进行中(first-cut)`。**sky130 PEX 已给真实数**（`eda/extraction/writeline/`，Magic `extresist`，poly 47.96 vs techfile 48.2 Ω/sq 自校验）：写线往返金属 R（BL+SL）vs 776Ω 写器件——N≤64 **可忽略**（<5%）；**N=256 met1/met2 W=1µm ≈128Ω = 16.5%**（IR≈148mV，高角 19%）；N=1024→66%；**li1 灾难性（kΩ）**。即「IR-drop 可忽略」**仅对小列成立**，高列（N≥256）显著。**新发现**：148mV 压降把远端写电压拉到 ~0.75V，**跌破 0.8958V 标定写点 → p_sw Sigmoid（β_s）位移**，远端写错误率升——具体的器件感知高列上限。设计指引：写线走 **met2+**（勿 li1/poly）、加宽、或分段高列；N≥256 预算 ~10–20% 写裕度。**待**：路由后版图的列级 popcount 误差 vs 尺寸（接 hero SA 读出）。
 
 ### R4 — 0.78 pJ 仅为欧姆沟道能量，未含驱动/DAC 开销
 - **位置**：`article/chapter04.md` §2.3/§4.3/§4.5；`tech_params.py` `e_smtj_write` 属性。
@@ -70,7 +70,7 @@
 - **位置**：`article/chapter04.md` §4.5；`tech_params.py` (Camsari 2020 / 5 pJ 引用块)。
 - **问题**：(i) 「Camsari 2020、5 pJ/update」这一锚点**未能从公开源干净核实** (核查发现有据可查的近期 CMOS p-bit 为 6.95 pJ/bit，MDPI Electronics 2024)。(ii) 苹果比橘子：0.78 pJ 是裸器件、CMOS p-bit 数是端到端 cell。
 - **行动**：以可核实的 6.95 pJ/bit 重定基准；把 sMTJ 侧也算**端到端 (写+读+数字化)** 再比；预期诚实比值小于 4.2× (但磁性熵源本身 ~2 fJ/随机数，器件级差距亦可论证更大)。停止单引未核实的 5 pJ 点值。
-- **状态**：`待EDA验证 / 待文献复核`。
+- **状态**：`进行中(first-cut)`。端到端口径已开始落地两块开销：(写侧) 写线 IR 串阻 = R3 的 R_par/776（N=256 met2 **+16.5%** 于 0.783 pJ 器件写）；(读侧) sky130 StrongARM SA 动态能 ~**23–74 fJ/决策**（`eda/hero/sa_postlayout.py`，器件 C 提取=35.25 fF + 布线 C 估算），为 5 fF 读出占位的 **5–15×**——读出能量被占位低估（同 R1）。**待**：6.95 pJ/bit 文献复核 + 路由后 SA 精确读出能 + ADC，给端到端总账与诚实比值。
 
 ### R6 — RC 读出在能量模型中近乎免费，与正文「读出是真正瓶颈」(论断 e) 矛盾
 - **位置**：`src/smtj_pbnn_sim/ppa/reservoir_energy.py` (读出仅计 `e_int8_mac*n_nodes*n_outputs`) vs `article/chapter05`/RC 论述正文。

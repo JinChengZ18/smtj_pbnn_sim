@@ -61,7 +61,9 @@
 | Hero(A1) 精度轴：sense offset → MNIST | `interface/hero_mnist_sweep.py`（GPU，12ep→97.4%train） | baseline **96.80%**；per-cell sense offset 0→30mV(1.28·V_T) 精度**几乎不变**(96.8%) → **per-cell 模型欠估**；SA 失调是 per-输出列系统性(一列一个 SA)，需 per-column 模型才显真实退化：**per-column σ=0→8 popcount → 97.0%→96.35%**（随 σ 增大；per-cell 平）。SA 伏特→popcount 精确映射待 B5 读出跨阻 | ◑ first-cut |
 | **Hero(A1) 版图导出 → GDS（"导出版图"交付）** | `eda/hero/layout/gen_sa_layout.py`（WSL KLayout sky130 PCells） | StrongARM 9 器件（5 NMOS+4 PMOS，带保护环）→ `sa_devices.gds`：top `strongarm_sa_devs`，17.5×18.7µm，**611 shapes，sky130 真层号**（diff 65/20, poly 66/20, li1 67/20, met1 68/20…）。Magic/TCL 路线被版本卡（Magic 8.3.105 < 需 8.3.306）→改 KLayout PCell 流。**DRC 已通过：0 violations**（`run_drc.sh`，经 ASCII build dir `/home/lenovo/smtj_eda_build` 跑 sky130A_mr.drc；器件级，布线 DRC 待加互连）。WSL 链坑（~~CJK 路径破坏 `-rd input` UTF-8 解析~~【迁英文路径后已不适用】 / `/tmp` 空闲清空 / `bash -lc` 内变量丢失）已由 build-dir 方案规避 | ✅ 器件版图 + DRC 0-violation |
 | **Hero(A1) B5 读出映射：mV→popcount→精度（闭环合拢）** | `eda/hero/readout_mapping.py`（纯 Python，吃上游 JSON） | 跨阻 `LSB_V=LSB_I·R_TI` 桥接 P3 的 5.1µA/pc、SA 的 11.05mV、per-column 精度曲线；协同律 `σ_pc=σ_offset_V·2·PC_FS/V_in`。**最大增益读出下 plain SA 0.47·V_T → σ_pc≈3–5 → 精度跌<0.15pp**（R_TI≈400–700Ω）；仅 V_in=0.4V+宽扇入越膝点（−0.14pp）。结论=**量化设计边界**（何时省/需自调零），非「必须自调零」 | ✅ first-cut（闭环 mV→精度合拢）|
-| **Hero(A1) Magic PEX 工具链解锁验证**（Magic 升级后） | `eda/hero/layout/run_pex.sh`（WSL Magic 8.3.668） | `gds read→load→extract all→ext2spice` 跑通：从 `sa_devices.gds` 提出 **9 器件**（5 nfet_01v8+4 pfet_01v8，W/L 正确）+ 器件/局部互连寄生 C（cthresh 0，C0–C17+ fF 级）→ `sa_pex.spice`。**当前 GDS 为器件级（无互连/端口），此为工具链验证非可信 R3/R5 数**；下一步=加 routing→LVS→重跑（含 `extresist` 取 R） | ✅ 工具链通（器件级） |
+| **Hero(A1) Magic PEX 工具链解锁验证**（Magic 升级后） | `eda/hero/layout/run_pex.sh`（WSL Magic 8.3.668） | `gds read→load→extract all→ext2spice` 跑通：从 `sa_devices.gds` 提出器件 + 器件/局部互连寄生 C（cthresh 0）→ `sa_pex.spice` | ✅ 工具链通 |
+| **Track B 写线 IR-drop（R3）+ 写能量开销（R5）** | `eda/extraction/writeline/`（KLayout 标定带 + Magic `extresist` + Python 标度） | extresist 自校验 poly 47.96 vs techfile 48.2 Ω/sq；往返金属 R vs 776Ω：N≤64 可忽略(<5%)、**N=256 met1/2 W=1µm=128Ω=16.5%**(IR148mV，高角19%)、N=1024=66%、**li1 灾难(kΩ)**。148mV 跌破 0.8958V 写点→p_sw 位移（高列上限）。指引=写线 met2+/加宽/分段，N≥256 预算 ~10–20% | ✅ first-cut（真实提取数）|
+| **Track A SA 版后（器件集修正 + 寄生 + LVS 工具链）** | `gen_sa_layout.py`(11器件) + `run_pex.sh` + `sa_postlayout.py` + netgen | 版图器件集 9→**11**（补 Mp3/Mp4，匹配原理图），**DRC 0 违例**，提取 **11 MOSFET + 35.25 fF 器件 C**；SA 动态能 ~**23–74 fJ/决策**（5–15× 5fF 占位→R1 读出低估）；失调对称布线设计律→R2。netgen 1.5.321 LVS 工具链打通（设备级；完整 LVS 待布线，见 `layout/LVS_GUI_CHECKLIST.md`） | ◑ first-cut（布线/全 LVS 待 GUI 收尾）|
 
 ## 各阶段 Definition of Done（DoD）
 
@@ -71,8 +73,8 @@
 | **P1** | `.va` ✅ + Python 金标准 ✅ + 随机写 harness ✅ + ngspice `run_regression` R²=1.0 ✅ | ✅ Done |
 | **P2** | first-cut ✅（理想驱动：能量/开销/0.75ns 可行性/P_sw）；待 sky130 CMOS 驱动端到端 → errata R4 | ◑ 部分 |
 | **P3** | first-cut ✅（MTJ 差分消除精确；失配残余 ~0.06√N popcount，sub-LSB 至 N≈256）；待 sky130 SA 晶体管失调 vs V_T → errata R2 | ◑ 部分 |
-| **P4** | CSA/ADC 读出能量/延迟/噪底；子阵列上限；外围占比重算 → errata R1 | ⬜ |
-| **P5** | 单列/小 tile PEX；IR-drop vs 尺寸（含 776Ω 写线）→ errata R3 | ⬜ |
+| **P4** | CSA/ADC 读出能量/延迟/噪底；子阵列上限；外围占比重算 → errata R1 | ◑ 部分（sky130 SA 动态能 ~23–74 fJ/决策 first-cut，`sa_postlayout.py`；ADC/CSA 待）|
+| **P5** | 单列/小 tile PEX；IR-drop vs 尺寸（含 776Ω 写线）→ errata R3 | ◑ first-cut（写线金属 R vs N 已 extresist 提取，N=256→16.5%·776Ω；li1 灾难；待路由后列级 popcount 误差）|
 | **P6** | first-cut ✅（interface 读 extraction → 重跑 MNIST PPA，写+驱动 per-MAC +3%）；待 P4 ADC 数落地后报外围占比位移 (R1) | ◑ 部分 |
 | **P7** | τ(V)/⟨s⟩ ✅ + 读出 ADC/噪声→MC (R6) ✅first-cut（读出精度是限制者）；待无扰动读+读回作用界、读出能量映射(NeuroSim)、三位一体势垒冲突 (R7) | ◑ 部分 |
 

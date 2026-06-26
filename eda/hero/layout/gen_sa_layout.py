@@ -31,9 +31,13 @@ ly = pya.Layout()
 ly.dbu = 0.001
 top = ly.create_cell("strongarm_sa_devs")
 
-# StrongARM CMOS devices: NMOS tail/input-pair/latch (nmos18) + PMOS latch/precharge (pmos18).
+# StrongARM CMOS devices, matching eda/hero/strongarm_sa.spice (11 transistors):
+#   NMOS: Mtail (clk tail) + M1/M2 (input pair) + M3/M4 (latch)            -> nmos18
+#   PMOS: M5/M6 (latch) + Mp1/Mp2 (precharge outp/outn) + Mp3/Mp4 (precharge da/db) -> pmos18
+# NOTE 2026-06-26: the first cut placed only 9 (it omitted Mp3/Mp4); restored to 11 so the
+# layout device set matches the schematic for LVS.
 NMOS = [("Mtail", 4.0), ("M1", 4.0), ("M2", 4.0), ("M3", 2.0), ("M4", 2.0)]
-PMOS = [("M5", 2.0), ("M6", 2.0), ("Mp1", 2.0), ("Mp2", 2.0)]
+PMOS = [("M5", 2.0), ("M6", 2.0), ("Mp1", 2.0), ("Mp2", 2.0), ("Mp3", 2.0), ("Mp4", 2.0)]
 
 
 def place(pcell, w, x_um, y_um):

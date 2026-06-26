@@ -1,0 +1,28 @@
+{
+  "firm": {
+    "devices": 11,
+    "drc_violations": 0,
+    "C_dev_total_fF": 35.25,
+    "C_dev_switch_floor_fF": 2.0,
+    "note": "extracted C dominated by rail-tied bulk(~22fF)+wells(6x~3.5fF); switching-node C needs labels"
+  },
+  "estimate": {
+    "C_route_fF": [
+      5.2,
+      20.8
+    ],
+    "C_switch_fF": [
+      7.2,
+      22.8
+    ],
+    "E_sa_fJ": [
+      23.3,
+      73.9
+    ],
+    "vs_read_placeholder_x": [
+      4.7,
+      14.8
+    ]
+  },
+  "caveat": "device C extracted; routing C + energy are floorplan estimates pending routed-LVS PEX"
+}
