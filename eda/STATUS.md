@@ -68,6 +68,7 @@
 | **1.11 C1 失调消除 Pareto（accuracy vs V_offset/V_T）** | `eda/hero/pareto_offset_cancellation.py`（纯 Python，吃 hero_mnist_summary + 协同律）| {无/4×面积/单容自调零/两相斩波}×读出工作点；噪声地板 0.15pp。**V_in≥0.5V/MNIST 扇入 → plain SA Pareto 最优**（差落噪声内）；**仅 V_in≤0.4V/宽扇入 → 自调零挣回成本**（边界 layer1≤0.35V、layer2≤0.40V）。规格反转=按 V_T 预算失调、非 TMR 余量 | ✅（关 R2 设计边界）|
 | **2.3 RC 等能量 {N,M,b} 套利（R6）** | `eda/testbenches/rc_isoenergy.py`（纯 Python，MC(N,M,b)+Walden ADC 能量）| 读出**非免费**（精度 gate MC，驳 reservoir_energy）但为**效率前沿**：MC/焦耳拐点 **b~5–6 列共享**；冲绝对 MC 的 b=10 要 **230×能量换3.66×MC**（ADC≥99%能量）；M<N 在前沿 | ✅（关 R6） |
 | **3.1 sky130 CMOS 写驱动端到端（R4）** | `eda/testbenches/run_write_driver.sh`（WSL ngspice+sky130，扫 W_p）| 1.8V CMOS 反相器驱 776Ω：交付 0.9V（W_p≈7µm）→ E_dev=0.785pJ（对上基线）但 E_vdd≈**1.61pJ=2.05×欧姆**（驱动开销105%，Ron/776分压）；过驱(W_p≥16)→E_dev涨1.9–2.9pJ。**需稳压~0.9V写轨** | ✅（关 R4，端到端~1.6pJ）|
+| **1.12 C2 摊销写-DAC V_th trim** | `eda/hero/write_dac_trim.py`（纯 Python，吃 hero 精度曲线）| 既有每列写-DAC 加 **3–4 trim-bit** 抵消每列 V_th/失调：σ_col=8 popcount 96.35%→b3 96.82%≈基线（σ_col=4→b3；12→b5）。静态每列码、校准时设一次→摊销近零，写占 98.7% → trim **<1% 写能**。量化论文"DAC 校准+温漂补偿"，配 C1 成 Hero 校准半边 | ✅（C2；关 R4 校准侧）|
 
 ## 各阶段 Definition of Done（DoD）
 

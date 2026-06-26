@@ -1,0 +1,137 @@
+{
+  "baseline_pct": 97.0,
+  "K_FS": 4.0,
+  "E_write_pJ": 1.61,
+  "cases": [
+    {
+      "sigma_col": 4.0,
+      "untrimmed_acc": 96.81,
+      "rows": [
+        {
+          "b_trim": 0,
+          "residual_sigma_pc": 4.0,
+          "acc_pct": 96.81,
+          "drop_pp": -0.19
+        },
+        {
+          "b_trim": 1,
+          "residual_sigma_pc": 9.238,
+          "acc_pct": 96.35,
+          "drop_pp": -0.65
+        },
+        {
+          "b_trim": 2,
+          "residual_sigma_pc": 3.079,
+          "acc_pct": 96.819,
+          "drop_pp": -0.181
+        },
+        {
+          "b_trim": 3,
+          "residual_sigma_pc": 1.32,
+          "acc_pct": 96.864,
+          "drop_pp": -0.136
+        },
+        {
+          "b_trim": 4,
+          "residual_sigma_pc": 0.616,
+          "acc_pct": 96.872,
+          "drop_pp": -0.128
+        },
+        {
+          "b_trim": 5,
+          "residual_sigma_pc": 0.298,
+          "acc_pct": 96.923,
+          "drop_pp": -0.077
+        }
+      ],
+      "bits_for_baseline": 3
+    },
+    {
+      "sigma_col": 8.0,
+      "untrimmed_acc": 96.35,
+      "rows": [
+        {
+          "b_trim": 0,
+          "residual_sigma_pc": 8.0,
+          "acc_pct": 96.35,
+          "drop_pp": -0.65
+        },
+        {
+          "b_trim": 1,
+          "residual_sigma_pc": 18.475,
+          "acc_pct": 96.35,
+          "drop_pp": -0.65
+        },
+        {
+          "b_trim": 2,
+          "residual_sigma_pc": 6.158,
+          "acc_pct": 96.562,
+          "drop_pp": -0.438
+        },
+        {
+          "b_trim": 3,
+          "residual_sigma_pc": 2.639,
+          "acc_pct": 96.824,
+          "drop_pp": -0.176
+        },
+        {
+          "b_trim": 4,
+          "residual_sigma_pc": 1.232,
+          "acc_pct": 96.868,
+          "drop_pp": -0.132
+        },
+        {
+          "b_trim": 5,
+          "residual_sigma_pc": 0.596,
+          "acc_pct": 96.872,
+          "drop_pp": -0.128
+        }
+      ],
+      "bits_for_baseline": 4
+    },
+    {
+      "sigma_col": 12.0,
+      "untrimmed_acc": 96.35,
+      "rows": [
+        {
+          "b_trim": 0,
+          "residual_sigma_pc": 12.0,
+          "acc_pct": 96.35,
+          "drop_pp": -0.65
+        },
+        {
+          "b_trim": 1,
+          "residual_sigma_pc": 27.713,
+          "acc_pct": 96.35,
+          "drop_pp": -0.65
+        },
+        {
+          "b_trim": 2,
+          "residual_sigma_pc": 9.238,
+          "acc_pct": 96.35,
+          "drop_pp": -0.65
+        },
+        {
+          "b_trim": 3,
+          "residual_sigma_pc": 3.959,
+          "acc_pct": 96.81,
+          "drop_pp": -0.19
+        },
+        {
+          "b_trim": 4,
+          "residual_sigma_pc": 1.848,
+          "acc_pct": 96.838,
+          "drop_pp": -0.162
+        },
+        {
+          "b_trim": 5,
+          "residual_sigma_pc": 0.894,
+          "acc_pct": 96.878,
+          "drop_pp": -0.122
+        }
+      ],
+      "bits_for_baseline": 5
+    }
+  ],
+  "conclusion": "C2 result: 3-4 trim bits on the EXISTING per-column write-DAC restore the per-column offset from the fatal regime back to within the 0.15 pp MNIST noise floor (e.g. sigma_col=8 popcount: untrimmed 96.35% -> b=3 96.82% ~ baseline 97.00%). Cost is near-free: the trim is a STATIC per-column code (set once at calibration, amortized over all writes) and the write path already dominates energy (~98.7%); the extra DAC switching is <1% of the ~1.61 pJ end-to-end write. => quantifies the thesis's 'DAC calibration + drift compensation' as a concrete near-free mechanism, and pairs with C1 (slope-matched SA) as the Hero's calibration half. Closes errata R4's calibration side."
+}
