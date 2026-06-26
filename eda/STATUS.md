@@ -66,6 +66,8 @@
 | **Track B 写线 IR-drop（R3）+ 写能量开销（R5）** | `eda/extraction/writeline/`（KLayout 标定带 + Magic `extresist` + Python 标度） | extresist 自校验 poly 47.96 vs techfile 48.2 Ω/sq；往返金属 R vs 776Ω：N≤64 可忽略(<5%)、**N=256 met1/2 W=1µm=128Ω=16.5%**(IR148mV，高角19%)、N=1024=66%、**li1 灾难(kΩ)**。148mV 跌破 0.8958V 写点→p_sw 位移（高列上限）。指引=写线 met2+/加宽/分段，N≥256 预算 ~10–20% | ✅ first-cut（真实提取数）|
 | **Track A SA 版后（器件集修正 + 寄生 + LVS 工具链）** | `gen_sa_layout.py`(11器件) + `run_pex.sh` + `sa_postlayout.py` + netgen | 版图器件集 9→**11**（补 Mp3/Mp4，匹配原理图），**DRC 0 违例**，提取 **11 MOSFET + 35.25 fF 器件 C**；SA 动态能 ~**23–74 fJ/决策**（5–15× 5fF 占位→R1 读出低估）；失调对称布线设计律→R2。netgen 1.5.321 LVS 工具链打通（设备级；完整 LVS 待布线，见 `layout/LVS_GUI_CHECKLIST.md`） | ◑ first-cut（布线/全 LVS 待 GUI 收尾）|
 | **1.11 C1 失调消除 Pareto（accuracy vs V_offset/V_T）** | `eda/hero/pareto_offset_cancellation.py`（纯 Python，吃 hero_mnist_summary + 协同律）| {无/4×面积/单容自调零/两相斩波}×读出工作点；噪声地板 0.15pp。**V_in≥0.5V/MNIST 扇入 → plain SA Pareto 最优**（差落噪声内）；**仅 V_in≤0.4V/宽扇入 → 自调零挣回成本**（边界 layer1≤0.35V、layer2≤0.40V）。规格反转=按 V_T 预算失调、非 TMR 余量 | ✅（关 R2 设计边界）|
+| **2.3 RC 等能量 {N,M,b} 套利（R6）** | `eda/testbenches/rc_isoenergy.py`（纯 Python，MC(N,M,b)+Walden ADC 能量）| 读出**非免费**（精度 gate MC，驳 reservoir_energy）但为**效率前沿**：MC/焦耳拐点 **b~5–6 列共享**；冲绝对 MC 的 b=10 要 **230×能量换3.66×MC**（ADC≥99%能量）；M<N 在前沿 | ✅（关 R6） |
+| **3.1 sky130 CMOS 写驱动端到端（R4）** | `eda/testbenches/run_write_driver.sh`（WSL ngspice+sky130，扫 W_p）| 1.8V CMOS 反相器驱 776Ω：交付 0.9V（W_p≈7µm）→ E_dev=0.785pJ（对上基线）但 E_vdd≈**1.61pJ=2.05×欧姆**（驱动开销105%，Ron/776分压）；过驱(W_p≥16)→E_dev涨1.9–2.9pJ。**需稳压~0.9V写轨** | ✅（关 R4，端到端~1.6pJ）|
 
 ## 各阶段 Definition of Done（DoD）
 
@@ -73,7 +75,7 @@
 |---|---|---|
 | **P0** | 工具/PDK 路线定、回归目标钉死、模型基底定 | ✅ |
 | **P1** | `.va` ✅ + Python 金标准 ✅ + 随机写 harness ✅ + ngspice `run_regression` R²=1.0 ✅ | ✅ Done |
-| **P2** | first-cut ✅（理想驱动：能量/开销/0.75ns 可行性/P_sw）；待 sky130 CMOS 驱动端到端 → errata R4 | ◑ 部分 |
+| **P2** | first-cut ✅（理想驱动）+ **sky130 CMOS 驱动端到端 ✅**（`run_write_driver.sh`：交付0.9V→端到端1.61pJ=2.05×欧姆，需稳压写轨）→ errata R4 关 | ✅ Done |
 | **P3** | first-cut ✅（MTJ 差分消除精确；失配残余 ~0.06√N popcount，sub-LSB 至 N≈256）；待 sky130 SA 晶体管失调 vs V_T → errata R2 | ◑ 部分 |
 | **P4** | CSA/ADC 读出能量/延迟/噪底；子阵列上限；外围占比重算 → errata R1 | ◑ 部分（sky130 SA 动态能 ~23–74 fJ/决策 first-cut，`sa_postlayout.py`；ADC/CSA 待）|
 | **P5** | 单列/小 tile PEX；IR-drop vs 尺寸（含 776Ω 写线）→ errata R3 | ◑ first-cut（写线金属 R vs N 已 extresist 提取，N=256→16.5%·776Ω；li1 灾难；待路由后列级 popcount 误差）|

@@ -64,7 +64,7 @@
 - **位置**：`article/chapter04.md` §2.3/§4.3/§4.5；`tech_params.py` `e_smtj_write` 属性。
 - **问题**：$E=V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$ 不含写驱动晶体管 IR/短路能量、DAC 充电能量、BL/SL 寄生；且 0.75 ns 脉冲的上升/下降沿占比非小。端到端写能量预计 **> 0.78 pJ**。
 - **行动**：EDA 阶段 2 transient 测量含开销的真实写能量；论文中**并列报告**器件级 (0.78 pJ) 与含驱动端到端两个数。
-- **状态**：`进行中(first-cut)`。`eda/testbenches/write_mc_harness.py` 给出首个电路级数：10Ω 理想驱动下信道能量 E_sot≈0.80 pJ、驱动开销仅 **1.3%**、0.75ns 脉冲 rise≈40 ps（可行），但分压使交付电压降至 0.889 V（驱动需低输出阻抗）。**待 sky130 CMOS 驱动**替换理想脉冲后给含短路/开关能量的端到端数。
+- **状态**：`进行中(first-cut)`。`eda/testbenches/write_mc_harness.py` 给出首个电路级数：10Ω 理想驱动下信道能量 E_sot≈0.80 pJ、驱动开销仅 1.3%（**乐观**：假设不现实的 10Ω 理想驱动且交付仅 0.889V）。**已用真实 sky130 CMOS 驱动替换**（`eda/testbenches/run_write_driver.sh`，WSL ngspice+sky130，扫 W_p）：1.8V CMOS 反相器驱 776Ω SOT，**交付 0.9V 时（W_p≈7µm）E_dev=0.785pJ（对上 0.783 基线）但电源取 E_vdd≈1.61pJ → 驱动开销 ~105% → 端到端 ≈2.05× 欧姆数**。开销源于 Ron/776Ω 分压（1.8V 取 0.9V，半压半能耗在驱动）。两条naive逃逸都亏：缩小驱动(W_p≤4)欠驱(vflat<0.6V写失败)；放大(W_p≥16)过驱向 1.8V → E_dev 涨到 1.9–2.9pJ（V²损耗）。**结论=需稳压 ~0.9V 写轨**（LDO/电荷泵），非 1.8V 核心电源。论文**并列报告器件级 0.783pJ 与端到端 ~1.6pJ**。详见 `eda/testbenches/write_driver_results.md`。
 
 ### R5 — 「sMTJ 0.78 pJ vs CMOS p-bit 5 pJ = 4.2×」(论断 d) 的基准与口径
 - **位置**：`article/chapter04.md` §4.5；`tech_params.py` (Camsari 2020 / 5 pJ 引用块)。
