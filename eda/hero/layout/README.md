@@ -8,16 +8,19 @@
   **611 shapes on the correct sky130 layers** — diff 65/20, poly 66/20, licon 66/44, li1 67/20,
   mcon 67/44, met1 68/20, nwell 64/20, …).
 - `run_drc.sh` — reproducible sky130 DRC via an ASCII build dir (✅ **0 violations**; see below).
+- `run_pex.sh` — reproducible Magic parasitic extraction (`gds read → extract → ext2spice`), via the
+  same ASCII build dir (✅ toolchain validated: 9 devices + parasitic C; see "Next steps").
 
 Run (in WSL):  `klayout -b -r eda/hero/layout/gen_sa_layout.py`
 
-## Why KLayout (not Magic/TCL)
-The goal was a scripted **Magic TCL** layout, but the installed **Magic 8.3.105 is too old** for
-the sky130A techfile, which **requires Magic 8.3.306** (`sky130A.tech` version section error →
-fatal, no layers load). So the Magic/TCL route is **version-blocked — needs a Magic update**
-(rebuild ≥8.3.306, or the IIC-OSIC-TOOLS newer image). The KLayout sky130 PCell flow works
-instead and produces the same GDS deliverable. (KLayout uses system python 3.12; the sky130
-PCell package needs `pandas`, installed via `pip3 install --break-system-packages pandas`.)
+## Why KLayout was used for the GDS (Magic now also available)
+The GDS was first produced with the **KLayout sky130 PCell** flow because, at the time, the installed
+**Magic 8.3.105 was too old** for the sky130A techfile (which **requires Magic 8.3.306**:
+`sky130A.tech` version error → fatal, no layers load). **Magic has since been upgraded to 8.3.668**
+(2026-06-26; see `../../MANUAL_SETUP_NEEDED.md §1`), so the Magic/TCL `routing → LVS → PEX` route is
+now available too. The KLayout GDS stays the canonical deliverable — both tools read the same
+`sa_devices.gds`. (KLayout uses system python 3.12; the sky130 PCell package needs `pandas`,
+installed via `pip3 install --break-system-packages pandas`.)
 
 ## DRC status — ✅ PASS (0 violations), via the ASCII build-dir runner
 **`sa_devices.gds` passes `sky130A_mr.drc` with 0 violations** (device-level; routing DRC follows
@@ -32,21 +35,23 @@ wsl -d Ubuntu-24.04-EDA -- bash -lc \
 It stages the GDS into a persistent ASCII ext4 dir (`/home/lenovo/smtj_eda_build`) and runs DRC
 there, so the report lands in `$BUILD/sa_drc.xml` + `$BUILD/drc.log`.
 
-**Why the build dir** (this tripped up several earlier attempts — kept here so it isn't re-hit):
-the batch chain Windows→GitBash→`wsl.exe -- bash -lc`→KLayout has three compounding gotchas, none
-of them a layout problem: (1) the **non-ASCII project path** (`毕业设计/仿真`) breaks KLayout's
-`-rd input=<path>` UTF-8 arg parsing (truncates the value); (2) `/tmp` is **tmpfs and is wiped when
-the WSL distro idle-stops** between calls; (3) ASCII `$VAR`/`$HOME` set *inside the `bash -lc '…'`
-arg string* get lost in the GitBash→wsl marshalling. The runner sidesteps all three: a literal `cd`
-into the CJK dir (which the chain tolerates) + a **relative** GDS name + a **script file** bash reads
-directly (so its variables are real) + a **persistent ASCII ext4** staging dir. The PCell devices
-are foundry-correct and spaced 1.5 µm with guard rings, so 0 device-level violations is expected;
-real DRC content will appear when inter-device routing is added.
+**Why the build dir** (kept so it isn't re-hit): the batch chain
+Windows→GitBash→`wsl.exe -- bash -lc`→tool had compounding gotchas. **One is now historical:** the
+**non-ASCII project path** (`毕业设计/仿真`) used to break KLayout's `-rd input=<path>` UTF-8 arg
+parsing — but the repo moved to a **pure-English path** on 2026-06-26, so that no longer applies.
+**Still live:** (1) `/tmp` is **tmpfs and is wiped when the WSL distro idle-stops** between calls;
+(2) ASCII `$VAR`/`$HOME` set *inside the `bash -lc '…'` arg string* get lost in the GitBash→wsl
+marshalling. So the runner still stages into a **persistent ASCII ext4** dir
+(`/home/lenovo/smtj_eda_build`) and reads variables from a **script file** (not the `-lc` arg). The
+PCell devices are foundry-correct and spaced 1.5 µm with guard rings, so 0 device-level violations is
+expected; real DRC content will appear when inter-device routing is added.
 
 ## Next steps (the routing/interactive boundary)
 - **Routing**: connect the devices per the StrongARM schematic (tail→gnd, latch cross-couple,
   input gates, precharge) — the labor-intensive part; scriptable in KLayout-Python but slow blind,
   or done in the KLayout/Magic GUI.
-- **Netgen LVS** (layout vs `eda/hero/strongarm_sa.spice`) once routed.
-- **PEX** (Magic ext2spice or KLayout) → post-layout offset/energy.
+- **Netgen LVS** (layout vs `eda/hero/strongarm_sa.spice`) once routed. ⚠ `/usr/bin/netgen` (apt) is
+  the *mesh-generator* netgen, NOT the LVS netgen (Tim Edwards) — verify/install the right one first.
+- **PEX**: Magic `ext2spice` toolchain is verified (`run_pex.sh`, 9 devices + parasitic C on the
+  device-level GDS); once routed, add `extresist` for R → post-layout offset/energy (errata R3/R5).
 - Render a PNG figure (KLayout `save_image`, needs xvfb headless) for the paper.

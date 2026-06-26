@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Hero (A1) layout export via KLayout sky130 PCells -> GDS (the "导出版图/GDS" deliverable).
 
-NOTE: the installed Magic 8.3.105 is too old for the sky130A techfile (requires 8.3.306),
-so the Magic/TCL layout route is version-blocked. KLayout's sky130 PCells (nmos18/pmos18,
-library "SKY130") work, so we use the KLayout-Python flow instead.
+NOTE: this GDS was produced with KLayout's sky130 PCells (nmos18/pmos18, library "SKY130")
+because the then-installed Magic 8.3.105 was too old for the sky130A techfile (requires
+8.3.306). Magic has since been upgraded to 8.3.668 (2026-06-26), so the Magic/TCL route is
+available too; this KLayout flow stays the canonical GDS generator (both read the same GDS).
 
 This first cut places the StrongARM's transistors as guard-ringed sky130 PCell instances
 (a real, DRC-aware device layout) and writes GDS. Full inter-device routing (DRC-clean

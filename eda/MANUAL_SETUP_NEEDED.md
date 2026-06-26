@@ -4,82 +4,92 @@ Items that need a hands-on step before the corresponding EDA work can proceed. E
 **not** listed here is already automated/working (P1 regression, P2–P7 first-cuts, Hero A1
 SA + offset MC + closed-loop + B5 readout mapping + GDS export + **DRC 0-violations**).
 
-Last updated: 2026-06-26.
+Last updated: 2026-06-26 (Magic upgrade done; repo on English path).
 
 ---
 
-## 1. Update Magic to >= 8.3.306  (unblocks layout routing -> LVS -> PEX)  — ~10-20 min
+## 1. Update Magic to >= 8.3.306  (routing -> LVS -> PEX)  — ✅ completed 2026-06-26
 
-**Why:** the installed Magic is **8.3.105** (Ubuntu-24.04 apt cap; `apt upgrade` can never reach
-8.3.306). The sky130A techfile hard-requires it — `/opt/pdk/sky130A/libs.tech/magic/sky130A.tech`
-line 19 literally says `requires magic-8.3.306`, so the techfile refuses to load and the scripted
-Magic/TCL layout + `ext2spice` PEX route is blocked. The current GDS was therefore produced with
-**KLayout PCells** instead (works, DRC-clean); Magic is only needed for the *routing -> LVS -> PEX*
-branch below.
-
-**Fix:** build the latest Magic from source (currently 8.3.667 >> 8.3.306) into `/usr/local`.
-
-> **CRITICAL pitfall first:** `tcl-dev`, `tk-dev`, `libcairo2-dev` are **not yet installed** on
-> this distro (only `libx11-dev` is); there is no `tclConfig.sh`. If you skip them, `./configure`
-> *silently* builds a **non-Tcl** Magic that cannot load sky130A. Install the deps BEFORE
-> `./configure`, and read the configure output to confirm it reports "Tcl/Tk … found".
-
-Run inside the distro (`wsl.exe -d Ubuntu-24.04-EDA -- bash -lc '<cmd>'` from Windows — note the
-distro name is **`Ubuntu-24.04-EDA`**, not plain `Ubuntu-24.04`):
+**Done.** Magic was rebuilt from source to **8.3.668** (>> the required 8.3.306) into
+`/usr/local/bin`. Verified two ways:
 
 ```bash
-sudo apt update
-sudo apt install -y git build-essential m4 tcsh csh flex bison \
-     libx11-dev tcl-dev tk-dev libcairo2-dev libncurses-dev \
-     libglu1-mesa-dev freeglut3-dev mesa-common-dev
-ls /usr/lib/x86_64-linux-gnu/tclConfig.sh /usr/lib/x86_64-linux-gnu/tkConfig.sh   # must exist now
-cd ~ && rm -rf magic && git clone https://github.com/RTimothyEdwards/magic.git
-cd ~/magic
-./configure            # confirm it prints that Tcl AND Tk were found
-make -j$(nproc)
-sudo make install      # installs to /usr/local/bin
-sudo apt remove -y magic || true   # drop the stale 8.3.105 at /usr/bin
-hash -r
-which -a magic         # /usr/local/bin/magic should win
-```
-
-**Verify (the real test is the techfile load, not just `--version`):**
-```bash
-magic --version        # -> 8.3.667 (NOT 8.3.105; if still 8.3.105, run `hash -r`, fix PATH)
-echo 'puts "OK"; quit -noprompt' | \
+magic --version        # -> 8.3.668   (/usr/local/bin/magic wins; the stale apt 8.3.105 is gone)
+echo 'puts OK; quit -noprompt' | \
   magic -dnull -noconsole -T /opt/pdk/sky130A/libs.tech/magic/sky130A.tech
-# success = prints OK, exit 0, NO "requires magic-8.3.306" error
+#   -> prints OK, exit 0, NO "requires magic-8.3.306" error
+#   -> 'Using technology "sky130A", version 1.0.349'  (techfile loads cleanly)
 ```
 
-Lower-risk alternative if you don't want to touch system dirs:
-`./configure --prefix=$HOME/eda/magic` then prepend `$HOME/eda/magic/bin` to PATH (leaves the
-apt magic untouched, avoids the PATH-shadowing pitfall).
+This **unblocks the Magic/TCL `routing -> LVS -> PEX` route** that was version-blocked when the
+Hero(A1) GDS was first produced with KLayout PCells (the GDS itself stays valid — KLayout and Magic
+read the same `sa_devices.gds`).
 
-**What this unblocks (the "导出版图" follow-on, currently the only Magic-gated work):**
-SA inter-device **routing** -> **Netgen LVS** (layout vs `eda/hero/strongarm_sa.spice`) ->
-**`ext2spice` PEX** -> post-layout offset/energy corner sim. Feeds errata R3 (IR-drop) and R5
-(end-to-end energy). KLayout can also do routing+LVS if you prefer to stay off Magic.
+**First PEX step already validated (2026-06-26):** `eda/hero/layout/run_pex.sh` runs
+`gds read -> load -> extract all -> ext2spice` on `sa_devices.gds` and produces
+`sa_pex.spice` with all **9 transistors** (5 `nfet_01v8` + 4 `pfet_01v8`, correct W/L) plus
+device/local-interconnect parasitic caps. The Magic extract→ext2spice toolchain therefore works
+end-to-end on this machine — not just the techfile load.
+
+**Remaining on this branch (the real R3/R5 numbers):** the current GDS is **device-level** (no
+inter-device routing, no port labels), so the PEX above is a toolchain validation, not yet a
+meaningful IR/energy result. To get there:
+1. add inter-device **routing** to the SA layout (KLayout-Python or GUI; the labor-intensive part);
+2. **Netgen LVS** layout vs `eda/hero/strongarm_sa.spice` — **caveat:** `/usr/bin/netgen` (apt) is
+   the *mesh-generator* netgen (Schoeberl/Vienna), **NOT** the LVS netgen (Tim Edwards / open_pdks);
+   verify/install the correct `netgen` before the LVS step;
+3. re-run `run_pex.sh` (add `extresist` for R) → post-layout offset/energy → feeds errata **R3**
+   (IR-drop) and **R5** (end-to-end energy).
+
+Build recipe used (kept for reference / other machines): install `tcl-dev tk-dev libcairo2-dev`
+(plus `build-essential m4 tcsh flex bison libx11-dev libncurses-dev` + mesa GLU) **before**
+`./configure` (otherwise it silently builds a non-Tcl Magic that can't load sky130A), then
+`make -j$(nproc) && sudo make install`, `sudo apt remove -y magic`, `hash -r`.
 
 ---
 
-## 2. Project path: pure-English?  — already handled non-destructively; full move NOT recommended
+## 2. Project path: pure-English?  — completed on 2026-06-26
 
-The non-ASCII project path (`毕业设计-2026年5月10日/04PBNN仿真`) is what broke KLayout's
-`-rd input=<path>` UTF-8 parsing. **This is already solved** without moving anything: EDA tools now
-stage into an **ASCII ext4 build dir** `~/smtj_eda_build` on the distro and run there
-(`eda/hero/layout/run_drc.sh` — DRC passes 0 violations through it). Python scripts use
-`Path(__file__).resolve()` and are path-independent.
+The repository has been moved from the old non-ASCII Windows parent path
+(`D:\Documents\毕业设计-2026年5月10日\04PBNN仿真`) to the English path:
+`D:\Documents\Graduation Project-2026\04PBNNSim\smtj_pbnn_sim`.
 
-**Recommendation (from a repo survey): keep the repo where it is.** Moving the whole tree to an
-ASCII path is high-cost / low-gain — it would require rewiring **5 git worktrees**
-(`.git/worktrees/*/gitdir` hold absolute paths), orphan the auto-memory `MEMORY.md` (its folder
-name encodes the CJK path → loses session continuity), and risk a half-migrated state. The only
-hardcoded absolute path in the repo is the intentional `~/smtj_eda_build` in `run_drc.sh`.
+This avoids the KLayout `-rd input=<path>` UTF-8 parsing issue at the Windows path level. The EDA
+flow still stages into the ASCII ext4 build dir `~/smtj_eda_build` on the distro
+(`eda/hero/layout/run_drc.sh` — DRC passes 0 violations through it), and Python scripts continue to
+use `Path(__file__).resolve()` so they remain path-independent.
 
-If you DO want a full move later (e.g. team handoff), it's a separate controlled step:
-`git worktree move` each worktree (or prune + recreate), regenerate the memory index, re-run the
-full test suite (`gen_golden` / `run_regression` / `hero_mnist_sweep`), then commit. Deferred — not
-needed for the current roadmap (Hero A1 + second paper C3).
+Post-move maintenance already performed:
+- rewired `.git/worktrees/*/gitdir` and each `.claude/worktrees/*/.git` linked-worktree pointer;
+- updated Claude/Codex permission entries in `.claude/settings.local.json` and worktree-local
+  `.claude/settings.local.json` files;
+- added `.agents/MEMORY.md` with the path migration note for future maintenance agents.
+
+Remaining historical references to the old path should be treated as context only, not as an
+operational root.
+
+---
+
+## 3. Install the LVS netgen (Tim Edwards / open_pdks)  — needed for the LVS step  — ~10 min
+
+**Why:** with Magic upgraded (§1), the next step on the SA layout is **LVS** (layout vs
+`eda/hero/strongarm_sa.spice`). But the only `netgen` on `Ubuntu-24.04-EDA` is `/usr/bin/netgen` —
+the **mesh generator** (Joachim Schoeberl / Vienna, `NETGEN-6.2.x`), a completely different program
+that happens to share the binary name. The **LVS netgen** (R. Timothy Edwards, shipped with
+open_pdks; prints `netgen LVS …` / sources `sky130A_setup.tcl`) is **not installed** (confirmed:
+`find / -name netgen -type f` returns only the apt mesh one). LVS cannot run until the right netgen
+is present.
+
+**Fix** (build from source into `/usr/local`, so it doesn't clash with the apt mesh netgen):
+```bash
+cd ~ && rm -rf netgen-lvs && git clone https://github.com/RTimothyEdwards/netgen.git netgen-lvs
+cd ~/netgen-lvs && ./configure && make -j$(nproc) && sudo make install   # -> /usr/local/bin/netgen
+hash -r
+/usr/local/bin/netgen -batch lvs    # should print netgen LVS usage, NOT mesh-generator banner
+```
+(Or just use the IIC-OSIC-TOOLS Docker image, which bundles the correct netgen + magic + sky130A —
+the Phase-0 gate in `STATUS.md`.) After install, run LVS with the sky130A setup:
+`netgen -batch lvs "<extracted>.spice <topcell>" "strongarm_sa.spice <topcell>" /opt/pdk/sky130A/libs.tech/netgen/sky130A_setup.tcl`.
 
 ---
 

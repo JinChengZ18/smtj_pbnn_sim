@@ -1,15 +1,15 @@
 #!/bin/bash
 # Reproducible sky130 DRC of the SA device GDS, run from an ASCII build dir.
 #
-# WHY a build dir: the project lives under a non-ASCII path (毕业设计/仿真).
-# KLayout's `-rd input=<path>` mangles UTF-8 arguments (truncates the path), and
-# /tmp (tmpfs) is wiped when the WSL distro idle-stops -- so DRC saw 0 polygons.
-# Fix: stage the GDS into a PERSISTENT ASCII ext4 dir (~lenovo on the distro disk)
-# and run DRC there, keeping the non-ASCII path out of every tool argument.
+# WHY a build dir: /tmp (tmpfs) is wiped when the WSL distro idle-stops -- so DRC
+# would see 0 polygons. Fix: stage the GDS into a PERSISTENT ASCII ext4 dir
+# (~lenovo on the distro disk) and run DRC there.
+# (Historical: the repo used to live under a non-ASCII path (毕业设计/仿真) which also
+#  mangled KLayout's `-rd input=<path>` UTF-8 arg -- that reason is GONE since the
+#  2026-06-26 move to a pure-English path; the /tmp-tmpfs reason above remains.)
 #
-# INVOKE from the layout dir (the literal `cd` tolerates the CJK path; the GDS is
-# then referenced by a relative ASCII name, and bash reads THIS file directly so its
-# variables are not subject to the Git-Bash->wsl arg mangling):
+# INVOKE from the layout dir (the GDS is referenced by a relative ASCII name, and bash
+# reads THIS file directly so its variables are not subject to Git-Bash->wsl mangling):
 #
 #   wsl -d Ubuntu-24.04-EDA -- bash -lc \
 #     'cd "<repo>/eda/hero/layout" && bash run_drc.sh'
