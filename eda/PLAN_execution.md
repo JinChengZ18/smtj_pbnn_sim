@@ -13,6 +13,24 @@
 - **闭环基础设施在位**：`hero/readout_mapping.py`（mV→popcount→精度）、`hero/hero_mnist_sweep.py`、
   `interface/load_tech_params.py`、`device/variation.py` 的 `sigma_sense_offset` 通道。
 
+## 0b. 完成度总览（对齐蓝本 `2026-06-27_innovation_replan.md`）
+蓝本三层创新 + 两层贡献的当前落地状态（建模/电路级，**版图布线为收尾，按指令暂缓**）：
+
+| 蓝本贡献 | 内容 | 状态 |
+|---|---|---|
+| **A0** 反向设计方法学 | finding→sky130 PEX 数→论断位移→闭回算法栈 | ✅ 全链路打通（见增补文档） |
+| **A1=C1** 斜率匹配 p-bit 读出 | SA 失调按 V_T 预算；σ=0.39·V_T(N=120)；plain SA 帕累托最优 | ✅ 建模/电路级 |
+| **A2=C2** 摊销写-DAC 微调 | 3–4 trim-bit、<1% 写能 | ✅ 建模 |
+| **A3=C3** RC 等能量套利 | {N,M,b} 前沿 + 地标 ADC；诚实 ~30–35× | ✅ 建模 |
+| **B1** 校准 .va + 双仿真器 + **LLG 验证** | R²=1.0 回归 + LLG 阈值 0.01·V_T 吻合 | ✅ |
+| **B2/B4/B5/B6** 写驱动/差分读/ADC/IR | 端到端写 1.6pJ、SA 23–74fJ、IR vs N | ◑ first-cut（电路级数已出） |
+| **B7/B8** 三位一体/自适应-T | 受限可行性包络 / ~50% 少写 | ✅（B7 仅可行性） |
+
+- **错误/论断修正**：E1/E2 已修；**R1–R7 全部已处理**（R2/R4/R6/R7 收口为设计边界，R1/R3/R5 有真实提取数）。
+- **📄 学术增补交付稿**：[`../article/supplement_eda_codesign.md`](../article/supplement_eda_codesign.md)（独立增补，含图 S.1–S.4，遵循 article 图风格 `figs/Supplement_local_0N.png`；图由 `eda/gen_supplement_figs.py` 可复现）。
+- **目标期刊**（蓝本）：IEEE TCAS-I / TVLSI / TED（不投 Nat.Electron./ISSCC）。
+- **仍待（均为门控/收尾，非主干）**：版图布线→全 LVS→版后 PEX（**指令①：所有设计冻结后再做**）；Xschem 原理图导出（需装 Xschem + GUI/批渲染）；版图 GDS 渲染图（需 KLayout GUI/xvfb）。
+
 ---
 
 ## Phase 0 — 工具链网关 ✅ (本会话达成；Docker 改为可选)
