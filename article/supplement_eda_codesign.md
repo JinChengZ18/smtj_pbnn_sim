@@ -22,9 +22,15 @@
 
 关键在于这一失调能否被读出链路吸收。以电流灵敏读出的跨阻 $$R_\mathrm{TI}$$ 为桥，把毫伏失调折算到 popcount 域：$$\sigma_\mathrm{pc}=\sigma_\mathrm{off}\cdot 2\,\mathrm{PC_{FS}}/V_\mathrm{in}$$，其中 $$\mathrm{PC_{FS}}\!\approx\!3\sqrt F$$ 为扇入 $$F$$ 决定的满量程 popcount，$$V_\mathrm{in}$$ 为比较器差分输入范围，跨阻取动态范围允许的最大增益。这给出一条协同设计准则：跨阻增益由扇入设定，并据此判定何时平凡比较器即足够。图 2 给出扫描结果——在最大增益下平凡比较器的 $$0.39\,V_T$$ 仅映射到 $$\sigma_\mathrm{pc}\!\approx\!2\text{–}4$$ 个 popcount，落在精度曲线膝点之下，精度损失在单次训练 0.15 个百分点的统计涨落以内；仅当 $$V_\mathrm{in}\le0.4\,\mathrm V$$ 且扇入很宽时才越过膝点。为在电路层面闭合这一准则，把读出前端实现为一个电阻跨阻并接 StrongARM 比较器：取扇入 1024、$$V_\mathrm{in}=0.6\,\mathrm V$$，准则给出 $$R_\mathrm{TI}=V_\mathrm{in}/(2\,\mathrm{PC_{FS}}\,\mathrm{LSB_I})=613\,\Omega$$（满量程 popcount 恰好用满输入范围的一半）。在 sky130 上以 popcount 正比的差分电流驱动该前端并扫描，提取失调在整条链路中映射到 $$\sigma_\mathrm{pc}\approx2.5$$ 个 popcount，约为理想跨阻律的 85%（差额来自比较器有限输入阻抗对跨阻的负载），仍落在膝点之下——从晶体管级确认了在该扇入与输入范围下平凡比较器即足够，将上述准则从解析关系坐实为可仿真的读出电路。因此对常见扇入与 $$V_\mathrm{in}\ge0.5\,\mathrm V$$，平凡比较器即为帕累托最优；自调零或斩波只在低压、宽扇入、增益欠预算的区域才挣回其面积与能量成本。
 
+将此置于读出电路的性能坐标中：平凡 StrongARM 比较器的输入折合失调约 8.5–12 mV、每次判决能量约 11–51 fJ（随工艺节点与电源电压缩放）[^razavi][^dsa]；磁存储读出可用单容自调零把失调标准差压低逾 60%，但其失调消除相位**始终开启**[^autozero]——因为它按确定性隧穿磁阻余量（约 2× 阻值比）来预算失调，这是从确定性存储器继承的最坏角设计纪律。本设计的差别在于：失调按器件 Sigmoid 斜率 $$V_T$$（伯努利判决窗）而非隧穿磁阻余量预算，并由扇入经上述协同律设定跨阻增益，从而把失调消除从"始终开启"改为**按扇入/斜率条件触发**：仅在高扇入、低 $$V_\mathrm{in}$$、陡斜率（$$\sigma_\mathrm{pc}$$ 越过精度曲线膝点）的列启用单容自调零（可隐藏于地址译码之后、较双容方案省约 15% 面积、无时序代价[^autozero]），其余列直接用裸比较器（数十 fJ、零静态功耗、无额外相位）。其物理依据是：近 $$p=0.5$$ 的伯努利判决对失调的容忍尺度本就是 $$V_T$$——使工作点偏移 $$\delta V$$ 的失调只把开关概率重偏置约 $$\delta V/V_T$$，对二值化推断由训练期变异容忍吸收；故有意义的规格是 $$\sigma_\mathrm{off}/V_T$$ 而非确定性 LSB 余量。这与既有概率位/PBNN 工作把比较器理想化或仅在权重侧补偿斜率变异[^pbnn_cim][^pbit_var]、以及实测概率计算芯片按熵源与偏置可调性而非读出失调-斜率匹配来设计[^pbit_asic] 形成互补：把"失调按斜率预算 + 扇入设定增益 + 条件自调零"三者闭合，正是本读出协同设计区别于既有工作之处。（更高分辨的双 StrongARM 锁存可把基线失调再降约 30%[^dsa]，属可选拓扑替换，非本文主张所在。）
+
 读出端省下的校准由写端补上。每列残余的系统性阈值偏移折叠进既有写数模转换器：由于写脉冲在关键路径上、写能量占主导，附加 3–4 个微调位（一次性按列标定、静态保持）即可把每列偏移压回统计涨落地板，其附加开关能量不足单次写能量的 1%。读出端的省与写端的补共同构成这套读出协同设计的两半。
 
 ![图2 斜率匹配读出](figs/Supplement_local_02.png)
+
+![图6 StrongARM 灵敏放大器电路（sky130，由 Xschem 导出）](figs/Supplement_local_06.png)
+
+**图6** 斜率匹配 p-bit 读出所用的 StrongARM 灵敏放大器：差分输入对（vinp/vinn）、交叉耦合再生锁存（栅极 outp/outn）、四个时钟控预充 PMOS 与一个尾电流源；器件均为 sky130 130 nm 工艺单元，标注沟道宽长比。原理图连通性已由网表与器件级网表逐一核对一致。
 
 **图2** (a) sky130 StrongARM 输入折合失调分布（$$0.39\,V_T$$）与器件判决窗 $$V_T$$（金色带）的相对关系——按 $$V_T$$ 而非磁阻余量预算失调。(b) 在 $$V_\mathrm{in}=0.5\,\mathrm V$$、扇入 1024 下，四种失调消除方案的精度跌幅对剩余失调，标记面积正比于面积×能量成本；除最低压宽扇入区外，跌幅均在统计涨落内，平凡比较器位于帕累托前沿。
 
@@ -87,3 +93,6 @@
 [^pbit_asic]: An integrated-circuit-based probabilistic computer that uses voltage-controlled magnetic tunnel junctions as its entropy source，Nature Electronics, 2025, s41928-025-01439-6（实测 130 nm CMOS）。
 [^tunable_rtn]: Tunable Random Telegraph Noise in Stable Perpendicular Magnetic Tunnel Junctions for Unconventional Computing，arXiv:2509.13458, 2025（自旋转移矩脉冲驱动的可调随机电报噪声）。
 [^vcma_macro]: 一种 28 nm CMOS 集成的 VCMA-MTJ 双功能宏，用于确定性存内计算突触与随机泊松神经元，IEEE Symp. VLSI Technology & Circuits, 2026。
+[^razavi]: B. Razavi, The StrongARM Latch [A Circuit for All Seasons], IEEE Solid-State Circuits Magazine, 7(2), 2015（动态锁存比较器的零静态功耗与失调来源分析）。
+[^dsa]: A Low-Voltage Low-Offset Dual Strong-Arm Latch Comparator, IEEE A-SSCC, 2017（28 nm FDSOI，实测输入失调约 8.5 mV，较常规 StrongARM 低约 30%）。
+[^autozero]: Q. Dong et al., A 1 Mb 28 nm STT-MRAM with 2.8 ns read using a single-cap offset-cancelled sense amplifier, ISSCC, 2018（失调标准差降逾 60%、较双容自调零省约 15% 面积、自调零相位隐藏于译码无时序代价；按 ~2× TMR 余量预算、自调零始终开启）。
