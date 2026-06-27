@@ -1,0 +1,2 @@
+source /opt/pdk/sky130A/libs.tech/xschem/xschemrc
+lappend XSCHEM_LIBRARY_PATH [file dirname [info script]]

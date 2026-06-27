@@ -3,8 +3,8 @@
 # Timeout-guarded so a stray interactive xschem can never hang (lesson learned: always -q + timeout).
 #   wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd "<repo>/eda/hero/schematics" && bash build_schematics.sh strongarm_sa.sch'
 set -u
-RC=/opt/pdk/sky130A/libs.tech/xschem/xschemrc
 DIR="$(cd "$(dirname "$0")" && pwd)"
+RC="$DIR/xschemrc"   # local rc: sources sky130 rc + adds local cleaned symbols (sym/)
 export DISPLAY=:0
 cd "$DIR"
 for sch in "$@"; do
