@@ -68,7 +68,7 @@
 |3.1| 写通路 sky130 CMOS 驱动端到端（替理想脉冲）→ R4 端到端写能 | 含短路/开关能量数 | ✅ `run_write_driver.sh`（交付0.9V→端到端1.61pJ=2.05×欧姆；需稳压写轨）|
 |3.2| 写线 IR-drop 路由后列级 popcount 误差 vs N → R3 坐实 | 列级误差曲线 | ◑（B6；Track B 已给金属 R vs N）|
 |3.3| 差分列失配残余（已 first-cut）整理为 B4 证据 | — | ◑ `diff_column.py` |
-|3.4| 自适应-T 早退控制器（B8）量化省写能量 | T-甜点省能数 | ⬜ |
+|3.4| 自适应-T 早退控制器（B8）量化省写能量 | T-甜点省能数 | ✅ `testbenches/adaptive_t.py`（SPRT 早退：iso-精度下 E[T]≈9.6 vs 固定 T=22 → **~57% 少写**，~50% 跨前沿）|
 |3.5| 三位一体可调势垒 mode-MUX **仅受限架构可行性包络**（B7）| 可行性 + 势垒冲突登记 | ✅ `testbenches/trinity_barrier.py`（ΔΔ=1.11=22.6%·E_b → VCMA ~0.56V/+88K；时分互斥+势垒冲突=限制；关 R7）|
 |3.6| **双模型策略（指令②）**：行为级为主力迭代 + LLG（vgsot-sim）做验证 | Python | LLG↔行为 sigmoid 一致性（R²/阈值）| ✅ `testbenches/llg_validate.py`（自热ON：阈值 LLG 0.896V vs 行为 0.8958V 差 0.01·V_T；R²=0.92；高压过驱平台为已知 LLG 特征）|
 
