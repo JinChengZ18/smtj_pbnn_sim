@@ -48,7 +48,7 @@ def fig1():
     fig, ax = plt.subplots(figsize=(6.4, 4.6))
     ax.plot(Vg, pg, "-", color=PURPLE, lw=2.2, label="behavioral sigmoid (calibrated)")
     ax.errorbar(V, pl, yerr=ci, fmt="o", color=RED, ms=6, capsize=3, lw=1.4,
-                label="LLG macrospin MC (vgsot-sim, N=200)")
+                label="macrospin LLG Monte-Carlo (200 trials)")
     ax.axvline(d["VTH"], color="0.4", ls="--", lw=1.2)
     ax.axhline(0.5, color="0.7", ls=":", lw=1.0)
     ax.text(d["VTH"] + 0.002, 0.06, r"$V_{th}=%.4f$ V" % d["VTH"], color="0.3", fontsize=9)
@@ -112,7 +112,7 @@ def fig3():
     ax[0].set_xscale("log", base=2); ax[0].set_yscale("log")
     ax[0].set_xlabel("column height N (cells)")
     ax[0].set_ylabel(r"parasitic R / 776 $\Omega$ (%)")
-    ax[0].set_title("(a) Write-line IR-drop grows with column height (R3)")
+    ax[0].set_title("(a) Write-line IR-drop grows with column height")
     ax[0].legend(fontsize=9)
     # (b) sky130 CMOS write driver: delivered V and overhead vs pull-up width (measured)
     wp = [1, 2, 4, 6, 7, 8, 16, 32, 64]
@@ -127,7 +127,7 @@ def fig3():
     ax[1].set_ylabel("delivered flat-top voltage (V)", color=PURPLE)
     ax2.set_ylabel("driver energy overhead (%)", color=GREEN)
     ax2.set_yscale("log")
-    ax[1].set_title("(b) 1.8 V CMOS driver into 776 $\\Omega$: divider/overdrive (R4)")
+    ax[1].set_title("(b) 1.8 V CMOS driver into 776 $\\Omega$: divider vs overdrive")
     ax[1].legend(handles=[l1, l2], fontsize=9, loc="center right")
     fig.tight_layout(); fig.savefig(OUT / "Supplement_local_03.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
@@ -145,11 +145,11 @@ def fig4():
     ax[0].plot(E, MC, "-", color="0.6", lw=1, zorder=1)
     ax[0].set_xscale("log")
     ax[0].set_xlabel("energy per step (fJ)"); ax[0].set_ylabel("memory capacity")
-    ax[0].set_title("(a) RC iso-energy frontier: ADC bits trade MC for energy (R6)")
+    ax[0].set_title("(a) Reservoir iso-energy frontier: ADC bits trade MC for energy")
     fig.colorbar(s, ax=ax[0], label="ADC bits b")
     # (b) honest RC-vs-ESN ratio: baseline vs grounded ADC variants
     base = rc["baseline"]["ratio"]
-    labels = ["no ADC\n(prior)", "per-node\n8-bit", "col-shared\n8-bit", "col-shared\n6-bit"]
+    labels = ["readout\nw/o ADC", "per-node\n8-bit", "col-shared\n8-bit", "col-shared\n6-bit"]
     def gr(mmode, bb):
         return next(r["honest_ratio"] for r in rc["grounded"]
                    if r["M_mode"].startswith(mmode) and r["b"] == bb)
@@ -158,15 +158,42 @@ def fig4():
     ax[1].bar(labels, vals, color=cols, edgecolor="black")
     for i, v in enumerate(vals):
         ax[1].text(i, v + 0.6, "%.0f$\\times$" % v, ha="center", fontsize=10)
-    ax[1].axhspan(30, 35, color=GOLD, alpha=0.25, label="honest ~30-35x")
+    ax[1].axhspan(30, 35, color=GOLD, alpha=0.25, label="30-35x with physical ADC")
     ax[1].set_ylabel(r"energy advantage vs digital ESN ($\times$)")
-    ax[1].set_title("(b) RC-vs-ESN advantage survives the grounded ADC (Ch5 cfg)")
+    ax[1].set_title("(b) Reservoir energy advantage with a physical ADC readout")
     ax[1].legend(fontsize=9)
     fig.tight_layout(); fig.savefig(OUT / "Supplement_local_04.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
+# ---------- Fig S5: forward design -- IR-aware per-row write pre-distortion ----------
+def fig5():
+    d = jload(HERO / "ir_aware_writedac_summary.json")
+    N = d["N"]; Vt = d["V_target"]; Iw = d["I_write_mA"] * 1e-3
+    rs = {"met1": 0.125, "met2": 0.125, "met3": 0.047}[d["layer"]]
+    pitch, W = d["pitch_um"], d["W_um"]
+    VTH, VT = 0.895783, 0.023414
+    r = np.arange(0, N + 1)
+    rpar = 2.0 * rs * (r * pitch / W)
+    v_nopd = Vt - Iw * rpar
+    psw = lambda v: 1.0 / (1.0 + np.exp(-(v - VTH) / VT))
+    fig, ax = plt.subplots(1, 2, figsize=(11.5, 4.6))
+    ax[0].plot(r, v_nopd, "-", color=RED, lw=2, label="no compensation (base-driven)")
+    ax[0].axhline(Vt, color=PURPLE, lw=2, ls="--", label="IR-aware pre-distortion")
+    ax[0].set_xlabel("cell row in column"); ax[0].set_ylabel("write voltage at cell (V)")
+    ax[0].set_title("(a) Per-row write voltage along a tall column")
+    ax[0].legend(fontsize=9)
+    ax[1].plot(r, psw(v_nopd), "-", color=RED, lw=2, label="no compensation")
+    ax[1].axhline(psw(Vt), color=PURPLE, lw=2, ls="--", label="IR-aware pre-distortion")
+    ax[1].fill_between(r, psw(v_nopd), psw(Vt), color=RED, alpha=0.12)
+    ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel("write probability $P_{sw}$")
+    ax[1].set_title("(b) Write probability flattened to target at every row")
+    ax[1].legend(fontsize=9)
+    fig.tight_layout(); fig.savefig(OUT / "Supplement_local_05.png", dpi=200, bbox_inches="tight")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
-    for f in (fig1, fig2, fig3, fig4):
+    for f in (fig1, fig2, fig3, fig4, fig5):
         f(); print("wrote", f.__name__)
-    print("supplement figures -> article/figs/Supplement_local_01..04.png")
+    print("supplement figures -> article/figs/Supplement_local_01..05.png")
