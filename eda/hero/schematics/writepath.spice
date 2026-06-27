@@ -1,0 +1,24 @@
+** sch_path: /mnt/d/Documents/Graduation Project-2026/04PBNNSim/smtj_pbnn_sim/eda/hero/schematics/writepath.sch
+**.subckt writepath VREF SL RD
+*.ipin VREF
+*.opin SL
+*.opin RD
+R1 VREF net1 R_u m=1
+R2 net1 net2 R_u m=1
+R3 net2 net3 R_u m=1
+R4 net3 VSS R_u m=1
+XMTn net2 sel net4 VSS sky130_fd_pr__sky130_fd_pr__nfet_01v8 L=0.15 W=1 nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+XMTp net4 selb net2 net2 sky130_fd_pr__sky130_fd_pr__pfet_01v8 L=0.15 W=2 nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+XMDp net5 net4 VDD VDD sky130_fd_pr__sky130_fd_pr__pfet_01v8 L=0.15 W=8 nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+XMDn net5 net4 VSS VSS sky130_fd_pr__sky130_fd_pr__nfet_01v8 L=0.15 W=4 nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+Rline net5 net6 R_line m=1
+XMA net6 WWL net7 VSS sky130_fd_pr__sky130_fd_pr__nfet_01v8 L=0.15 W=2 nrd='0.29 / W' nrs='0.29 / W'
++ sa=0 sb=0 sd=0 mult=1 m=1
+**.ends
+.GLOBAL VSS
+.GLOBAL VDD
+.end
