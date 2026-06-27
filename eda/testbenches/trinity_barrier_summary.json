@@ -1,0 +1,15 @@
+{
+  "Delta_PBNN": 4.91,
+  "Delta_RC": 3.8,
+  "dDelta": 1.11,
+  "Eb_PBNN_meV": 126.93,
+  "Eb_RC_meV": 98.24,
+  "dEb_meV": 28.7,
+  "frac_pct": 22.6,
+  "tau_max_PBNN_ns": 67.8,
+  "tau_max_RC_ns": 22.4,
+  "vcma_V_at_2kT_per_V": 0.555,
+  "vcma_dDelta_per_V": 2.0,
+  "T_rc_equiv_K": 387.6,
+  "conclusion": "R7 verdict (constrained-architecture feasibility envelope, NOT a demonstrated capability): time-muxing PBNN (Delta=4.91, tau_max=67.8 ns) and RC (Delta~3.8, tau_max=22.4 ns) on one sMTJ requires a barrier swing of dDelta=1.11 (dE_b=28.7 meV = 23% of E_b) -- achievable via a VCMA gate (~0.56 V at ~2 kT/V, within demonstrated ranges: Kent A-sMTJ 2025, HKUST VCMA macro VLSI 2026) or a ~88 K temperature rise (uncontrolled). BUT: (i) the two modes are mutually exclusive in time (mode-MUX, not concurrent); (ii) RC's low barrier conflicts with PBNN write/retention and with read-disturb; (iii) NO published macro time-muxes p-bit write and RC free-evolution on the same physical array. => the thesis must present the trinity as a CONSTRAINED, time-multiplexed, VCMA-gated PROPOSAL with this quantified tuning envelope and the barrier conflict registered as a limitation -- not as a proven concurrent capability. Honesty: VCMA kT/V is literature order-of-magnitude; report the requirement+ratio."
+}

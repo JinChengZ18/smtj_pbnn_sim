@@ -69,7 +69,7 @@
 |3.2| 写线 IR-drop 路由后列级 popcount 误差 vs N → R3 坐实 | 列级误差曲线 | ◑（B6；Track B 已给金属 R vs N）|
 |3.3| 差分列失配残余（已 first-cut）整理为 B4 证据 | — | ◑ `diff_column.py` |
 |3.4| 自适应-T 早退控制器（B8）量化省写能量 | T-甜点省能数 | ⬜ |
-|3.5| 三位一体可调势垒 mode-MUX **仅受限架构可行性包络**（B7）| 可行性 + 势垒冲突登记 | ⬜（仅可行性，引 Kent/HKUST 先验）|
+|3.5| 三位一体可调势垒 mode-MUX **仅受限架构可行性包络**（B7）| 可行性 + 势垒冲突登记 | ✅ `testbenches/trinity_barrier.py`（ΔΔ=1.11=22.6%·E_b → VCMA ~0.56V/+88K；时分互斥+势垒冲突=限制；关 R7）|
 |3.6| **双模型策略（指令②）**：行为级为主力迭代 + LLG（vgsot-sim）做验证 | Python | LLG↔行为 sigmoid 一致性（R²/阈值）| ✅ `testbenches/llg_validate.py`（自热ON：阈值 LLG 0.896V vs 行为 0.8958V 差 0.01·V_T；R²=0.92；高压过驱平台为已知 LLG 特征）|
 
 > **设备模型策略（指令② 2026-06-26）**：保留两套器件模型。**主力 = 标定行为级**（`eda/models/smtj_sot.va` + `gen_golden.py`，便宜、用于全工作流迭代）；**验证 = LLG 宏自旋求解器**（`eda/vendor/vgsot-sim`，计算量大，物理一手核对）。`llg_validate.py` 是桥：定期用 LLG 复核行为级 sigmoid/阈值。**可选**：vgsot-sim 亦可转写 Verilog-A 直接进 ngspice 共仿（重；非当前主线，记为后续）。
