@@ -1,19 +1,19 @@
 #!/bin/bash
-# Export Xschem .sch -> PNG/SVG/PDF headless via the WSLg X server (DISPLAY=:0).
-# Timeout-guarded so a stray interactive xschem can never hang (lesson learned: always -q + timeout).
+# Export an Xschem .sch as a journal-grade figure: xschem -> SVG (vector, white bg + BLACK wires from
+# the local xschemrc), then cairosvg rasterizes the SVG to a HIGH-RESOLUTION PNG and a PDF.
+# Headless via the WSLg X server (DISPLAY=:0); timeout-guarded (always -q; never interactive).
 #   wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd "<repo>/eda/hero/schematics" && bash build_schematics.sh strongarm_sa.sch'
 set -u
 DIR="$(cd "$(dirname "$0")" && pwd)"
-RC="$DIR/xschemrc"   # local rc: sources sky130 rc + adds local cleaned symbols (sym/)
+RC="$DIR/xschemrc"          # sky130 rc + local cleaned symbols + light scheme + black wires
+PNG_W="${PNG_W:-2400}"      # high-res PNG width (px)
 export DISPLAY=:0
 cd "$DIR"
 for sch in "$@"; do
   base="${sch%.sch}"
-  for fmt in png svg pdf; do
-    timeout 90 xschem --rcfile "$RC" --tcl "set dark_colorscheme 0" -q --"$fmt" --plotfile "$DIR/$base.$fmt" "$DIR/$sch" </dev/null >/dev/null 2>&1
-    rc=$?
-    [ "$rc" -eq 124 ] && echo "  $base.$fmt: TIMEOUT (killed)" && continue
-  done
-  png_sz=$(wc -c < "$base.png" 2>/dev/null || echo 0)
-  echo "$base -> png ${png_sz}B, svg $([ -f "$base.svg" ] && echo ok || echo -), pdf $([ -f "$base.pdf" ] && echo ok || echo -)"
+  timeout 90 xschem --rcfile "$RC" -q --svg --plotfile "$DIR/$base.svg" "$DIR/$sch" </dev/null >/dev/null 2>&1
+  [ "$?" -eq 124 ] && { echo "$base: xschem TIMEOUT"; continue; }
+  python3 -c "import cairosvg; b='$base'; cairosvg.svg2png(url=b+'.svg', write_to=b+'.png', output_width=$PNG_W); cairosvg.svg2pdf(url=b+'.svg', write_to=b+'.pdf')" 2>/dev/null
+  dim=$(python3 -c "import struct; d=open('$base.png','rb').read(26); w,h=struct.unpack('>II',d[16:24]); print(str(w)+'x'+str(h))" 2>/dev/null || echo '?')
+  echo "$base -> svg $([ -f $base.svg ] && echo ok || echo -), png $dim, pdf $([ -f $base.pdf ] && echo ok || echo -)"
 done
