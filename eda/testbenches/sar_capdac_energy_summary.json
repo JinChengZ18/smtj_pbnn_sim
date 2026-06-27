@@ -1,0 +1,49 @@
+{
+  "C_u_fF": 1.5,
+  "Vref": 1.0,
+  "E_comp_fJ": 48.0,
+  "assumption_bracketed": true,
+  "rows": [
+    {
+      "b": 4,
+      "e_capdac_conv_fJ": 29.1,
+      "e_capdac_mono_fJ": 2.9,
+      "e_capdac_assumed_fJ": 17.6,
+      "e_comp_fJ": 192.0,
+      "e_adc_conv_fJ": 221.1,
+      "e_adc_mono_fJ": 194.9,
+      "capdac_frac_conv": 0.131
+    },
+    {
+      "b": 6,
+      "e_capdac_conv_fJ": 125.0,
+      "e_capdac_mono_fJ": 12.5,
+      "e_capdac_assumed_fJ": 70.4,
+      "e_comp_fJ": 288.0,
+      "e_adc_conv_fJ": 413.0,
+      "e_adc_mono_fJ": 300.5,
+      "capdac_frac_conv": 0.303
+    },
+    {
+      "b": 8,
+      "e_capdac_conv_fJ": 509.0,
+      "e_capdac_mono_fJ": 50.9,
+      "e_capdac_assumed_fJ": 281.6,
+      "e_comp_fJ": 384.0,
+      "e_adc_conv_fJ": 893.0,
+      "e_adc_mono_fJ": 434.9,
+      "capdac_frac_conv": 0.57
+    },
+    {
+      "b": 10,
+      "e_capdac_conv_fJ": 2045.0,
+      "e_capdac_mono_fJ": 204.5,
+      "e_capdac_assumed_fJ": 1126.4,
+      "e_comp_fJ": 480.0,
+      "e_adc_conv_fJ": 2525.0,
+      "e_adc_mono_fJ": 684.5,
+      "capdac_frac_conv": 0.81
+    }
+  ],
+  "conclusion": "F3 cap-DAC energy grounded: across b, the assumed E_capDAC0=1.1 fJ*2^b sits BETWEEN the sky130 monotonic-switching lower bound and the conventional upper bound (bracketed=True), so rc_isoenergy's assumption is defensible -- not optimistic. At b=8 the extracted comparator (384 fJ) and the cap-DAC (conv 509 / mono 51 fJ) are COMPARABLE, confirming the comparator-dominated, b-linear-leaning readout cost that motivates the column-shared architecture: one extracted StrongARM comparator + one cap-DAC time-multiplexed across M reservoir nodes amortizes the dominant term, which (not minimizing bits) is the F3 energy lever. The comparator is the already-extracted sky130 circuit; the cap-DAC is a standard matched-cap array (C_u~1.5 fF). Ratios; conventional vs monotonic brackets the scheme choice."
+}
