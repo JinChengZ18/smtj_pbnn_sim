@@ -59,7 +59,7 @@ print("R1 indicator: this [%.0f..%.0f] fJ is %.0f-%.0fx the 5 fF read placeholde
 print("   -> sky130 readout SA energy is UNDER-counted by the 28nm placeholder; periphery %% (now "
       "~1.3%%) shifts up. Pin down with routed-LVS extraction.")
 print("-" * 90)
-print("R2 (offset): input-referred offset is mismatch-dominated (sigma=11.05mV=0.47*V_T, schematic")
+print("R2 (offset): input-referred offset is mismatch-dominated (sigma=9.21mV=0.39*V_T, run_offset_mc N=120")
 print("   MC). A SYMMETRIC da/db & outp/outn layout keeps the parasitic-asymmetry offset << 11mV;")
 print("   any layout imbalance adds in quadrature -> design rule: match the two SA sides' routing.")
 print("=" * 90)

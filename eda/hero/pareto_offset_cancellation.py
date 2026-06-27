@@ -8,13 +8,13 @@ readout_mapping.py (co-design law sigma_pc = sigma_offset_V * 2*PC_FS / V_in) wi
 
 Inputs (reused, consistent with the rest of the Hero loop):
   - per-column accuracy curve  : eda/interface/hero_mnist_summary.json (sigma_popcount -> acc)
-  - extracted plain-SA offset  : 11.05 mV = 0.47 V_T (run_offset_mc.py)
+  - extracted plain-SA offset  : 9.21 mV = 0.39 V_T (run_offset_mc.py N=120; N=24 gave 11.05, high)
   - SA dynamic energy floor    : ~48 fJ central (sa_postlayout.py range 23-74 fJ)
 
 Cancellation options (residual offset is Pelgrom/prior-art order-of-magnitude; cost is a PPA proxy
 -- AREA x ENERGY relative to the plain StrongARM. Honesty: ratios, sky130-class AVT, first-cut):
-  plain SA            : 11.05 mV, area 1.0x, energy 1.0x   (1 eval phase)
-  4x input-pair area  :  5.53 mV, area 2.2x, energy 1.25x  (Pelgrom 1/sqrt(A): sigma/2)
+  plain SA            :  9.21 mV, area 1.0x, energy 1.0x   (1 eval phase; run_offset_mc N=120)
+  4x input-pair area  :  4.61 mV, area 2.2x, energy 1.25x  (Pelgrom 1/sqrt(A): sigma/2)
   single-cap auto-zero:  1.50 mV, area 1.5x, energy 1.7x   (+1 sample phase; ~7x suppression)
   two-phase chopping  :  0.50 mV, area 1.7x, energy 2.2x   (continuous chop + ripple filter)
 """
@@ -32,12 +32,14 @@ NOISE_PP = 0.15       # single-run MNIST accuracy noise floor (the per-column cu
 WORTH_PP = 0.20       # accuracy gain over plain SA needed to "earn" the cost (must beat NOISE_PP)
 
 OPTIONS = [   # name, residual offset mV, area x, energy x
-    ("plain SA",            11.05, 1.0, 1.00),
-    ("4x input-pair area",   5.53, 2.2, 1.25),
+    ("plain SA",             9.21, 1.0, 1.00),   # run_offset_mc.py N=120 (= 0.39 V_T)
+    ("4x input-pair area",   4.61, 2.2, 1.25),   # Pelgrom sigma/2
     ("single-cap auto-zero", 1.50, 1.5, 1.70),
     ("two-phase chopping",   0.50, 1.7, 2.20),
 ]
 LAYERS = {"layer1 F=784": 784, "layer2 F=1024": 1024}
+PLAIN_mV = OPTIONS[0][1]                                        # plain-SA offset (firmed, run_offset_mc N=120)
+AZ_mV = next(o[1] for o in OPTIONS if "auto-zero" in o[0])      # single-cap auto-zero residual
 
 
 def load_curve():
@@ -111,8 +113,8 @@ def main():
         pc_fs = 3.0 * np.sqrt(F)
         thr = None
         for v_in in np.round(np.arange(0.9, 0.29, -0.01), 2):
-            plain_acc = acc(sigma_pc(11.05, pc_fs, v_in))
-            az_acc = acc(sigma_pc(1.50, pc_fs, v_in))
+            plain_acc = acc(sigma_pc(PLAIN_mV, pc_fs, v_in))
+            az_acc = acc(sigma_pc(AZ_mV, pc_fs, v_in))
             if az_acc - plain_acc >= WORTH_PP:
                 thr = float(v_in)
                 break
@@ -120,15 +122,21 @@ def main():
         print("   %-14s : V_in <= %s V" % (lname, ("%.2f" % thr) if thr else "(never in 0.3-0.9)"))
     out["autozero_boundary_V_in"] = bnd
 
-    concl = ("C1 design boundary (noise floor %.2f pp): with slope-matched max-gain readout, the "
-             "plain StrongARM SA is Pareto-optimal for MNIST-scale fan-in at V_in>=0.5 V (its 0.47 "
-             "V_T lands at sigma_pc~2-4, below the curve knee -> drop within the %.2f pp single-run "
-             "MNIST noise, so auto-zero/chopping only ADD area+energy for no SIGNIFICANT accuracy). "
-             "Offset cancellation earns its cost ONLY in the low-V_in (<=0.4 V) / wide-fan-in (F=1024) "
-             "/ under-budgeted-gain corner, where plain SA crosses the knee (drop 0.34 pp > noise, "
-             "auto-zero recovers +0.21 pp). => Spec-inverted result: budget offset against V_T, not "
-             "TMR margin, and skip auto-zero unless the readout gain budget forces it. Closes errata "
-             "R2 as a quantified boundary, not 'auto-zero mandatory'." % (NOISE_PP, NOISE_PP))
+    pc96 = 3.0 * np.sqrt(1024)                                  # worst corner: layer2, low V_in
+    plain_drop_04 = base - acc(sigma_pc(PLAIN_mV, pc96, 0.4))
+    az_gain_04 = acc(sigma_pc(AZ_mV, pc96, 0.4)) - acc(sigma_pc(PLAIN_mV, pc96, 0.4))
+    concl = ("C1 design boundary (noise floor %.2f pp; plain-SA offset %.2f mV = %.2f V_T, "
+             "run_offset_mc N=120): with slope-matched max-gain readout, the plain StrongARM SA is "
+             "Pareto-optimal for MNIST-scale fan-in at V_in>=0.5 V (its %.2f V_T lands at sigma_pc~2-4, "
+             "below the curve knee -> drop within the %.2f pp single-run MNIST noise, so "
+             "auto-zero/chopping only ADD area+energy for no SIGNIFICANT accuracy). Offset cancellation "
+             "earns its cost ONLY in the low-V_in (<=0.4 V) / wide-fan-in (F=1024) / under-budgeted-gain "
+             "corner (layer2@0.4V: plain drop %.2f pp, auto-zero recovers %+.2f pp). => Spec-inverted "
+             "result: budget offset against V_T, not TMR margin, and skip auto-zero unless the readout "
+             "gain budget forces it. Closes errata R2 as a quantified boundary, not 'auto-zero "
+             "mandatory'. (Firming sigma 11.05->9.21 mV widened the plain-SA-sufficient region.)"
+             % (NOISE_PP, PLAIN_mV, PLAIN_mV / VT_mV, PLAIN_mV / VT_mV, NOISE_PP,
+                plain_drop_04, az_gain_04))
     print("\n" + "=" * 92 + "\n" + concl + "\n" + "=" * 92)
     out["conclusion"] = concl
     (HERE / "pareto_offset_cancellation_summary.json").write_text(json.dumps(out, indent=2))

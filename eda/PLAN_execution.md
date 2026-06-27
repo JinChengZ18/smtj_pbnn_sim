@@ -33,7 +33,7 @@
 | | 步骤 | 工具 | DoD | 状态 |
 |---|---|---|---|---|
 |1.1| StrongARM SA sky130 原理图级仿真 | ngspice+sky130 | vind→outp 翻转正确 | ✅ `hero/strongarm_sa.spice` |
-|1.2| SA 输入折合失调 MC | ngspice MC | σ_offset/V_T 数（=0.47） | ✅ `run_offset_mc.py` |
+|1.2| SA 输入折合失调 MC | ngspice MC | σ_offset/V_T | ✅ `run_offset_mc.py` **N=120 firmed: σ=9.21mV=0.39·V_T**（N=24 早值 0.47 偏高）|
 |1.3| 闭环 σ_offset→MNIST | PyTorch | per-column σ→精度曲线 | ✅ `hero_mnist_sweep.py`(97.0→96.35%) |
 |1.4| 读出跨阻映射 mV→popcount→精度 | Python | 协同律 + 设计边界 | ✅ `readout_mapping.py` |
 |1.5| SA 器件版图 GDS + DRC | KLayout | 11 器件 DRC 0 违例 | ✅ `layout/`(23.1×18.7µm) |

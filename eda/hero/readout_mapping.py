@@ -3,7 +3,7 @@
 
 Closes the LAST gap in the Hero loop. Three upstream numbers, three different units:
   * LSB_I = 5.10 uA / popcount      (P3 diff_column.py, ngspice-verified)
-  * sigma_offset_V = 11.05 mV       (run_offset_mc.py, sky130 StrongARM, = 0.47 V_T)
+  * sigma_offset_V = 9.21 mV        (run_offset_mc.py N=120, sky130 StrongARM, = 0.39 V_T)
   * per-column accuracy curve       (hero_mnist_sweep.py: sigma_popcount -> acc)
 The first is current, the second volts, the third popcounts. The current-sense
 readout's transimpedance R_TI is the bridge:
@@ -18,8 +18,8 @@ differential input range V_in:
     PC_FS * LSB_V <= V_in / 2   ->   LSB_V* = V_in / (2 * PC_FS)     (max usable gain)
     => sigma_pc = sigma_offset_V * 2 * PC_FS / V_in.
 Wider fan-in (larger PC_FS) or a smaller SA input range makes the SAME mV offset cost
-MORE popcounts. The non-obvious payoff: at max gain the plain SA's 0.47 V_T lands at only
-~3-4 popcount (curve tolerates it); but an under-budgeted readout (gain backed off for
+MORE popcounts. The non-obvious payoff: at max gain the plain SA's 0.39 V_T lands at only
+~2-3 popcount (curve tolerates it); but an under-budgeted readout (gain backed off for
 headroom) or a small V_in pushes sigma_pc past the curve's knee (~4-8 pc) and costs
 accuracy -- so the readout gain budget, not just the SA, sets the loss. Auto-zero / larger
 SA area buy the headroom to relax the gain.
@@ -47,14 +47,14 @@ LSB_I_uA = 5.102                 # P3: (Vr/2)*(G_P - G_AP), ngspice-verified
 VT_mV = 23.414
 
 # SA input-referred offset variants:
-#   plain  = measured (run_offset_mc.py, N=24 MC)
-#   4x area= Pelgrom 1/sqrt(area): 4x input-pair area -> sigma/2 (defensible vs the
-#            grid-resolution-limited MC value)
+#   plain  = measured (run_offset_mc.py, N=120 MC -> sigma=9.21 mV; the earlier N=24 gave 11.05 mV,
+#            small-sample-high; firmed SE ~0.6 mV)
+#   4x area= Pelgrom 1/sqrt(area): 4x input-pair area -> sigma/2
 #   autozero = cited prior-art residual target (switched-cap auto-zero/chopper,
 #            ISSCC-2018-class), << V_T -- a design TARGET, not measured here.
 OFFSET_VARIANTS_mV = {
-    "plain SA (1x)":       11.05,
-    "4x input-pair area":  11.05 / 2.0,
+    "plain SA (1x)":       9.21,
+    "4x input-pair area":  9.21 / 2.0,
     "auto-zero (target)":  1.5,
 }
 
