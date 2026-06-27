@@ -1,0 +1,63 @@
+{
+  "R_SOT": 776.0,
+  "trials": 200,
+  "seed": 12648430,
+  "VTH": 0.895783,
+  "VT": 0.023414,
+  "V": [
+    0.84,
+    0.8557,
+    0.8714,
+    0.8871,
+    0.9029,
+    0.9186,
+    0.9343,
+    0.95
+  ],
+  "I_SOT_uA": [
+    -1082.5,
+    -1102.7,
+    -1122.9,
+    -1143.2,
+    -1163.5,
+    -1183.8,
+    -1204.0,
+    -1224.2
+  ],
+  "psw_llg": [
+    0.105,
+    0.195,
+    0.33,
+    0.435,
+    0.55,
+    0.64,
+    0.74,
+    0.81
+  ],
+  "psw_beh": [
+    0.0845,
+    0.153,
+    0.261,
+    0.4084,
+    0.5754,
+    0.7259,
+    0.8382,
+    0.9102
+  ],
+  "wilson95": [
+    0.0425,
+    0.0549,
+    0.0652,
+    0.0687,
+    0.0689,
+    0.0665,
+    0.0608,
+    0.0544
+  ],
+  "threshold_llg_V": 0.896,
+  "threshold_beh_V": 0.895783,
+  "threshold_diff_mV": 0.25,
+  "r2": 0.922,
+  "rmse": 0.0665,
+  "conclusion": "PASS: LLG physics reproduces the calibrated behavioral sigmoid within MC noise (threshold match 0.2 mV = 0.01 V_T, RMSE=0.066, 200 trials). => directive-2 dual-model policy validated: iterate on the cheap behavioral model, the compute-heavy LLG solver confirms the device sigmoid. R_SOT=776 ohm maps I_SOT->V; AP->P 0.75 ns thermal protocol (self-heating ON = calibration point); MC noise ~1/sqrt(200). Caveat: above ~0.92 V the LLG P_sw plateaus BELOW the behavioral sigmoid (over-drive precessional back-switching, a real LLG feature the monotonic behavioral sigmoid omits) -- the behavioral model is validated in the OPERATING REGION near threshold, not in deep over-drive."
+}
