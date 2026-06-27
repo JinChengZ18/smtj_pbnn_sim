@@ -1,0 +1,295 @@
+{
+  "first_cut_current_dac": {
+    "nbits": 6,
+    "Rload_ohm": 776.0,
+    "LSB_mV": 2.192,
+    "range_mV": 138.1,
+    "monotonic": false,
+    "INL_LSB": 1.708,
+    "transfer": [
+      {
+        "code": 0,
+        "v_load": 0.0
+      },
+      {
+        "code": 1,
+        "v_load": 0.0035
+      },
+      {
+        "code": 2,
+        "v_load": 0.00557
+      },
+      {
+        "code": 3,
+        "v_load": 0.00907
+      },
+      {
+        "code": 4,
+        "v_load": 0.0098
+      },
+      {
+        "code": 5,
+        "v_load": 0.01329
+      },
+      {
+        "code": 6,
+        "v_load": 0.01536
+      },
+      {
+        "code": 7,
+        "v_load": 0.01885
+      },
+      {
+        "code": 8,
+        "v_load": 0.01781
+      },
+      {
+        "code": 9,
+        "v_load": 0.0213
+      },
+      {
+        "code": 10,
+        "v_load": 0.02337
+      },
+      {
+        "code": 11,
+        "v_load": 0.02686
+      },
+      {
+        "code": 12,
+        "v_load": 0.02759
+      },
+      {
+        "code": 13,
+        "v_load": 0.03107
+      },
+      {
+        "code": 14,
+        "v_load": 0.03314
+      },
+      {
+        "code": 15,
+        "v_load": 0.03662
+      },
+      {
+        "code": 16,
+        "v_load": 0.03448
+      },
+      {
+        "code": 17,
+        "v_load": 0.03797
+      },
+      {
+        "code": 18,
+        "v_load": 0.04003
+      },
+      {
+        "code": 19,
+        "v_load": 0.04351
+      },
+      {
+        "code": 20,
+        "v_load": 0.04424
+      },
+      {
+        "code": 21,
+        "v_load": 0.04772
+      },
+      {
+        "code": 22,
+        "v_load": 0.04978
+      },
+      {
+        "code": 23,
+        "v_load": 0.05326
+      },
+      {
+        "code": 24,
+        "v_load": 0.05222
+      },
+      {
+        "code": 25,
+        "v_load": 0.0557
+      },
+      {
+        "code": 26,
+        "v_load": 0.05775
+      },
+      {
+        "code": 27,
+        "v_load": 0.06123
+      },
+      {
+        "code": 28,
+        "v_load": 0.06195
+      },
+      {
+        "code": 29,
+        "v_load": 0.06543
+      },
+      {
+        "code": 30,
+        "v_load": 0.06748
+      },
+      {
+        "code": 31,
+        "v_load": 0.07095
+      },
+      {
+        "code": 32,
+        "v_load": 0.06773
+      },
+      {
+        "code": 33,
+        "v_load": 0.07121
+      },
+      {
+        "code": 34,
+        "v_load": 0.07326
+      },
+      {
+        "code": 35,
+        "v_load": 0.07673
+      },
+      {
+        "code": 36,
+        "v_load": 0.07745
+      },
+      {
+        "code": 37,
+        "v_load": 0.08092
+      },
+      {
+        "code": 38,
+        "v_load": 0.08297
+      },
+      {
+        "code": 39,
+        "v_load": 0.08643
+      },
+      {
+        "code": 40,
+        "v_load": 0.0854
+      },
+      {
+        "code": 41,
+        "v_load": 0.08886
+      },
+      {
+        "code": 42,
+        "v_load": 0.09091
+      },
+      {
+        "code": 43,
+        "v_load": 0.09438
+      },
+      {
+        "code": 44,
+        "v_load": 0.09509
+      },
+      {
+        "code": 45,
+        "v_load": 0.09855
+      },
+      {
+        "code": 46,
+        "v_load": 0.1006
+      },
+      {
+        "code": 47,
+        "v_load": 0.10406
+      },
+      {
+        "code": 48,
+        "v_load": 0.10193
+      },
+      {
+        "code": 49,
+        "v_load": 0.10539
+      },
+      {
+        "code": 50,
+        "v_load": 0.10743
+      },
+      {
+        "code": 51,
+        "v_load": 0.11089
+      },
+      {
+        "code": 52,
+        "v_load": 0.1116
+      },
+      {
+        "code": 53,
+        "v_load": 0.11506
+      },
+      {
+        "code": 54,
+        "v_load": 0.1171
+      },
+      {
+        "code": 55,
+        "v_load": 0.12055
+      },
+      {
+        "code": 56,
+        "v_load": 0.11952
+      },
+      {
+        "code": 57,
+        "v_load": 0.12297
+      },
+      {
+        "code": 58,
+        "v_load": 0.12501
+      },
+      {
+        "code": 59,
+        "v_load": 0.12846
+      },
+      {
+        "code": 60,
+        "v_load": 0.12917
+      },
+      {
+        "code": 61,
+        "v_load": 0.13262
+      },
+      {
+        "code": 62,
+        "v_load": 0.13465
+      },
+      {
+        "code": 63,
+        "v_load": 0.1381
+      }
+    ]
+  },
+  "refined_resistor_string": {
+    "Vspan_mV": 200.0,
+    "options": [
+      {
+        "bits": 6,
+        "LSB_mV": 3.125,
+        "LSB_over_VT": 0.1335,
+        "covers_predist": true,
+        "monotonic": true
+      },
+      {
+        "bits": 7,
+        "LSB_mV": 1.562,
+        "LSB_over_VT": 0.0667,
+        "covers_predist": true,
+        "monotonic": true
+      },
+      {
+        "bits": 8,
+        "LSB_mV": 0.781,
+        "LSB_over_VT": 0.0334,
+        "covers_predist": true,
+        "monotonic": true
+      }
+    ]
+  },
+  "conclusion": "A binary-weighted current-steering write-DAC into the 776 ohm write load is non-monotonic (INL 1.7 LSB) and range-short because the PMOS sources lose Vsd compliance as V_load swings; a naive cascode starves on headroom. The refined write-DAC is therefore VOLTAGE-MODE: a resistor-string DAC (monotonic by construction, LSB = Vspan/2^b) whose tap feeds the CMOS write driver/buffer. At Vspan=200 mV a 6-7 bit string gives LSB ~1.6-3.1 mV (<V_T/7) and covers the 148 mV per-row IR pre-distortion plus the per-column trim. This is the circuit that carries the C2 trim + IR pre-distortion codes."
+}
