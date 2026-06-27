@@ -28,8 +28,28 @@
 
 - **错误/论断修正**：E1/E2 已修；**R1–R7 全部已处理**（R2/R4/R6/R7 收口为设计边界，R1/R3/R5 有真实提取数）。
 - **📄 学术增补交付稿**：[`../article/supplement_eda_codesign.md`](../article/supplement_eda_codesign.md)（独立增补，含图 S.1–S.4，遵循 article 图风格 `figs/Supplement_local_0N.png`；图由 `eda/gen_supplement_figs.py` 可复现）。
-- **目标期刊**（蓝本）：IEEE TCAS-I / TVLSI / TED（不投 Nat.Electron./ISSCC）。
+- **目标期刊**（经 [`research/2026-06-27_plan_validation.md`](research/2026-06-27_plan_validation.md) 复核修正）：**JxCDC（最佳，物理建模/仿真+超越CMOS器件电路）> TVLSI（实测"鼓励非必须"）> TED（紧凑模型+SPICE）> IOP NCE（神经形态/RC）> TCAS-I**（蓝本把 TCAS-I 排太前——它对纯仿真最苛刻）。不投 Nat.Electron./ISSCC（需实测硅）。框架：以晶圆标定模型为可信锚，开源 PDK 作可复现性卖点。
 - **仍待（均为门控/收尾，非主干）**：版图布线→全 LVS→版后 PEX（**指令①：所有设计冻结后再做**）；Xschem 原理图导出（需装 Xschem + GUI/批渲染）；版图 GDS 渲染图（需 KLayout GUI/xvfb）。
+
+## 0c. 前向设计（仿真器发现 → 创新电路）+ 仿真器反向补充
+> 纠正"只反驳自己、无前向创新"：以下是**仿真发现倒逼出的新设计**，不是对旧论断的修正。
+
+| 前向设计 | 由哪条发现倒逼 | 结果 | 状态 |
+|---|---|---|---|
+| **F1 IR 感知逐行写预畸变** | 写线 IR 压降使远端单元写概率塌陷 | `hero/ir_aware_writedac.py`：N=256 不补偿时 p_sw 0.90(近)→0.016(远)；逐行预畸变码 0–148mV(~5 写-DAC 位，静态查表自提取片阻)→各行均匀 0.90。与逐列 V_th trim 合成**位置+器件感知写-DAC** | ✅ 新设计 |
+| **F2 斜率匹配读出协同律** | SA 失调按 V_T(伯努利窗)预算 | 跨阻协同律 `R_TI=V_in/(2·PC_FS)` 由扇入设增益（`readout_mapping.py`）；plain SA 帕累托最优边界 | ✅（设计律） |
+| **F3 列共享时分复用中分辨 SAR 读出** | RC 读出比较器主导、b-线性 | 摊销一个比较器跨 M 节点（`rc_isoenergy.py` 前沿指明 b~6–8 列共享） | ◑ 架构级 |
+
+**仿真器反向补充（据 EDA 数据修真实并重跑）**：
+- `ppa/reservoir_energy.py`：读出原计"近免费"，已补**地标 SAR ADC 项**（比较器=提取 SA 48fJ）→ exp16 原生输出 **30×**（非 38×）；12 个 PPA 测试全过。
+- `extraction/peripheral_energy.yaml` + `interface/load_tech_params.py`：`e_smtj_read` 5fJ 占位 → **48fJ 提取 SA**；per-MAC 793→860fJ，**写占比 98.7%→93.8%、读 0.6%→5.6%**（R1 落地）。
+
+## 0d. 蓝本批判性复核（指令②，详见 [`research/2026-06-27_plan_validation.md`](research/2026-06-27_plan_validation.md)）
+旧计划取自旧对话、未独立复核；3 个联网对抗智能体复核后的**必改项**：
+- **引用错误**：arXiv:2509.13458（Kent）被**错描**——实为"稳定垂直 MTJ 的可调 RTN（STT 脉冲驱动）"，**非**反铁磁/电压可调势垒，**不预占三位一体可调势垒器件**；Nat.Electron. **-01458-3 是评论非实测论文**（"秒拒"论据被夸大）；Nano Lett 是 **2025**、专利 US9111623 是 **2015**。
+- **C3 仅部分新颖**：arXiv:2601.21807(2026) **已证 2–4bit ADC 够用** → "低分辨最优"非我方；存活新颖性 = **MC/焦耳目标 + 纳入 N + 列共享 ADC**。须显式引并区分。
+- **C1 确属新颖**：须引并区分 arXiv:2403.19374（TMR 余量现状）与 arXiv:2410.16915（sigmoid 感知但软件补偿、理想比较器）；只主张**定量 offset-vs-V_T 协同律**。
+- **期刊**：见 0b（JxCDC/TVLSI/TED/NCE 先于 TCAS-I）。
 
 ---
 

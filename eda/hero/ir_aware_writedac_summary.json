@@ -1,0 +1,105 @@
+{
+  "N": 256,
+  "layer": "met2",
+  "pitch_um": 2.0,
+  "W_um": 1.0,
+  "V_target": 0.9472,
+  "p_target": 0.9,
+  "I_write_mA": 1.16,
+  "psw_spread_nopd": 0.8844,
+  "max_predist_code_mV": 148.5,
+  "predist_bits": 5,
+  "rows": [
+    {
+      "row": 0,
+      "R_par_ohm": 0.0,
+      "IR_mV": 0.0,
+      "v_cell_nopd": 0.9472,
+      "psw_nopd": 0.9,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 0.0
+    },
+    {
+      "row": 32,
+      "R_par_ohm": 16.0,
+      "IR_mV": 18.56,
+      "v_cell_nopd": 0.9287,
+      "psw_nopd": 0.8029,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 18.56
+    },
+    {
+      "row": 64,
+      "R_par_ohm": 32.0,
+      "IR_mV": 37.11,
+      "v_cell_nopd": 0.9101,
+      "psw_nopd": 0.6484,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 37.11
+    },
+    {
+      "row": 96,
+      "R_par_ohm": 48.0,
+      "IR_mV": 55.67,
+      "v_cell_nopd": 0.8916,
+      "psw_nopd": 0.455,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 55.67
+    },
+    {
+      "row": 128,
+      "R_par_ohm": 64.0,
+      "IR_mV": 74.23,
+      "v_cell_nopd": 0.873,
+      "psw_nopd": 0.2743,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 74.23
+    },
+    {
+      "row": 160,
+      "R_par_ohm": 80.0,
+      "IR_mV": 92.78,
+      "v_cell_nopd": 0.8544,
+      "psw_nopd": 0.1461,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 92.78
+    },
+    {
+      "row": 192,
+      "R_par_ohm": 96.0,
+      "IR_mV": 111.34,
+      "v_cell_nopd": 0.8359,
+      "psw_nopd": 0.0719,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 111.34
+    },
+    {
+      "row": 224,
+      "R_par_ohm": 112.0,
+      "IR_mV": 129.9,
+      "v_cell_nopd": 0.8173,
+      "psw_nopd": 0.0339,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 129.9
+    },
+    {
+      "row": 256,
+      "R_par_ohm": 128.0,
+      "IR_mV": 148.45,
+      "v_cell_nopd": 0.7988,
+      "psw_nopd": 0.0156,
+      "v_cell_pd": 0.9472,
+      "psw_pd": 0.9,
+      "predist_code_mV": 148.45
+    }
+  ],
+  "conclusion": "Without pre-distortion the per-cell write probability spreads 0.88 (near cell 0.90 -> far cell 0.016) purely from position-dependent IR-drop -- the tall column writes its far rows essentially not at all. The per-row pre-distortion code spans 0..148 mV (~5 write-DAC bits at an LSB of V_T/4), is a static look-up from the extracted sheet resistance and column geometry, and flattens the write probability to the target at every row. Folded with the per-column V_th trim it yields a position+device-aware write-DAC -- a circuit dictated by the IR-drop extraction, at near-zero control cost (only far-row driver headroom). Honesty: ratios; round-trip metal R; assumed cell pitch."
+}

@@ -61,8 +61,10 @@ def main():
           f"({100*(pm_ext-pm_def)/pm_def:+.1f}%)")
     print(f"  write : {tp.e_smtj_write*1e12:.3f} pJ (Ohmic)  ->  {e_write_ext*1e12:.3f} pJ "
           f"(P2 +driver)   write fraction {100*e_write_ext/pm_ext:.1f}%")
-    print(f"  read/DAC/counter: still 28nm placeholders ({(e_read+e_dac+e_cnt)*1e15:.1f} fJ, "
-          f"{100*(e_read+e_dac+e_cnt)/pm_ext:.1f}% of per-MAC) -- await sky130 (P4)")
+    print(f"  read  : {tp.e_smtj_read*1e15:.1f} fJ (28nm placeholder)  ->  {e_read*1e15:.1f} fJ "
+          f"(sky130 StrongARM SA)   read fraction {100*e_read/pm_ext:.1f}%")
+    print(f"  DAC/counter: still 28nm placeholders ({(e_dac+e_cnt)*1e15:.1f} fJ, "
+          f"{100*(e_dac+e_cnt)/pm_ext:.1f}% of per-MAC) -- await sky130 DAC")
     rows = []
     for T in (4, 8):
         Ed, Ee = mnist_energy(pm_def, T), mnist_energy(pm_ext, T)
@@ -73,13 +75,15 @@ def main():
     summ = dict(per_mac_default_fJ=pm_def * 1e15, per_mac_extracted_fJ=pm_ext * 1e15,
                 e_write_extracted_pJ=e_write_ext * 1e12,
                 write_fraction_pct=100 * e_write_ext / pm_ext,
-                extracted_fields=["e_smtj_write"],
-                pending_sky130=["e_smtj_read", "e_dac_step", "e_count_inc (P4/R1)"],
+                e_read_extracted_fJ=e_read * 1e15, read_fraction_pct=100 * e_read / pm_ext,
+                extracted_fields=["e_smtj_write", "e_smtj_read"],
+                pending_sky130=["e_dac_step", "e_count_inc"],
                 mnist=rows)
     (HERE / "interface_summary.json").write_text(json.dumps(summ, indent=2))
-    print("\nNOTE: only the write energy is EDA-extracted (P2). Once P4 lands the sky130 "
-          "ADC/sense\nnumbers in peripheral_energy.yaml, this same script reports the "
-          "peripheral-fraction shift (R1).")
+    print("\nNOTE: write (channel+driver) and read (sky130 StrongARM SA) are now EDA-grounded; the "
+          "read\nupdate moves the write fraction 98.7%->93.8% (read 0.6%->5.6%). DAC/counter remain "
+          "28nm\nplaceholders; a column-shared multi-bit ADC (if added downstream) would raise the "
+          "peripheral\nfraction further.")
 
 
 if __name__ == "__main__":
