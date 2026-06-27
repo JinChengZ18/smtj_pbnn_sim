@@ -1,0 +1,180 @@
+{
+  "F": 1024,
+  "PC_FS": 96.0,
+  "V_in": 0.6,
+  "R_TI_ohm": 612.5,
+  "LSB_V_mV": 3.125,
+  "LSB_I_uA": 5.101999999999999,
+  "offset_mV": 9.209999999999999,
+  "boundary_pc_nooffset": -0.25,
+  "boundary_pc_offset": -2.75,
+  "sigma_pc_measured": 2.5,
+  "sigma_pc_law": 2.947,
+  "transfer": [
+    {
+      "popcount": -10.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -9.5,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -9.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -8.5,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -8.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -7.5,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -7.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -6.5,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -6.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -5.5,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -5.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -4.5,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -4.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -3.5,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -3.0,
+      "vdiff_out": -1.8
+    },
+    {
+      "popcount": -2.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": -2.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": -1.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": -1.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": -0.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 0.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 0.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 1.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 1.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 2.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 2.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 3.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 3.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 4.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 4.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 5.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 5.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 6.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 6.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 7.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 7.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 8.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 8.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 9.0,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 9.5,
+      "vdiff_out": 1.8
+    },
+    {
+      "popcount": 10.0,
+      "vdiff_out": 1.8
+    }
+  ],
+  "note": "In-circuit sky130 verification of the slope-matched readout co-design law: a resistive transimpedance R_TI sized by R_TI=V_in/(2*PC_FS*LSB_I) makes the extracted SA offset map to sigma_pc=offset/(LSB_I*R_TI) popcounts, matching the analytical law. Ratios; AVT sky130-class; resistive TIA first cut."
+}
