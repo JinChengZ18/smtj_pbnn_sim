@@ -72,6 +72,7 @@
 | **B1-val 双模型：LLG（vgsot-sim）验证行为级 sigmoid（指令②）** | `eda/testbenches/llg_validate.py`（驱动 vgsot-sim MC P_sw vs I_SOT，自热ON，200 trials/点，映射 V=I·776）| **LLG 物理独立复现标定行为级 sigmoid**：阈值 **LLG 0.8960V vs 行为级 V_th 0.8958V → 差 0.2mV=0.01·V_T**；上升区 R²=0.92、RMSE=0.067(≈MC噪声)。高压(>0.92V)LLG P_sw 平台低于行为级=**过驱进动回切**（真实 LLG 特征，行为级单调 sigmoid 不含）→ 行为级在**阈值工作区**有效。**双模型策略落地**：行为级主力迭代、LLG 验证 | ✅（验证 B1）|
 | **3.5/R7 三位一体可调势垒可行性包络** | `eda/testbenches/trinity_barrier.py`（纯 Python，吃 arrhenius Δ/τ_max）| PBNN(Δ4.91,τ67.8ns)↔RC(Δ3.8,τ22.4ns) 需 **ΔΔ=1.11=22.6%·E_b**（28.7meV）→ VCMA ~0.56V（@2kT/V，在 Kent2025/HKUST2026 已证范围）或 +88K。**但时分互斥、低势垒冲突写/保持/读扰、无已证并发宏** → 受限架构提案+限制 | ✅（关 R7） |
 | **3.4/B8 自适应-T 早退采样控制器** | `eda/testbenches/adaptive_t.py`（纯 Python，SPRT/CI 早退 over p-bit Bernoulli）| **iso-精度下** E[T]≈9.6 vs 固定 T=22 同误差 → **~57% 少写**（~50% 跨前沿，Wald 左移）；写占 98.7% → ~1:1 传到系统写能。Exp.06 T-甜点落地为每决策序贯控制器 | ✅（B8 支撑）|
+| **2.5 RC vs 数字 ESN ~38× 复核（含地标 ADC）** | `eda/testbenches/rc_energy_recompute.py`（Ch5 配置 N=100/ens=96/L=1000，源自 exp16；地标 SAR ADC E_comp=48fJ）| 38×（无 ADC，270.9nJ vs 10204nJ）→ 加地标 ADC **~30×(per-node 8b)/~35×(列共享 8b)**；优势稳健（ESN 的 O(N²) 10.2µJ 压倒）。**诚实 Ch5 论断=~30–35×**；reservoir_energy 应补真实 ADC 项 | ✅（关 R6 量化侧）|
 
 ## 各阶段 Definition of Done（DoD）
 

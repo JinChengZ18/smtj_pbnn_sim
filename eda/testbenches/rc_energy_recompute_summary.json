@@ -1,0 +1,92 @@
+{
+  "config": {
+    "N": 100,
+    "ensemble": 96,
+    "L": 1000,
+    "dt_ns": 25.0
+  },
+  "baseline": {
+    "e_rc_nJ": 270.95,
+    "e_dig_nJ": 10204.1,
+    "ratio": 37.7,
+    "step_breakdown_pJ": {
+      "drive": 122.449,
+      "DAC": 0.5,
+      "sense": 48.0,
+      "readout": 100.0
+    }
+  },
+  "grounded": [
+    {
+      "M_mode": "per-node M=N",
+      "M": 100,
+      "b": 6,
+      "e_adc_conv_fJ": 358.4,
+      "e_adc_infer_nJ": 35.84,
+      "e_rc_grounded_nJ": 306.79,
+      "honest_ratio": 33.3,
+      "frac_of_baseline": 0.883
+    },
+    {
+      "M_mode": "per-node M=N",
+      "M": 100,
+      "b": 8,
+      "e_adc_conv_fJ": 665.6,
+      "e_adc_infer_nJ": 66.56,
+      "e_rc_grounded_nJ": 337.51,
+      "honest_ratio": 30.2,
+      "frac_of_baseline": 0.803
+    },
+    {
+      "M_mode": "per-node M=N",
+      "M": 100,
+      "b": 10,
+      "e_adc_conv_fJ": 1606.4,
+      "e_adc_infer_nJ": 160.64,
+      "e_rc_grounded_nJ": 431.59,
+      "honest_ratio": 23.6,
+      "frac_of_baseline": 0.628
+    },
+    {
+      "M_mode": "col-shared M=N/4",
+      "M": 25,
+      "b": 6,
+      "e_adc_conv_fJ": 358.4,
+      "e_adc_infer_nJ": 8.96,
+      "e_rc_grounded_nJ": 279.91,
+      "honest_ratio": 36.5,
+      "frac_of_baseline": 0.968
+    },
+    {
+      "M_mode": "col-shared M=N/4",
+      "M": 25,
+      "b": 8,
+      "e_adc_conv_fJ": 665.6,
+      "e_adc_infer_nJ": 16.64,
+      "e_rc_grounded_nJ": 287.59,
+      "honest_ratio": 35.5,
+      "frac_of_baseline": 0.942
+    },
+    {
+      "M_mode": "col-shared M=N/4",
+      "M": 25,
+      "b": 10,
+      "e_adc_conv_fJ": 1606.4,
+      "e_adc_infer_nJ": 40.16,
+      "e_rc_grounded_nJ": 311.11,
+      "honest_ratio": 32.8,
+      "frac_of_baseline": 0.871
+    }
+  ],
+  "representative": {
+    "M_mode": "col-shared M=N/4",
+    "M": 25,
+    "b": 8,
+    "e_adc_conv_fJ": 665.6,
+    "e_adc_infer_nJ": 16.64,
+    "e_rc_grounded_nJ": 287.59,
+    "honest_ratio": 35.5,
+    "frac_of_baseline": 0.942
+  },
+  "conclusion": "Plan 2.5: the ~38x RC-vs-digital-ESN advantage SURVIVES the grounded readout. reservoir_energy.py omitted the analog->digital ADC; adding the grounded SAR (comparator = extracted 48 fJ sky130 SA) lowers the ratio from 38x to ~24-36x depending on readout (per-node 8-bit -> 30x; column-shared 8-bit -> 36x). The advantage is robust because the digital ESN's O(N^2) matmul (10.2 uJ) dwarfs even the grounded RC readout. => honest Ch5 claim: ~30-35x (not 38x); and reservoir_energy.py should carry a real ADC term (column-shared moderate-res, per 2.4). Closes errata R6 quantitative side / refines R5 RC end-to-end. Honesty: E_comp extracted, E_capDAC/E_dev order-of-mag; ratios."
+}
