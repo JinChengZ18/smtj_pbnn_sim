@@ -1,0 +1,17 @@
+v {xschem version=3.4.4 file_version=1.2}
+G {}
+K {type=subcircuit
+template="name=S1"}
+V {}
+S {}
+E {}
+L 4 0 -25 0 -8 {}
+L 4 0 -8 -12 8 {}
+L 4 -16 8 -8 8 {}
+L 4 8 8 16 8 {}
+L 4 -12 8 -12 25 {}
+L 4 12 8 12 25 {}
+B 5 -2.5 -27.5 2.5 -22.5 {name=C dir=inout}
+B 5 -14.5 22.5 -9.5 27.5 {name=A dir=inout}
+B 5 9.5 22.5 14.5 27.5 {name=B dir=inout}
+T {@name} 7 -8 0 0 0.16 0.16 {}
