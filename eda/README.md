@@ -1,15 +1,10 @@
 # `eda/` — 器件-电路验证层与回灌接口
 
-本目录在开源工具链上把 `smtj_pbnn_sim` 的电路级数值从「数量级」升级为「提取值」，并把这些值
-回灌主仿真器。器件用自写的 Verilog-A SOT-MTJ 紧凑模型（OpenVAF 编译为 OSDI、ngspice 调用），CMOS
-外围用 SkyWater sky130 工艺；版图、寄生提取、规则检查与版图—原理图一致性分别由 Magic、Netgen、
-KLayout 完成，原理图由 Xschem 导出。所有工具均无需商业许可证。
+本目录在开源工具链上的电路级数值回灌主仿真器。器件用自写的 Verilog-A SOT-MTJ 紧凑模型（OpenVAF 编译为 OSDI、ngspice 调用），CMOS外围用 SkyWater sky130 工艺；版图、寄生提取、规则检查与版图—原理图一致性分别由 Magic、Netgen、KLayout 完成，原理图由 Xschem 导出。所有工具均无需商业许可证。
 
 ## 环境准备
 
-工具链（ngspice + OpenVAF + sky130 + Magic/Netgen/KLayout/Xschem）的安装见
-[`SETUP_opensource.md`](SETUP_opensource.md)。各 Python 脚本需要电路工具在 `PATH` 上；纯解析脚本
-（写能量、SAR 电容能量等）只需 `python3 + numpy`。
+工具链（ngspice + OpenVAF + sky130 + Magic/Netgen/KLayout/Xschem）的安装见[`SETUP_opensource.md`](SETUP_opensource.md)。各 Python 脚本需要电路工具在 `PATH` 上；纯解析脚本（写能量、SAR 电容能量等）只需 `python3 + numpy`。
 
 ## 复现各项结果
 
@@ -44,9 +39,7 @@ eda/
 
 ## 与主仿真器的接口
 
-`smtj_pbnn_sim` 不依赖 `eda/`；`eda/` 单向地把提取值写入仿真器可读的配置或默认值。下表给出各占位项
-与其提取替代的对应；其中读出能量与写线 IR 已折入仿真器默认值（`ppa/tech_params.py`、
-`array/ir_drop.py`），使仿真器单独运行即得可信数值。
+`smtj_pbnn_sim` 不依赖 `eda/`；`eda/` 单向地把提取值写入仿真器可读的配置或默认值。下表给出各占位项与其提取替代的对应；其中读出能量与写线 IR 已折入仿真器默认值（`ppa/tech_params.py`、`array/ir_drop.py`），使仿真器单独运行即得可信数值。
 
 | `smtj_pbnn_sim` 中的项 | `eda/` 提供的提取值 | 状态 |
 |---|---|---|
