@@ -12,7 +12,7 @@ physical sMTJs, biased for a step of duration ``dt``:
     E_step =  E_drive + E_dac + E_sense + E_readout
       E_drive   = (V_drive^2 / R_dev) * dt * (n_nodes * ensemble)   # Ohmic bias
       E_dac     = e_dac_step * n_nodes                              # per-node drive set
-      E_sense   = e_smtj_read * n_nodes * ensemble                  # one sense / device
+      E_sense   = e_dev_read * n_nodes * ensemble                   # light per-device analog read
       E_readout = e_int8_mac * n_nodes * n_outputs                  # trained linear layer
                 + adc_nodes_frac * n_nodes * (b*e_adc_comp + 2^b*e_adc_capdac0)  # SAR ADC
 
@@ -49,6 +49,9 @@ class ReservoirHW:
     n_inputs: int = 1
     V_drive: float = 0.05          # typical bias across the MTJ during a step [V]
     R_dev: float = 4900.0          # MTJ read-path resistance [ohm] (R_P)
+    e_dev_read: float = 5.0e-15    # light per-device analog state read [J] (order-of-magnitude;
+                                   # NOT the column StrongARM decision -- that is billed once per
+                                   # ADC conversion below via e_adc_comp, column-shared)
     # --- analog-to-digital readout (grounded in the sky130 StrongARM extraction) -------#
     # The node states must be digitised before the trained linear layer; the earlier model
     # omitted this. A successive-approximation ADC costs b comparisons plus a binary-weighted
@@ -74,7 +77,7 @@ def smtj_rc_step_energy(hw: ReservoirHW, tech: TechParams) -> dict[str, float]:
     return {
         "drive": (hw.V_drive ** 2 / hw.R_dev) * hw.dt * n_dev,
         "DAC": tech.e_dac_step * hw.n_nodes,
-        "sense": tech.e_smtj_read * n_dev,
+        "sense": hw.e_dev_read * n_dev,
         "readout": tech.e_int8_mac * hw.n_nodes * hw.n_outputs + e_adc,
     }
 
