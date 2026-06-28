@@ -44,10 +44,25 @@ GROUPS = {
     ]),
 }
 
-# original Xschem text labels to delete (now redrawn as coloured box captions)
+# optional caption placement overrides: base -> {caption: (x, y[, anchor])} in content
+# coords. Default is the box top-left (x+3, y-3); override to move a caption clear of
+# wiring/labels. anchor in {"start","middle","end"} (default "start").
+CAP_POS = {
+    "writepath": {
+        # the R-string box straddles the vertical VREF wire (x~120); park its caption
+        # in the clear upper-left margin instead of across the wire
+        "R-string write-DAC": (6, 60),
+        # move the cell caption to the box top-right, away from the WWL/MA label cluster
+        "2T SOT-MTJ cell": (799, 301, "end"),
+    },
+}
+
+# original Xschem text labels to delete (now redrawn as coloured box captions);
+# "Rline" is the bare resistor ref-des, duplicated by the physical "R_line" label
 REMOVE_TEXTS = {
     "writepath": ["voltage-mode resistor-string", "write-DAC (N matched taps)",
-                  "k:1 tap select", "CMOS write driver", "write-line IR", "2T SOT-MTJ cell"],
+                  "k:1 tap select", "CMOS write driver", "write-line IR", "2T SOT-MTJ cell",
+                  "Rline"],
     "sar_readout": ["column-shared", "input mux", "(time-mux)",
                     "charge-redistribution cap-DAC (binary-weighted, b bits)",
                     "StrongARM comparator"],
@@ -127,11 +142,16 @@ def main(base):
             print(f"  WARN: remove-text not found: {t!r}")
     raw = subscriptize(raw)            # X_y -> proper subscript (no "_" in figures)
 
+    caps = CAP_POS.get(base, {})
     minx, miny, maxx, maxy = content_bbox(raw)
-    # include the group captions/boxes in the bbox so they are not clipped
+    # include the group boxes (and any relocated captions) in the bbox so nothing clips
     for x, y, w, h, _, cap in boxes:
         minx = min(minx, x); miny = min(miny, y - 12)
         maxx = max(maxx, x + w); maxy = max(maxy, y + h)
+        if cap in caps:
+            cx, cy = caps[cap][0], caps[cap][1]
+            minx = min(minx, cx); miny = min(miny, cy - 10)
+            maxx = max(maxx, cx + 4.6 * len(cap)); maxy = max(maxy, cy)
     pad = 10
     minx -= pad; miny -= pad; maxx += pad; maxy += pad
     vw, vh = round(maxx - minx, 2), round(maxy - miny, 2)
@@ -147,8 +167,12 @@ def main(base):
         ov.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="none" '
                   f'stroke="{col}" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>')
         if cap:
-            ov.append(f'<text x="{x+3}" y="{y-3}" font-family="Helvetica,Arial,sans-serif" '
-                      f'font-size="7.2" fill="{col}" font-weight="bold">{cap}</text>')
+            pos = caps.get(cap, (x + 3, y - 3))
+            cx, cy = pos[0], pos[1]
+            anchor = pos[2] if len(pos) > 2 else "start"
+            ov.append(f'<text x="{cx}" y="{cy}" font-family="Helvetica,Arial,sans-serif" '
+                      f'font-size="7.2" fill="{col}" font-weight="bold" '
+                      f'text-anchor="{anchor}">{cap}</text>')
     ov.append('</g>')
     raw = raw.replace("</svg>", "\n".join(ov) + "\n</svg>")
 
