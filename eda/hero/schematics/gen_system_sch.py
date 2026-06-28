@@ -90,7 +90,7 @@ def main():
     nid = [0]
     def lab(px, py, rot, name, sym="lab_pin.sym"):
         nid[0] += 1
-        o.append("C {devices/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], name))
+        o.append("C {sym/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], name))
 
     def stublab(pc, vec, rot, name, sym="lab_pin.sym"):
         px, py = pc; ex, ey = px + vec[0], py + vec[1]

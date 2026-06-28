@@ -41,25 +41,25 @@ N 780 500 780 560 {}
 N 780 560 840 560 {}
 N 920 560 990 560 {}
 N 880 500 880 460 {}
-C {devices/ipin.sym} 150 90 0 1 {name=l1 lab=VREF}
-C {devices/gnd.sym} 150 510 0 0 {name=l2 lab=VSS}
-C {devices/vdd.sym} 640 180 0 0 {name=l3 lab=VDD}
-C {devices/gnd.sym} 640 440 0 0 {name=l4 lab=VSS}
+C {sym/ipin.sym} 150 90 0 1 {name=l1 lab=VREF}
+C {sym/gnd.sym} 150 510 0 0 {name=l2 lab=VSS}
+C {sym/vdd.sym} 640 180 0 0 {name=l3 lab=VDD}
+C {sym/gnd.sym} 640 440 0 0 {name=l4 lab=VSS}
 N 280 325 255 325 {}
-C {devices/lab_pin.sym} 255 325 0 2 {name=l5 lab=sel}
+C {sym/lab_pin.sym} 255 325 0 2 {name=l5 lab=sel}
 N 440 325 415 325 {}
-C {devices/lab_pin.sym} 415 325 0 2 {name=l6 lab=selb}
+C {sym/lab_pin.sym} 415 325 0 2 {name=l6 lab=selb}
 N 320 325 345 325 {}
-C {devices/gnd.sym} 345 325 0 0 {name=l7 lab=VSS}
+C {sym/gnd.sym} 345 325 0 0 {name=l7 lab=VSS}
 N 740 470 715 470 {}
-C {devices/lab_pin.sym} 715 470 0 2 {name=l8 lab=WWL}
+C {sym/lab_pin.sym} 715 470 0 2 {name=l8 lab=WWL}
 N 780 470 805 470 {}
-C {devices/gnd.sym} 805 470 0 0 {name=l9 lab=VSS}
-C {devices/opin.sym} 990 560 0 0 {name=l10 lab=SL}
-C {devices/opin.sym} 880 460 0 1 {name=l11 lab=RD}
+C {sym/gnd.sym} 805 470 0 0 {name=l9 lab=VSS}
+C {sym/opin.sym} 990 560 0 0 {name=l10 lab=SL}
+C {sym/opin.sym} 880 460 0 1 {name=l11 lab=RD}
 T {V_wdac} 360 380 0 0 0.22 0.22 {}
 T {WRL} 680 293 0 0 0.22 0.22 {}
-T {IR pre-distortion:  D_row = D0 + dD(I_w, R_line)} 330 95 0 0 0.26 0.26 {}
+T {IR pre-distortion:  D_row = D0 + dD(I_w, R_line)} 330 95 0 0 0.26 0.26 {layer=7}
 T {k:1 tap select} 320 250 0 0 0.26 0.26 {}
 T {CMOS write driver} 540 112 0 0 0.3 0.3 {}
 T {write-line IR} 790 415 0 0 0.24 0.24 {}

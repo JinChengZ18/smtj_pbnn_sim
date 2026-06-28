@@ -159,24 +159,24 @@ text {font-family: Sans-Serif;}
 <rect class="l0" x="0" y="0" width="900" height="503"/>
 <text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(282.994, 267.891)" >V_wdac</text>
 <text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(552.487, 194.622)" >WRL</text>
-<text fill="#000000"  xml:space="preserve" font-size="11.3861" transform="translate(257.729, 29.4634)" >IR pre-distortion:  D_row = D0 + dD(I_w, R_line)</text>
+<text fill="#cc2222"  xml:space="preserve" font-size="11.3861" transform="translate(257.729, 29.4634)" >IR pre-distortion:  D_row = D0 + dD(I_w, R_line)</text>
 <text fill="#000000"  xml:space="preserve" font-size="11.3861" transform="translate(249.307, 159.999)" >k:1 tap select</text>
 <text fill="#000000"  xml:space="preserve" font-size="13.1378" transform="translate(434.584, 45.3708)" >CMOS write driver</text>
 <text fill="#000000"  xml:space="preserve" font-size="10.5103" transform="translate(645.126, 298.162)" >write-line IR</text>
 <text fill="#000000"  xml:space="preserve" font-size="13.1378" transform="translate(666.18, 494.246)" >2T SOT-MTJ cell</text>
 <text fill="#000000"  xml:space="preserve" font-size="11.3861" transform="translate(13.5, 419.387)" >voltage-mode resistor-string</text>
 <text fill="#000000"  xml:space="preserve" font-size="11.3861" transform="translate(13.5, 436.231)" >write-DAC (N matched taps)</text>
-<text fill="#000000"  xml:space="preserve" font-size="14.4516" transform="translate(121.929, 20.6671)" >VREF</text>
+<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(121.929, 16.293)" >VREF</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(112.455, 380.788)" >VSS</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(508.274, 69.186)" >VDD</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(525.117, 321.836)" >VSS</text>
-<text fill="#000000"  xml:space="preserve" font-size="14.4516" transform="translate(200.882, 205.981)" >sel</text>
-<text fill="#000000"  xml:space="preserve" font-size="14.4516" transform="translate(335.629, 205.981)" >selb</text>
+<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(200.882, 205.981)" >sel</text>
+<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(335.629, 205.981)" >selb</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(276.677, 224.987)" >VSS</text>
-<text fill="#000000"  xml:space="preserve" font-size="14.4516" transform="translate(588.28, 328.095)" >WWL</text>
+<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(588.28, 328.095)" >WWL</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(664.075, 347.101)" >VSS</text>
-<text fill="#000000"  xml:space="preserve" font-size="14.4516" transform="translate(830.403, 416.486)" >SL</text>
-<text fill="#000000"  xml:space="preserve" font-size="14.4516" transform="translate(683.078, 332.269)" >RD</text>
+<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(830.403, 412.112)" >SL</text>
+<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(690.078, 327.895)" >RD</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(84.3481, 75.9702)" >R1</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 77.6545)" >R_u</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(84.3481, 151.765)" >R2</text>
@@ -186,37 +186,17 @@ text {font-family: Sans-Serif;}
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(84.3481, 303.356)" >R4</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 305.04)" >R_u</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(217.675, 195.511)" >MTn</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(251.412, 233.526)" >S</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(251.412, 196.516)" >D</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(249.307, 210.366)" >B</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(219.042, 210.366)" >G</text>
-<text fill="#555555"  xml:space="preserve" font-size="8.75855" transform="translate(258.781, 232.356)" >1 x 1 / 0.15</text>
+<text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(254.36, 231.771)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(352.421, 195.511)" >MTp</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(386.159, 233.526)" >D</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(386.159, 196.516)" >S</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(384.054, 210.366)" >B</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(353.789, 210.366)" >G</text>
-<text fill="#555555"  xml:space="preserve" font-size="8.75855" transform="translate(393.528, 232.356)" >1 x 2 / 0.15</text>
+<text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(389.107, 231.771)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(485.168, 132.349)" >MDp</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(520.906, 170.363)" >D</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(520.906, 133.353)" >S</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(518.801, 147.204)" >B</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(488.536, 147.204)" >G</text>
-<text fill="#555555"  xml:space="preserve" font-size="8.75855" transform="translate(528.275, 169.193)" >1 x 8 / 0.15</text>
+<text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(523.854, 168.609)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(485.168, 224.987)" >MDn</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(520.906, 263.002)" >S</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(520.906, 225.991)" >D</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(518.801, 239.842)" >B</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(488.536, 239.842)" >G</text>
-<text fill="#555555"  xml:space="preserve" font-size="8.75855" transform="translate(528.275, 261.832)" >1 x 4 / 0.15</text>
+<text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(523.854, 261.247)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(589.071, 248.615)" >Rline</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(629.967, 250.299)" >R_line</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(610.072, 317.626)" >MA</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(638.81, 355.64)" >S</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(638.81, 318.63)" >D</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(636.704, 332.481)" >B</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="6.56891" transform="translate(606.439, 332.481)" >G</text>
-<text fill="#555555"  xml:space="preserve" font-size="8.75855" transform="translate(646.179, 354.47)" >1 x 2 / 0.15</text>
+<text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(641.757, 353.886)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(734.396, 372.413)" >X1</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.00684" transform="translate(702.393, 432.254)" >SOT-MTJ</text>
 <path class="l4" d="M106.138 90.7091L106.138 99.1308"/>

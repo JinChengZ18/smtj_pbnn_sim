@@ -48,38 +48,38 @@ N 110 380 110 350 {}
 N 750 380 750 350 {}
 N 430 690 430 720 {}
 N 280 210 250 210 {}
-C {devices/lab_pin.sym} 250 210 0 2 {name=l1 lab=outp}
+C {sym/lab_pin.sym} 250 210 0 2 {name=l1 lab=outp}
 N 280 380 250 380 {}
-C {devices/lab_pin.sym} 250 380 0 2 {name=l2 lab=outp}
+C {sym/lab_pin.sym} 250 380 0 2 {name=l2 lab=outp}
 N 500 210 470 210 {}
-C {devices/lab_pin.sym} 470 210 0 2 {name=l3 lab=outn}
+C {sym/lab_pin.sym} 470 210 0 2 {name=l3 lab=outn}
 N 500 380 470 380 {}
-C {devices/lab_pin.sym} 470 380 0 2 {name=l4 lab=outn}
+C {sym/lab_pin.sym} 470 380 0 2 {name=l4 lab=outn}
 N 130 210 100 210 {}
-C {devices/lab_pin.sym} 100 210 0 2 {name=l5 lab=clk}
+C {sym/lab_pin.sym} 100 210 0 2 {name=l5 lab=clk}
 N 650 210 620 210 {}
-C {devices/lab_pin.sym} 620 210 0 2 {name=l6 lab=clk}
+C {sym/lab_pin.sym} 620 210 0 2 {name=l6 lab=clk}
 N 70 380 40 380 {}
-C {devices/lab_pin.sym} 40 380 0 2 {name=l7 lab=clk}
+C {sym/lab_pin.sym} 40 380 0 2 {name=l7 lab=clk}
 N 710 380 680 380 {}
-C {devices/lab_pin.sym} 680 380 0 2 {name=l8 lab=clk}
+C {sym/lab_pin.sym} 680 380 0 2 {name=l8 lab=clk}
 N 390 690 360 690 {}
-C {devices/lab_pin.sym} 360 690 0 2 {name=l9 lab=clk}
+C {sym/lab_pin.sym} 360 690 0 2 {name=l9 lab=clk}
 N 320 380 345 380 {}
-C {devices/lab_pin.sym} 345 380 0 0 {name=l10 lab=VSS}
+C {sym/gnd.sym} 345 380 0 0 {name=l10 lab=VSS}
 N 540 380 565 380 {}
-C {devices/lab_pin.sym} 565 380 0 0 {name=l11 lab=VSS}
+C {sym/gnd.sym} 565 380 0 0 {name=l11 lab=VSS}
 N 320 540 345 540 {}
-C {devices/lab_pin.sym} 345 540 0 0 {name=l12 lab=VSS}
+C {sym/gnd.sym} 345 540 0 0 {name=l12 lab=VSS}
 N 540 540 565 540 {}
-C {devices/lab_pin.sym} 565 540 0 0 {name=l13 lab=VSS}
+C {sym/gnd.sym} 565 540 0 0 {name=l13 lab=VSS}
 N 280 540 250 540 {}
-C {devices/ipin.sym} 250 540 0 2 {name=l14 lab=vinp}
+C {sym/ipin.sym} 250 540 0 2 {name=l14 lab=vinp}
 N 500 540 470 540 {}
-C {devices/ipin.sym} 470 540 0 2 {name=l15 lab=vinn}
-C {devices/opin.sym} 320 270 0 0 {name=l16 lab=outn}
-C {devices/opin.sym} 540 270 0 0 {name=l17 lab=outp}
+C {sym/ipin.sym} 470 540 0 2 {name=l15 lab=vinn}
+C {sym/opin.sym} 320 270 0 0 {name=l16 lab=outn}
+C {sym/opin.sym} 540 270 0 0 {name=l17 lab=outp}
 N 70 110 70 82 {}
-C {devices/lab_pin.sym} 70 82 0 1 {name=l18 lab=VDD}
+C {sym/vdd.sym} 70 82 0 1 {name=l18 lab=VDD}
 N 320 790 320 818 {}
-C {devices/lab_pin.sym} 320 818 0 3 {name=l19 lab=VSS}
+C {sym/gnd.sym} 320 818 0 3 {name=l19 lab=VSS}

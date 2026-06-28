@@ -56,7 +56,7 @@ def main():
 
     nid = [0]
     def lab(px, py, rot, lab, sym="lab_pin.sym"):
-        nid[0] += 1; o.append("C {devices/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], lab))
+        nid[0] += 1; o.append("C {sym/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], lab))
 
     def stublab(pinc, vec, rot, name, sym="lab_pin.sym"):
         px, py = pinc; ex, ey = px + vec[0], py + vec[1]
@@ -70,13 +70,13 @@ def main():
         stublab(pin(n, "G"), (-30, 0), 2, "clk")
     # nmos input/latch bulk -> VSS
     for n in ("M3", "M4", "M1", "M2"):
-        stublab(pin(n, "B"), (25, 0), 0, "VSS")
+        stublab(pin(n, "B"), (25, 0), 0, "VSS", "gnd.sym")
     # IO + rails
     stublab(pin("M1", "G"), (-30, 0), 2, "vinp", "ipin.sym")
     stublab(pin("M2", "G"), (-30, 0), 2, "vinn", "ipin.sym")
     lab(pin("M5", "D")[0], 270, 0, "outn", "opin.sym")   # outn node (on Mp2 join)
     lab(pin("M6", "D")[0], 270, 0, "outp", "opin.sym")   # outp node
-    stublab((70, VDD_Y), (0, -28), 1, "VDD"); stublab((300 + 20, VSS_Y), (0, 28), 3, "VSS")
+    stublab((70, VDD_Y), (0, -28), 1, "VDD", "vdd.sym"); stublab((300 + 20, VSS_Y), (0, 28), 3, "VSS", "gnd.sym")
 
     here = os.path.dirname(os.path.abspath(__file__))
     open(os.path.join(here, "strongarm_sa.sch"), "w").write("".join(o))

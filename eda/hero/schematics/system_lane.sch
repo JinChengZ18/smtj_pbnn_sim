@@ -41,23 +41,23 @@ L 4 1030 570 790 570 {}
 L 4 790 570 790 450 {}
 N 790 530 750 530 {}
 N 1030 520 1065 520 {}
-C {devices/vdd.sym} 340 300 0 0 {name=l1 lab=VDD}
-C {devices/gnd.sym} 340 520 0 0 {name=l2 lab=GND}
-C {devices/ipin.sym} 700 190 0 1 {name=l3 lab=VREF}
+C {sym/vdd.sym} 340 300 0 0 {name=l1 lab=VDD}
+C {sym/gnd.sym} 340 520 0 0 {name=l2 lab=GND}
+C {sym/ipin.sym} 700 190 0 1 {name=l3 lab=VREF}
 N 560 440 560 465 {}
-C {devices/gnd.sym} 560 465 0 0 {name=l4 lab=GND}
+C {sym/gnd.sym} 560 465 0 0 {name=l4 lab=GND}
 N 700 330 745 330 {}
-C {devices/gnd.sym} 745 330 0 0 {name=l5 lab=GND}
+C {sym/gnd.sym} 745 330 0 0 {name=l5 lab=GND}
 N 880 335 840 335 {}
-C {devices/ipin.sym} 840 335 0 2 {name=l6 lab=VCM}
-C {devices/lab_pin.sym} 740 560 0 0 {name=l7 lab=SL}
+C {sym/ipin.sym} 840 335 0 2 {name=l6 lab=VCM}
+C {sym/lab_pin.sym} 740 560 0 0 {name=l7 lab=SL}
 N 560 400 560 360 {}
-C {devices/ipin.sym} 560 360 0 1 {name=l8 lab=WWL}
+C {sym/ipin.sym} 560 360 0 1 {name=l8 lab=WWL}
 N 660 330 605 330 {}
-C {devices/ipin.sym} 605 330 0 2 {name=l9 lab=RWL}
-C {devices/opin.sym} 1000 320 0 0 {name=l10 lab=p_out}
-C {devices/ipin.sym} 750 530 0 2 {name=l11 lab=CLK}
-C {devices/opin.sym} 1065 520 0 0 {name=l12 lab=rc}
+C {sym/ipin.sym} 605 330 0 2 {name=l9 lab=RWL}
+C {sym/opin.sym} 1000 320 0 0 {name=l10 lab=p_out}
+C {sym/ipin.sym} 750 530 0 2 {name=l11 lab=CLK}
+C {sym/opin.sym} 1065 520 0 0 {name=l12 lab=rc}
 T {BL} 440 428 0 0 0.22 0.22 {}
 T {RBL} 716 306 0 0 0.22 0.22 {}
 T {write-DAC} 110 412 0 0 0.26 0.26 {}

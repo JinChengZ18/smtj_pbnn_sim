@@ -80,14 +80,15 @@ def main():
     nid = [0]
     def lab(px, py, rot, name, sym="lab_pin.sym"):
         nid[0] += 1
-        o.append("C {devices/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], name))
+        o.append("C {sym/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], name))
 
     def stublab(pc, vec, rot, name, sym="lab_pin.sym"):
         px, py = pc; ex, ey = px + vec[0], py + vec[1]
         o.append("N %d %d %d %d {}\n" % (px, py, ex, ey)); lab(ex, ey, rot, name, sym)
 
-    def txt(s, x, y, size=0.3):
-        o.append("T {%s} %d %d 0 0 %g %g {}\n" % (s, x, y, size, size))
+    def txt(s, x, y, size=0.3, layer=None):
+        tag = "{layer=%d}" % layer if layer else "{}"
+        o.append("T {%s} %d %d 0 0 %g %g %s\n" % (s, x, y, size, size, tag))
 
     # rails / references (compact supply symbols, not large text labels)
     lab(150, 90, 1, "VREF", "ipin.sym")
@@ -107,7 +108,7 @@ def main():
     txt("V_wdac", 360, 380, 0.22)
     txt("WRL", 680, 293, 0.22)
     # functional group annotations (concise; the full caption lives in the supplement)
-    txt("IR pre-distortion:  D_row = D0 + dD(I_w, R_line)", 330, 95, 0.26)
+    txt("IR pre-distortion:  D_row = D0 + dD(I_w, R_line)", 330, 95, 0.26, layer=7)
     txt("k:1 tap select", 320, 250, 0.26)
     txt("CMOS write driver", 540, 112)
     txt("write-line IR", 790, 415, 0.24)

@@ -82,14 +82,15 @@ def main():
     nid = [0]
     def lab(px, py, rot, name, sym="lab_pin.sym"):
         nid[0] += 1
-        o.append("C {devices/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], name))
+        o.append("C {sym/%s} %d %d 0 %d {name=l%d lab=%s}\n" % (sym, px, py, rot, nid[0], name))
 
     def stublab(pc, vec, rot, name, sym="lab_pin.sym"):
         px, py = pc; ex, ey = px + vec[0], py + vec[1]
         o.append("N %d %d %d %d {}\n" % (px, py, ex, ey)); lab(ex, ey, rot, name, sym)
 
-    def txt(s, x, y, size=0.3):
-        o.append("T {%s} %d %d 0 0 %g %g {}\n" % (s, x, y, size, size))
+    def txt(s, x, y, size=0.3, layer=None):
+        tag = "{layer=%d}" % layer if layer else "{}"
+        o.append("T {%s} %d %d 0 0 %g %g %s\n" % (s, x, y, size, size, tag))
 
     # ports / nets
     lab(180, 50, 1, "col0", "ipin.sym")
@@ -115,7 +116,7 @@ def main():
     txt("charge-redistribution cap-DAC (binary-weighted, b bits)", 380, 132, 0.26)
     txt("ref switches: VREF / GND per bit", 410, 490, 0.24)
     txt("StrongARM comparator", 820, 120, 0.28)
-    txt("-> shared comparator + DAC amortised across columns", 470, 540, 0.24)
+    txt("-> shared comparator + DAC amortised across columns", 470, 540, 0.24, layer=7)
 
     here = os.path.dirname(os.path.abspath(__file__))
     open(os.path.join(here, "sar_readout.sch"), "w").write("".join(o))

@@ -43,23 +43,23 @@ L 4 860 430 860 300 {}
 N 860 330 820 330 {}
 N 1010 360 1055 360 {}
 N 860 400 820 400 {}
-C {devices/ipin.sym} 180 50 0 1 {name=l1 lab=col0}
-C {devices/ipin.sym} 300 50 0 1 {name=l2 lab=col1}
+C {sym/ipin.sym} 180 50 0 1 {name=l1 lab=col0}
+C {sym/ipin.sym} 300 50 0 1 {name=l2 lab=col1}
 N 140 110 115 110 {}
-C {devices/lab_pin.sym} 115 110 0 2 {name=l3 lab=sel0}
+C {sym/lab_pin.sym} 115 110 0 2 {name=l3 lab=sel0}
 N 260 110 235 110 {}
-C {devices/lab_pin.sym} 235 110 0 2 {name=l4 lab=sel1}
+C {sym/lab_pin.sym} 235 110 0 2 {name=l4 lab=sel1}
 N 180 110 205 110 {}
-C {devices/gnd.sym} 205 110 0 0 {name=l5 lab=GND}
+C {sym/gnd.sym} 205 110 0 0 {name=l5 lab=GND}
 N 300 110 325 110 {}
-C {devices/gnd.sym} 325 110 0 0 {name=l6 lab=GND}
-C {devices/lab_pin.sym} 720 400 0 0 {name=l7 lab=VREF}
-C {devices/gnd.sym} 700 445 0 0 {name=l8 lab=GND}
+C {sym/gnd.sym} 325 110 0 0 {name=l6 lab=GND}
+C {sym/lab_pin.sym} 720 400 0 0 {name=l7 lab=VREF}
+C {sym/gnd.sym} 700 445 0 0 {name=l8 lab=GND}
 N 840 225 800 225 {}
-C {devices/ipin.sym} 800 225 0 2 {name=l9 lab=VCM}
-C {devices/ipin.sym} 820 330 0 2 {name=l10 lab=CLK}
-C {devices/opin.sym} 1055 360 0 0 {name=l11 lab=Dout}
-C {devices/lab_pin.sym} 820 400 0 2 {name=l12 lab=b[2:0]}
+C {sym/ipin.sym} 800 225 0 2 {name=l9 lab=VCM}
+C {sym/ipin.sym} 820 330 0 2 {name=l10 lab=CLK}
+C {sym/opin.sym} 1055 360 0 0 {name=l11 lab=Dout}
+C {sym/lab_pin.sym} 820 400 0 2 {name=l12 lab=b[2:0]}
 T {Vx} 470 168 0 0 0.22 0.22 {}
 T {cmp} 935 250 0 0 0.22 0.22 {}
 T {SAR logic} 888 360 0 0 0.3 0.3 {}
@@ -69,4 +69,4 @@ T {(time-mux)} 20 66 0 0 0.24 0.24 {}
 T {charge-redistribution cap-DAC (binary-weighted, b bits)} 380 132 0 0 0.26 0.26 {}
 T {ref switches: VREF / GND per bit} 410 490 0 0 0.24 0.24 {}
 T {StrongARM comparator} 820 120 0 0 0.28 0.28 {}
-T {-> shared comparator + DAC amortised across columns} 470 540 0 0 0.24 0.24 {}
+T {-> shared comparator + DAC amortised across columns} 470 540 0 0 0.24 0.24 {layer=7}
