@@ -6,8 +6,10 @@ sMTJ substrate:
 
   1. MRAM CIM weight array runs a deterministic XNOR-popcount column sum
      over the stochastic input vector x^(r).
-  2. Probability mapping & stochastic write driver convert the column
-     current into a write stimulus u for the device array.
+  2. The sky130-grounded periphery digitizes the column current with the
+     slope-matched read-out (transimpedance + StrongARM, or a column-shared
+     SAR), maps it to p = g(a), and drives the write line via the resistor-
+     string write-DAC with IR-aware pre-distortion and a CMOS driver.
   3. Stochastic MTJ sampling array converts u into a new state vector
      x^(r+1) via thermal-activation switching.
 
@@ -299,14 +301,17 @@ ax.text(MAP_X + MAP_W / 2, 8.76,
         ha="center", va="top", fontsize=TITLE_SIZE, color=INK,
         fontweight="bold", linespacing=1.05, zorder=3)
 
-# p = g(a) sub-box
+# read-out + map sub-box (slope-matched read-out digitizes I_col -> a -> p)
 small_box(ax, MAP_X + 0.24, 6.10, MAP_W - 0.48, 1.35,
-          "$p = g(a)$\n(Nonlinear Mapping)", fontsize=13.2)
+          "slope-matched read-out\n(TIA + StrongARM / SAR)\n$a \\to p=g(a)$", fontsize=10.6)
 # Down-arrow
 arrow(ax, (MAP_X + MAP_W / 2, 6.08), (MAP_X + MAP_W / 2, 5.05), lw=1.6)
-# (u) Generator sub-box
+# write-driver sub-box (resistor-string write-DAC + IR pre-distortion + CMOS driver)
 small_box(ax, MAP_X + 0.24, 3.55, MAP_W - 0.48, 1.35,
-          "($u$) Generator\nWrite Stimulus", fontsize=13.2)
+          "write driver\nR-string DAC + IR\npre-distortion + CMOS", fontsize=10.6)
+# sky130-grounding note for the periphery block
+ax.text(MAP_X + MAP_W / 2, 3.18, "sky130-extracted periphery",
+        fontsize=8.6, color=PURPLE, style="italic", ha="center", va="center", zorder=4)
 
 
 # u arrow (Map -> MTJ Sampling)
