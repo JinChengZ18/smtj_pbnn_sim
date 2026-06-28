@@ -36,6 +36,32 @@ def jload(p):
     return json.loads(Path(p).read_text(encoding="utf-8"))
 
 
+def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False):
+    """Plot the submodule design-space comparison (ours vs surveyed literature)
+    on `ax`, reading eda/design_survey/submodule_survey.json (multi-agent survey)."""
+    sv = jload(REPO / "eda" / "design_survey" / "submodule_survey.json")
+    sm = next(s for s in sv["submodules"] if s["key"] == key)
+    fd = json.loads(sm["compare"]["figure_data"])
+    def short(lbl, ours):
+        if ours:
+            return "ours"
+        w = lbl.replace(",", " ").replace(":", " ").split()
+        return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
+    xs = [p["x"] for p in fd["points"]]; xmid = 0.5 * (min(xs) + max(xs))
+    for pt in fd["points"]:
+        ours = bool(pt.get("is_ours"))
+        ax.scatter(pt["x"], pt["y"], s=170 if ours else 65, marker="*" if ours else "o",
+                   c=RED if ours else PURPLE, edgecolor="black",
+                   zorder=4 if ours else 3, alpha=0.95 if ours else 0.8)
+        rt = pt["x"] > xmid
+        ax.annotate(short(pt["label"], ours), (pt["x"], pt["y"]), textcoords="offset points",
+                    xytext=(-5 if rt else 5, 4), ha="right" if rt else "left", fontsize=7,
+                    color=RED if ours else "0.3", fontweight="bold" if ours else "normal")
+    if logy:
+        ax.set_yscale("log")
+    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.2)
+
+
 # ---------- Fig S1: device-model validation (LLG vs behavioral sigmoid) ----------
 def fig1():
     d = jload(TB / "llg_validate_summary.json")
@@ -68,7 +94,7 @@ def fig2():
     om = jload(HERO / "offset_mc_summary.json")
     pa = jload(HERO / "pareto_offset_cancellation_summary.json")
     sig = om["offset_sigma_mV"]; mu = om["offset_mean_mV"]; VT = om["VT_mV"]
-    fig, ax = plt.subplots(1, 2, figsize=(11.5, 4.6))
+    fig, ax = plt.subplots(1, 3, figsize=(16.6, 4.6))
     # (a) offset distribution vs the V_T decision window
     x = np.linspace(-3.2 * sig + mu, 3.2 * sig + mu, 400)
     g = np.exp(-0.5 * ((x - mu) / sig) ** 2) / (sig * np.sqrt(2 * np.pi))
@@ -96,6 +122,8 @@ def fig2():
     ax[1].set_xlabel(r"residual offset / $V_T$"); ax[1].set_ylabel("accuracy drop vs baseline (pp)")
     ax[1].set_title("(b) Pareto @ V_in=0.5 V, F=1024 (marker size $\\propto$ area$\\times$energy)")
     ax[1].legend(fontsize=8.5)
+    design_cmp_panel(ax[2], "readout_sa", "(c) Readout SA design space vs literature",
+                     "input-referred offset (×$V_T$)", "readout energy / decision (fJ)", logy=True)
     fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_16.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
@@ -138,7 +166,7 @@ def fig3():
 def fig4():
     iso = jload(TB / "rc_isoenergy_summary.json")
     rc = jload(TB / "rc_energy_recompute_summary.json")
-    fig, ax = plt.subplots(1, 2, figsize=(11.5, 4.6))
+    fig, ax = plt.subplots(1, 3, figsize=(16.6, 4.6))
     # (a) iso-energy frontier MC vs energy, colored by ADC bits
     fr = iso["frontier"]
     E = [p["E_fJ"] for p in fr]; MC = [p["MC"] for p in fr]; b = [p["b"] for p in fr]
@@ -163,6 +191,8 @@ def fig4():
     ax[1].set_ylabel(r"energy advantage vs digital ESN ($\times$)")
     ax[1].set_title("(b) Reservoir energy advantage with a physical ADC readout")
     ax[1].legend(fontsize=9)
+    design_cmp_panel(ax[2], "sar_adc", "(c) SAR readout design space vs literature",
+                     "SA offset (×$V_T$; 0 = n/r)", "comparator energy (fJ)", logy=True)
     fig.tight_layout(); fig.savefig(OUT / "Chapter05_local_09.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
