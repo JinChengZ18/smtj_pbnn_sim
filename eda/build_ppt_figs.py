@@ -44,14 +44,14 @@ FIGS = {
         {"stem": "ch05_09", "panels": ["a", "b", "c"], "num": "图 5.9", "out": "Chapter05_local_09"},
     ],
 }
-SLIDE_W, SLIDE_H = Inches(13.33), Inches(5.2)   # wide slide sized to a 3-panel row
+SLIDE_W, SLIDE_H = Inches(13.33), Inches(4.4)   # wide slide sized to a 3-panel row
 
 
 def build_slide(prs, fig):
     slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
     paths = [PANELS / f"{fig['stem']}_{p}.png" for p in fig["panels"]]
     n = len(paths)
-    margin, gap, top = 0.25, 0.12, 0.72
+    margin, gap, top = 0.25, 0.12, 0.45
     avail = SLIDE_W.inches - 2 * margin - (n - 1) * gap
     pw = avail / n
     for i, path in enumerate(paths):
@@ -63,10 +63,8 @@ def build_slide(prs, fig):
         r = tb.text_frame.paragraphs[0].add_run()
         r.text = f"({'abcdef'[i]})"
         r.font.bold = True; r.font.size = Pt(15); r.font.color.rgb = TITLE_RGB
-    # figure number, top-left
-    tb = slide.shapes.add_textbox(Inches(margin), Inches(0.08), Inches(3), Inches(0.4))
-    r = tb.text_frame.paragraphs[0].add_run()
-    r.text = fig["num"]; r.font.bold = True; r.font.size = Pt(16); r.font.color.rgb = TITLE_RGB
+    # NOTE: the deck adds only the (a)(b)(c) panel letters; the figure NUMBER
+    # (图 X.Y) lives in the markdown caption, so it is intentionally NOT baked in.
 
 
 def main():
