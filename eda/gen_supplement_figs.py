@@ -36,30 +36,32 @@ def jload(p):
     return json.loads(Path(p).read_text(encoding="utf-8"))
 
 
-def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False):
-    """Plot the submodule design-space comparison (ours vs surveyed literature)
-    on `ax`, reading eda/design_survey/submodule_survey.json (multi-agent survey)."""
+def _short_ref(lbl, ours):
+    if ours:
+        return "ours"
+    w = lbl.replace(",", " ").replace(":", " ").split()
+    return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
+
+
+def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False, legend_fs=6.0):
+    """Plot the submodule design-space comparison (ours vs surveyed literature) on
+    `ax`. Markers are NUMBERED and a legend maps numbers->refs, so labels never
+    overlap. Reads eda/design_survey/submodule_survey.json (multi-agent survey)."""
     sv = jload(REPO / "eda" / "design_survey" / "submodule_survey.json")
     sm = next(s for s in sv["submodules"] if s["key"] == key)
-    fd = json.loads(sm["compare"]["figure_data"])
-    def short(lbl, ours):
-        if ours:
-            return "ours"
-        w = lbl.replace(",", " ").replace(":", " ").split()
-        return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
-    xs = [p["x"] for p in fd["points"]]; xmid = 0.5 * (min(xs) + max(xs))
-    for pt in fd["points"]:
+    pts = json.loads(sm["compare"]["figure_data"])["points"]
+    for i, pt in enumerate(pts, 1):
         ours = bool(pt.get("is_ours"))
-        ax.scatter(pt["x"], pt["y"], s=170 if ours else 65, marker="*" if ours else "o",
-                   c=RED if ours else PURPLE, edgecolor="black",
-                   zorder=4 if ours else 3, alpha=0.95 if ours else 0.8)
-        rt = pt["x"] > xmid
-        ax.annotate(short(pt["label"], ours), (pt["x"], pt["y"]), textcoords="offset points",
-                    xytext=(-5 if rt else 5, 4), ha="right" if rt else "left", fontsize=7,
-                    color=RED if ours else "0.3", fontweight="bold" if ours else "normal")
+        ax.scatter(pt["x"], pt["y"], s=180 if ours else 60, marker="*" if ours else "o",
+                   c=RED if ours else PURPLE, edgecolor="black", zorder=4 if ours else 3,
+                   alpha=0.95 if ours else 0.8, label=f"{i}. {_short_ref(pt['label'], ours)}")
+        ax.annotate(str(i), (pt["x"], pt["y"]), textcoords="offset points", xytext=(4, 3),
+                    fontsize=6.5, color=RED if ours else "0.25", fontweight="bold", zorder=5)
     if logy:
         ax.set_yscale("log")
-    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.2)
+    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.22)
+    ax.legend(fontsize=legend_fs, loc="best", framealpha=0.85,
+              handletextpad=0.3, labelspacing=0.25, borderpad=0.3)
 
 
 # ---------- Fig S1: device-model validation (LLG vs behavioral sigmoid) ----------
@@ -220,27 +222,10 @@ def fig5():
     ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel("write probability $P_{sw}$")
     ax[1].set_title("(b) Write probability flattened to target at every row")
     ax[1].legend(fontsize=9)
-    # (c) write-path design space vs surveyed literature (multi-agent arxiv/OA survey)
-    sv = jload(REPO / "eda" / "design_survey" / "submodule_survey.json")
-    wd = next(s for s in sv["submodules"] if s["key"] == "write_dac_ir")
-    fd = json.loads(wd["compare"]["figure_data"])
-    def _short(lbl, ours):
-        if ours:
-            return "ours"
-        w = lbl.replace(",", " ").split()
-        return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
-    for pt in fd["points"]:
-        ours = bool(pt.get("is_ours"))
-        ax[2].scatter(pt["x"], pt["y"], s=170 if ours else 70, marker="*" if ours else "o",
-                      c=RED if ours else PURPLE, edgecolor="black",
-                      zorder=4 if ours else 3, alpha=0.95 if ours else 0.8)
-        ax[2].annotate(_short(pt["label"], ours), (pt["x"], pt["y"]),
-                       textcoords="offset points", xytext=(6, 5), fontsize=7.5,
-                       color=RED if ours else "0.3", fontweight="bold" if ours else "normal")
-    ax[2].set_xlabel("residual remote-row write error on N=256 (mV)")
-    ax[2].set_ylabel("circuit-layer completeness (0–5)")
-    ax[2].set_title("(c) Write-path design space vs literature")
-    ax[2].margins(0.18)
+    # (c) write-path design space vs surveyed literature (numbered markers + legend)
+    design_cmp_panel(ax[2], "write_dac_ir", "(c) Write-path design space vs literature",
+                     "residual remote-row write error on N=256 (mV)",
+                     "circuit-layer completeness (0–5)")
     fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 

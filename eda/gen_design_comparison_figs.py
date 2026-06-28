@@ -40,47 +40,39 @@ TITLE = {
 }
 
 
-def _wrap(s, n=22):
-    out, line = [], ""
-    for w in s.split():
-        if len(line) + len(w) + 1 > n:
-            out.append(line); line = w
-        else:
-            line = (line + " " + w).strip()
-    if line:
-        out.append(line)
-    return "\n".join(out)
+def _mathify(s):
+    """Render subscript tokens as mathtext so axis labels show no raw '_'."""
+    s = s.replace("sigma_offset", r"$\sigma_\mathrm{offset}$").replace("V_T", r"$V_T$")
+    s = s.replace(" sigma", r" $\sigma$")
+    return s
+
+
+def _short_ref(lbl, ours):
+    if ours:
+        return "ours"
+    w = lbl.replace(",", " ").replace(":", " ").split()
+    return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
 
 
 def plot_submodule(key, fd, ax):
+    """Numbered markers + a side legend mapping numbers->refs, so labels never overlap."""
     pts = fd["points"]
-    xs = [p["x"] for p in pts]
-    xmid = 0.5 * (min(xs) + max(xs))
-    for p in pts:
+    for i, p in enumerate(pts, 1):
         ours = bool(p.get("is_ours"))
-        ax.scatter(p["x"], p["y"], s=190 if ours else 90,
-                   marker="*" if ours else "o",
+        ax.scatter(p["x"], p["y"], s=210 if ours else 95, marker="*" if ours else "o",
                    c=RED if ours else PURPLE, edgecolor="black",
                    linewidth=1.1 if ours else 0.7, zorder=4 if ours else 3,
-                   alpha=0.95 if ours else 0.8)
-    # label points; flip to the left for right-side points so text never clips
-    for i, p in enumerate(pts):
-        ours = bool(p.get("is_ours"))
-        dy = 11 if (i % 2 == 0) else -17
-        right = p["x"] > xmid
-        ax.annotate(_wrap(p["label"]), (p["x"], p["y"]),
-                    textcoords="offset points",
-                    xytext=(-9 if right else 9, dy),
-                    ha="right" if right else "left",
-                    fontsize=7.2, color=RED if ours else "0.25",
-                    fontweight="bold" if ours else "normal",
-                    zorder=5)
+                   alpha=0.95 if ours else 0.85, label=f"{i}. {_short_ref(p['label'], ours)}")
+        ax.annotate(str(i), (p["x"], p["y"]), textcoords="offset points", xytext=(5, 4),
+                    fontsize=8, color=RED if ours else "0.2", fontweight="bold", zorder=5)
     if LOGY.get(key):
         ax.set_yscale("log")
-    ax.set_xlabel(fd["x_label"], fontsize=9)
-    ax.set_ylabel(fd["y_label"], fontsize=9)
+    ax.set_xlabel(_mathify(fd["x_label"]), fontsize=9)
+    ax.set_ylabel(_mathify(fd["y_label"]), fontsize=9)
     ax.set_title(TITLE.get(key, key))
-    ax.margins(0.22)
+    ax.margins(0.16)
+    ax.legend(loc="center left", bbox_to_anchor=(1.01, 0.5), fontsize=8,
+              framealpha=0.9, handletextpad=0.3, labelspacing=0.45, borderpad=0.4)
 
 
 def main():
@@ -88,12 +80,8 @@ def main():
     for sm in survey["submodules"]:
         key = sm["key"]
         fd = json.loads(sm["compare"]["figure_data"])
-        fig, ax = plt.subplots(figsize=(7.6, 5.2))
+        fig, ax = plt.subplots(figsize=(9.8, 5.2))
         plot_submodule(key, fd, ax)
-        # legend proxy
-        ax.scatter([], [], marker="*", s=190, c=RED, edgecolor="black", label="our design")
-        ax.scatter([], [], marker="o", s=90, c=PURPLE, edgecolor="black", label="published designs")
-        ax.legend(loc="best", fontsize=8.5, framealpha=0.9)
         fig.tight_layout()
         out = OUT / f"design_cmp_{key}.png"
         fig.savefig(out, dpi=200, bbox_inches="tight")
