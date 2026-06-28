@@ -6,8 +6,10 @@ substrate is a generic temporal processor rather than a single-task construction
 
   (a) Mackey-Glass chaotic prediction -- target vs readout trace
   (b) Mackey-Glass NRMSE vs prediction horizon
-  (c) information-processing-capacity decomposition (linear / quadratic / cubic),
-      mean-field vs real device
+  (c) memory & nonlinear-capacity decomposition (linear / quadratic / cubic),
+      mean-field vs real device -- summed held-out r^2 by polynomial degree
+      (a practical capacity proxy, not the orthonormalised Dambre IPC; see
+      ``capacities`` below)
   (d) total capacity vs operating-point bias -- linear capacity trades for
       nonlinear capacity, total roughly conserved
 
@@ -55,7 +57,16 @@ def _r2(X, y, *, alpha=1e-4, split=0.6):
 
 
 def capacities(X, u, *, k_lin=20, k_nl=6):
-    """Practical IPC decomposition: summed r^2 by polynomial degree."""
+    """Practical capacity proxy: summed held-out r^2 by polynomial degree.
+
+    This sums held-out r^2 over RAW delayed monomials (u[t-k], u[t-k1]u[t-k2],
+    ...). It is a convenient, reproducible measure of how much linear and
+    nonlinear memory the reservoir exposes, but it is NOT the Dambre et al.
+    information-processing capacity (IPC): the raw monomials are non-orthogonal,
+    so the per-degree sums double-count shared variance and are not bounded by
+    the reservoir rank the way orthonormalised-Legendre IPC is. Reported as a
+    comparative proxy (mean-field vs device, bias sweep), not an absolute IPC.
+    """
     c1 = sum(_r2(X[k:], u[:-k] if k else u) for k in range(1, k_lin + 1))
     c2 = 0.0
     for k1, k2 in combinations_with_replacement(range(1, k_nl + 1), 2):
@@ -136,8 +147,8 @@ def main() -> None:
     ax[1, 0].bar(xpos + 0.2, c_st, width=0.4, color=LILAC, label="device (ens=128)")
     ax[1, 0].set_xticks(xpos)
     ax[1, 0].set_xticklabels(deg)
-    ax[1, 0].set_ylabel("information-processing capacity")
-    ax[1, 0].set_title("Capacity by polynomial degree")
+    ax[1, 0].set_ylabel(r"summed held-out $r^2$ (capacity proxy)")
+    ax[1, 0].set_title("Memory & nonlinear capacity by degree")
     ax[1, 0].legend(fontsize=10)
     ax[1, 0].grid(alpha=0.3, axis="y")
 
@@ -151,7 +162,7 @@ def main() -> None:
     ax[1, 1].legend(fontsize=9)
     ax[1, 1].grid(alpha=0.3)
 
-    fig.suptitle("sMTJ reservoir: benchmark breadth and processing capacity",
+    fig.suptitle("sMTJ reservoir: benchmark breadth and capacity",
                  fontsize=14, y=0.99)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     out = REPO / "figures" / "18_rc_benchmarks.png"

@@ -1,10 +1,14 @@
 """Tests for :mod:`smtj_pbnn_sim.device.variation`.
 
 The wafer-level statistics produced by the variation sampler must match
-the joint model of Chapter 2.3:
+the joint model of Chapter 2.3. In ``delta`` mode the Delta draw sets the
+per-cell *spread* but the *mean* is recentred on the calibrated operating
+point the write-DAC uses (not the bare Neel-Brown half-switch voltage):
 
-    mean(beta_s_per_cell)  ~  eta_c * beta_NB_analytic
-    CV(V_T_per_cell)        ~  CV(Delta) / 1   (since beta_NB ~ Delta)
+    mean(V_th_per_cell)    ~  V_th_nom        (recentred; not the 843 mV NB value)
+    mean(V_T_per_cell)     ~  V_T_nom
+    mean(beta_s_per_cell)  ~  1 / V_T_nom
+    CV(V_T_per_cell)        ~  CV(Delta)       (since beta_s ~ Delta)
 
 at the PDK baseline CV(Delta) = 7.7 %.
 """
@@ -26,20 +30,39 @@ T_P   = 0.75e-9
 ETA_C = 5.34
 
 
-def test_delta_mode_mean_beta_matches_joint_prediction():
-    """20 000-sample mean beta_s should match eta_c * 2 ln(2) * Delta / V_c0."""
+def test_delta_mode_recenters_on_calibrated_operating_point():
+    """delta-mode must recentre the field MEAN on (V_th_nom, V_T_nom), the
+    operating point the write-DAC uses -- not the bare NB half-switch voltage
+    (843 mV for Device A), which would impose a ~50 mV systematic bias."""
+    V_th_nom, V_T_nom = 0.894, 1.0 / 44.6
+    cfg = VariationConfig(mode="delta", cv_delta=0.077, seed=42)
+    fields = VariationSampler(cfg).sample(
+        shape=(20_000,),
+        V_th_nom=V_th_nom, V_T_nom=V_T_nom,
+        R_P_nom=4.9e3, TMR_nom=1.0,
+        Delta_nom=DELTA, V_c0_nom=V_C0, tau_0=TAU_0, t_p=T_P, eta_c=ETA_C,
+    )
+    # Mean V_th must sit at the calibrated centre, not the 843 mV NB value.
+    assert abs(float(fields.V_th.mean()) - V_th_nom) < 2e-3
+    assert float(fields.V_th.mean()) > 0.88        # not the 843 mV NB centre
+    assert abs(float(fields.V_T.mean()) - V_T_nom) / V_T_nom < 0.02
+
+
+def test_delta_mode_mean_beta_matches_recentred_slope():
+    """20 000-sample mean beta_s should match the recentred 1 / V_T_nom."""
+    V_T_nom = 1.0 / 44.6
     cfg = VariationConfig(mode="delta", cv_delta=0.077, seed=42)
     sampler = VariationSampler(cfg)
     fields = sampler.sample(
         shape=(20_000,),
-        V_th_nom=0.894, V_T_nom=1.0 / 44.6,
+        V_th_nom=0.894, V_T_nom=V_T_nom,
         R_P_nom=4.9e3, TMR_nom=1.0,
         Delta_nom=DELTA, V_c0_nom=V_C0,
         tau_0=TAU_0, t_p=T_P, eta_c=ETA_C,
     )
     beta_per_cell = 1.0 / fields.V_T
-    expected = ETA_C * 2.0 * math.log(2.0) * (DELTA / V_C0)
-    # Within 1% of the analytic mean (statistical noise at N=20k).
+    expected = 1.0 / V_T_nom
+    # Within 1% of the recentred mean (statistical noise at N=20k).
     assert abs(beta_per_cell.mean() - expected) / expected < 0.01
 
 

@@ -26,9 +26,11 @@ implemented and exposed:
 
        beta_s_predicted = eta_c * beta_s_NB_analytic,
 
-   where eta_c ~ 5.34 (Chapter 2.3, primary reference) accounts for the
-   physics not contained in the single-domain Gumbel distribution of NB
-   (sub-domain co-switching, weak voltage-dependent attempt frequency, ...).
+   where eta_c accounts for the physics not contained in the single-domain
+   Gumbel distribution of NB (sub-domain co-switching, weak voltage-dependent
+   attempt frequency, ...). It is fixed by matching the analytic
+   beta_NB = 7.94 V^-1 to the measured operating-point slope beta_s = 44.6 V^-1
+   (Chapter 2.3, Device A P->AP, 0.75 ns), giving eta_c = 44.6/7.94 = 5.62.
    This bridge is what allows the Sigmoid model to inherit the V_th(t_w)
    scaling of NB while preserving the measured slope.
 

@@ -27,7 +27,7 @@ device:
     Delta_nom: 4.91
     V_c0_nom:  0.857
     tau_0:     1.0e-9
-  eta_c: 5.34
+  eta_c: 5.62       # = 44.6 / 7.94 (bridges analytic NB slope to measured beta_s)
   resistance:
     R_P_nom: 4.9e3
     TMR_nom: 1.0

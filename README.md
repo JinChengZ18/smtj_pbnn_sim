@@ -63,7 +63,7 @@ python experiments/14_rc_prototype.py            # viability: memory capacity, N
 python experiments/15_rc_device_optimization.py  # barrier / timescale matching guidance
 python experiments/16_rc_hardware_ppa.py         # sMTJ-RC vs digital ESN energy
 python experiments/17_rc_robustness.py           # D2D variation + read-noise limits
-python experiments/18_rc_benchmarks.py           # Mackey-Glass + IPC capacities
+python experiments/18_rc_benchmarks.py           # Mackey-Glass + memory/nonlinear capacity (summed-r^2 proxy)
 python experiments/19_rc_temperature.py          # temperature as a tau knob
 python experiments/20_write_ir_drop.py           # write-line IR drop + IR-aware pre-distortion
 

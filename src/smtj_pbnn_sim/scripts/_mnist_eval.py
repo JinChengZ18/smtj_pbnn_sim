@@ -25,7 +25,7 @@ def _device_params_from_cfg(dev_cfg: dict) -> DeviceLayerParams:
         R_SOT_nom=float(res.get("R_SOT", 776.0)),
         Delta_nom=float(nb.get("Delta_nom", 4.91)),
         V_c0_nom=float(nb.get("V_c0_nom", 0.857)),
-        eta_c=float(dev_cfg.get("eta_c", 5.34)),
+        eta_c=float(dev_cfg.get("eta_c", 5.62)),
         tau_0=float(nb.get("tau_0", 1.0e-9)),
         t_p=float(op.get("t_p", 0.75e-9)),
     )

@@ -1,4 +1,4 @@
-"""Write-line IR-drop model (sky130-grounded resistive ladder).
+"""Write-line IR-drop model (sky130-grounded, first-order droop).
 
 Metal write-line resistance droops the delivered write voltage along a column: a cell at row ``r``
 sees ``V_target - I_wr * R_par(r)``, where ``R_par(r)`` is the cumulative line resistance to that
@@ -9,7 +9,9 @@ write-line resistance of ~128 ohm at N=256 on met2 / 1 um width -- 16.5% of the 
 about 148 mV -- which pulls the remote write point below the calibrated 0.896 V threshold and shifts
 the switching-probability Sigmoid, raising the remote write-error rate.
 
-This module provides (i) the grounded resistive-ladder solver, (ii) the per-row delivered-voltage and
+This module provides (i) the first-order droop estimate (a single write current ``I_wr=V_target/R_SOT``
+flowing through the cumulative line resistance to each row -- a conservative droop that ignores the
+distributed current re-injection of a full ladder solve), (ii) the per-row delivered-voltage and
 switching-probability profile, and (iii) the IR-aware per-row write *pre-distortion* that restores the
 target voltage at every row. It is exercised by ``experiments/20_write_ir_drop.py`` and can be applied
 to a per-cell probability map via :func:`apply_write_ir`.

@@ -86,6 +86,41 @@
 
 ---
 
+## S — 多智能体仿真器评估与修正 (2026-06-28)
+
+> 一次按同类仿真器规范 (DNN+NeuroSim 的逐算子能量/校准-占位纪律、IBM aihwkit 硬件感知训练、
+> Sandia CrossSim/MemTorch 的交叉阵列非理想、p-bit 与 RC 文献) 对 `smtj_pbnn_sim` 的独立评估：
+> 6 个维度并行评审 + 对每条高/严重发现做对抗式代码核查。**总体判定：六维一致为「基本合理、存在可控缺口」**——
+> 核心物理/数学正确、校准-占位卫生诚实、方法学可与 NeuroSim/aihwkit 对标；缺口具体且收敛。
+> 本节登记**已修**、**经核查被驳回**、与**有据缓办**三类结果。
+
+### S-A 本次已修 (代码 + 必要的论文/图回填)
+
+| 编号 | 级别 | 问题 | 修正 | 位置 |
+|---|---|---|---|---|
+| DPM-01 | 高 | delta 变异模式直接以裸 NB 半切电压 (843 mV) 为每单元 $V_\mathrm{th}$ 中心，较写-DAC 实际使用的标定中心 (894 mV) 系统性偏低约 50 mV，使整个变异研究带偏置 | 变异场**均值锚定到标定工作点** $(V_\mathrm{th,nom},V_T)$、仅以 $\Delta$ 离散驱动**单元间离散**：$V_\mathrm{th}=V_\mathrm{th,nom}+(V_\mathrm{th}^\mathrm{NB}-\overline{V_\mathrm{th}^\mathrm{NB}})$、$V_T=V_{T,\mathrm{nom}}\Delta_\mathrm{nom}/\Delta$ (eta_c 在此比值中抵消)。从源头消除偏差，取代原「重抽+推理禁用」的绕行 | `device/variation.py`；回归测试 `tests/test_variation.py`；论文 `chapter04.md` §4.3 易错点段重写 |
+| ARR-1 | 高 | `ir_drop.py` 上次重写为按行签名后，`test_array_pure.py` 4/4 用例仍按旧 `cols=` 签名调用 → 全失败 | 测试改按行签名 (写线沿列向下、随行数标度)，并新增 N=256 提取值钉点 | `tests/test_array_pure.py` |
+| DPM-02 | 中 | eta_c 默认 5.34 与 44.6 V⁻¹ 参考斜率不自洽 (5.34×7.94=42.4≠44.6)，docstring 又声称精确一致 | 以 44.6/7.94=**5.62** 校正 44.6 系列默认/配置 + docstring；自动拟合配置 (β_s=42.71) 的 5.34 自洽，保留 | `arrhenius.py`、`pbnn_linear.py`、`_mnist_{train,eval}.py`、`configs/experiment/mnist_lenet.yaml`、`05a_*` |
+| ARR-2/3/4/5 | 中 | `crossbar.bitline_current` 名为「差分」实为单端 (含共模项)；多处 docstring 过度声明 (resistive-ladder solver、「invoked by full_stack」) | `bitline_current` 改为真差分 (减互补列、共模相消)；更正 docstring 并注明这些是**参考原语、不在训练前向路径上** | `array/crossbar.py`、`array/ir_drop.py`、`array/tile.py`、`array/periphery.py` |
+| RC-02 | 高 | exp18 把「原始单项式上保留 $r^2$ 之和」标注为 Dambre 信息处理容量 (IPC)；论文图5.6/§5.2 据此引 Dambre | 全部更正为「处理容量代理 (各阶延迟单项式保留 $r^2$ 之和)」，明确非正交化 IPC、仅作相对比较；重生图5.6 (风格不变、仅标签) | `experiments/18_rc_benchmarks.py`、`chapter05.md` §5.2/§5.5、图5.6、`README.md` |
+| PPA-3/4 | 中 | 储备池逐器件 sense 与逐节点 ADC 计费口径不一致；5 fJ/器件 sense 来源不明 | 在 docstring 明确读出架构 = **逐器件模拟缓冲 → 节点共享求和线 → 逐节点 SAR ADC** (二者本就自洽)；`e_dev_read` 如实标为数量级占位 (同 DAC/计数器)。**不改能量数** | `ppa/reservoir_energy.py` |
+| — | — | 上次将读出能量地标到 48 fJ 后，`test_per_mac_energy_dominated_by_smtj_write` 阈值 (0.95) 失配 (实为 0.94) | 阈值改 0.9 并注明读出已地标 | `tests/test_ppa.py` |
+
+全套 95 项单元测试通过。图5.6 已重生并复制到 `article/figs/Chapter05_local_06.png` (exp18 带种子、数据不变、仅更正标签与标题)。
+
+### S-B 经对抗核查被驳回 / 无需改 (记录留痕)
+
+- **NN-01**（硬件感知前向对变异不敏感）：核查属实——但论文**已正确表述**为「硬件感知训练使**梯度**感知 D2D 失配」(§4.3、§4.1)，并非声称前向鲁棒；硬-二值前向 + 软-反向 STE 亦如实描述。**无过度声明，无需改**。
+- **NN-02**（θ×100 使全栈塌缩为近确定性）：机理 (θ 缩放推 p 趋饱和) 属实，但「近确定性」结论**被交付稿自身的 T 扫描经验数据驳回**：表4.1 与图 A.3/A.4 显示全栈精度随 T 显著上升 (CIFAR T=1→64：34%→62%)；因 θ~$O(1/\sqrt N)$、θ×100 给 p≈0.96 而非 1，残余逐样本随机性真实且 T 平均确实有效。**故全栈结果确为随机、无需改写**。
+
+### S-C 有据缓办 (登记为已知限制，本次未改)
+
+- **exp05a CNN 附录** (Fashion/CIFAR，用 delta 变异)：DPM-01 重心修正会扰动其变异场，但 (a) 硬件感知训练前向对变异不敏感、(b) θ×100 主导 → 对最终精度影响 <0.1pp、低于附录已声明的逐次运行噪声；CNN 需从头重训 (非仅评估) → 图 A.3/A.4 未重生，eta_c 已为将来重跑更新为 5.62。
+- **PPA-1/PPA-2** (面积/延迟模型未含 ADC/SA/SAR 电容阵列)：真实完整性缺口；面积/延迟现以相对标度报告、绝对值已标占位。待 sky130 SA/ADC 面积与延迟提取后补 `a_*`/`t_*` 项 (镜像已地标的能量项)。
+- **DPM-03/04/06/07、NN-03..08、RC-01/03..07、SE-01..07**：诚实的建模/工程缺口与未来工作 (线性势垒律未对 LLG 交叉验证、D2D 仅单通道无 $R_P$/$\Delta$ 相关、无回声状态属性运行时检查、IPC 未正交化、RC 实验无 seed 清单与 resolved-config、CLT 独立性假设未校验等)。均不改变核心结论，登记备查、择期处理。
+
+---
+
 ## N — 澄清性说明 (非错误，服务于 EDA 工作)
 
 ### N1 — 两个标定工作点 (894 mV / 44.6 V⁻¹  vs  895.8 mV / 42.7 V⁻¹)

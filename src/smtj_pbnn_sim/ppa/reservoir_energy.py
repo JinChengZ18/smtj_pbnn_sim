@@ -12,7 +12,8 @@ physical sMTJs, biased for a step of duration ``dt``:
     E_step =  E_drive + E_dac + E_sense + E_readout
       E_drive   = (V_drive^2 / R_dev) * dt * (n_nodes * ensemble)   # Ohmic bias
       E_dac     = e_dac_step * n_nodes                              # per-node drive set
-      E_sense   = e_dev_read * n_nodes * ensemble                   # light per-device analog read
+      E_sense   = e_dev_read * n_nodes * ensemble                   # per-device readout buffer onto
+                                                                    #   the node's shared summing line
       E_readout = e_int8_mac * n_nodes * n_outputs                  # trained linear layer
                 + adc_nodes_frac * n_nodes * (b*e_adc_comp + 2^b*e_adc_capdac0)  # SAR ADC
 
@@ -49,9 +50,15 @@ class ReservoirHW:
     n_inputs: int = 1
     V_drive: float = 0.05          # typical bias across the MTJ during a step [V]
     R_dev: float = 4900.0          # MTJ read-path resistance [ohm] (R_P)
-    e_dev_read: float = 5.0e-15    # light per-device analog state read [J] (order-of-magnitude;
-                                   # NOT the column StrongARM decision -- that is billed once per
-                                   # ADC conversion below via e_adc_comp, column-shared)
+    e_dev_read: float = 5.0e-15    # per-device analog readout buffer [J] -- a source-follower /
+                                   # sample stage that presents each physical sMTJ's state-current
+                                   # onto the node's shared summing line. Order-of-magnitude
+                                   # placeholder (awaits sky130 extraction, like e_dac_step), NOT
+                                   # the StrongARM decision: digitisation is billed once per logical
+                                   # node by the per-node SAR ADC below (e_adc_comp). The per-device
+                                   # buffer + per-node converter split is the ensemble-analog-sum
+                                   # readout and is internally consistent (buffers are per device,
+                                   # the ADC is per node after the analog sum).
     # --- analog-to-digital readout (grounded in the sky130 StrongARM extraction) -------#
     # The node states must be digitised before the trained linear layer; the earlier model
     # omitted this. A successive-approximation ADC costs b comparisons plus a binary-weighted

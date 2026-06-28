@@ -19,29 +19,36 @@ from smtj_pbnn_sim.array.periphery import DACModel, CounterModel
 
 def test_ir_drop_zero_wire_resistance():
     """No wire resistance -> no droop."""
-    assert estimate_ir_drop(rows=256, cols=256,
-                            r_wire_per_cell=0.0, r_cell=5e3) == 0.0
+    assert estimate_ir_drop(rows=256, r_wire_per_cell=0.0, r_cell=5e3) == 0.0
 
 
-def test_ir_drop_monotone_in_array_size():
-    """Wider array -> more droop."""
-    drops = [estimate_ir_drop(256, c, r_wire_per_cell=0.5, r_cell=5e3)
-             for c in (64, 128, 256, 512)]
+def test_ir_drop_monotone_in_rows():
+    """Taller column (the write line runs down rows) -> more droop."""
+    drops = [estimate_ir_drop(n, r_wire_per_cell=0.5, r_cell=5e3)
+             for n in (64, 128, 256, 512)]
     for a, b in zip(drops, drops[1:]):
         assert a < b
 
 
 def test_ir_drop_in_unit_interval():
     """Result should always be in [0, 1)."""
-    d = estimate_ir_drop(256, 256, r_wire_per_cell=2.0, r_cell=5e3)
+    d = estimate_ir_drop(256, r_wire_per_cell=2.0, r_cell=5e3)
     assert 0.0 <= d < 1.0
 
 
 def test_ir_drop_negligible_for_chapter_2_3_geometry():
-    """At the 256x256 / R_P~5k regime of Chapter 2.3, IR drop should be <5%."""
+    """At the 256-row / R_P~5k read regime of Chapter 2.3, IR drop should be <5%."""
     # r_wire_per_cell ~ 0.1 ohm at 28 nm pitch (order-of-magnitude)
-    d = estimate_ir_drop(256, 256, r_wire_per_cell=0.1, r_cell=4.9e3)
+    d = estimate_ir_drop(256, r_wire_per_cell=0.1, r_cell=4.9e3)
     assert d < 0.05
+
+
+def test_ir_drop_matches_extracted_writeline_at_n256():
+    """Pin the sky130-extracted write-line operating point: round-trip met2
+    R_WIRE_PER_CELL_MET2 over 256 rows is ~16.5% of the 776 ohm SOT branch."""
+    from smtj_pbnn_sim.array.ir_drop import R_WIRE_PER_CELL_MET2, R_SOT
+    d = estimate_ir_drop(256, r_wire_per_cell=R_WIRE_PER_CELL_MET2, r_cell=R_SOT)
+    assert 0.14 < d < 0.18
 
 
 # -----------------------------------------------------------------------------#

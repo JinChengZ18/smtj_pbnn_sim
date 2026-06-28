@@ -84,7 +84,7 @@ class DeviceLayerParams:
     R_SOT_nom: float = 776.0
     Delta_nom: float = 4.91
     V_c0_nom: float = 0.857
-    eta_c: float = 5.34
+    eta_c: float = 5.62              # = 44.6 / 7.94, bridges NB to the measured slope
     tau_0: float = 1.0e-9
     t_p: float = 0.75e-9
     # Non-ideality parameters

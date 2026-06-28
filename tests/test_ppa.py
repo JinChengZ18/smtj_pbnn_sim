@@ -26,10 +26,15 @@ def test_smtj_write_energy_property_matches_chapter():
 
 
 def test_per_mac_energy_dominated_by_smtj_write():
-    """At the chapter operating point, sMTJ write should dominate per-MAC energy."""
+    """At the chapter operating point, the stochastic SOT write should dominate
+    per-MAC energy. The fraction is ~0.94 (not >0.99) because the read term is
+    now grounded in the extracted sky130 StrongARM (48 fJ) rather than the old
+    5 fJ stub -- a visible ~6% secondary term, but the write still dominates."""
     tech = default_28nm()
     e = per_mac_energy(tech)
-    assert tech.e_smtj_write / e > 0.95
+    assert tech.e_smtj_write / e > 0.9
+    # the grounded read is the largest non-write term but stays well below write
+    assert tech.e_smtj_read < 0.1 * tech.e_smtj_write
 
 
 def test_layer_energy_scales_linearly_in_T():

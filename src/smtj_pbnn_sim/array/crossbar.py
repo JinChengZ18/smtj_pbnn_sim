@@ -6,14 +6,19 @@ inner product reduces to
     sum_j w_j x_j  =  2 * popcount(w XNOR x) - N,
 
 which is the standard XNOR-popcount kernel of binary neural network CIM
-macros (e.g., Pham et al. STT-BNN). At the analog level the same operation
-manifests as a bit-line current
+macros (e.g., Pham et al. STT-BNN). At the analog level the signed product is
+realised *differentially* -- a cell and its complement drive two bit-lines and
+the readout takes the difference, so the state-independent common-mode current
+cancels and only the signed term survives:
 
-    I_BL  ~  sum_j G_j(state) * V_read(x_j),
+    I_BL  =  sum_j [ G(+w_j) - G(-w_j) ] * V_read(x_j)  =  2 G_diff * sum_j x_j w_j.
 
-where G_j depends on the cell's magnetic state. Both views are exposed here:
-:func:`xnor_popcount` for the algorithmic equivalent, :func:`bitline_current`
-for the analog-level current sum used by the PPA layer.
+Both views are exposed here: :func:`xnor_popcount` for the algorithmic
+equivalent and :func:`bitline_current` for the differential analog current.
+
+These are reference primitives illustrating the CIM mapping; the trained
+network forward path uses the calibrated probabilistic kernels in
+:mod:`smtj_pbnn_sim.nn`, not this module.
 """
 
 from __future__ import annotations
@@ -39,7 +44,12 @@ def xnor_popcount(x: Tensor, w: Tensor) -> Tensor:
 
 
 def bitline_current(x: Tensor, w: Tensor, mtj: MTJResistance) -> Tensor:
-    """Analog bit-line current sum.
+    """Differential analog bit-line current.
+
+    Each cell ``w`` and its complement ``-w`` drive a positive and a negative
+    bit-line; the readout takes the difference. The common-mode term
+    ``G_mid * sum_j x_j`` (state-independent) cancels exactly, leaving the
+    signed popcount current ``2 * G_diff * sum_j x_j w_j``.
 
     Args:
         x: Input voltages, shape (..., N), nominally x_j * V_read with
@@ -48,7 +58,9 @@ def bitline_current(x: Tensor, w: Tensor, mtj: MTJResistance) -> Tensor:
         mtj: Resistance description.
 
     Returns:
-        Bit-line current tensor of shape (..., M).
+        Differential bit-line current tensor of shape (..., M).
     """
-    G = conductance_from_state(w, mtj)
-    return torch.nn.functional.linear(x, G)
+    G_pos = conductance_from_state(w, mtj)
+    G_neg = conductance_from_state(-w, mtj)
+    linear = torch.nn.functional.linear
+    return linear(x, G_pos) - linear(x, G_neg)

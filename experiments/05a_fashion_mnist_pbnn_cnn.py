@@ -363,7 +363,7 @@ def main() -> None:
         V_th_nom=0.894, V_T_nom=1.0 / 44.6,
         R_P_nom=4.9e3, TMR_nom=1.0, R_SOT_nom=776.0,
         Delta_nom=4.91, V_c0_nom=0.857,
-        eta_c=5.34, tau_0=1.0e-9, t_p=0.75e-9,
+        eta_c=5.62, tau_0=1.0e-9, t_p=0.75e-9,
     )
     vc = VariationConfig(mode="delta", cv_delta=0.077,
                          sigma_RP_rel=0.05, sigma_TMR_rel=0.10, seed=42)

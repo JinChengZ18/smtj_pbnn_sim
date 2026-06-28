@@ -8,9 +8,13 @@ magnetization). The variation is therefore sampled as
 
     Delta_i ~ N( mu_Delta, (CV * mu_Delta)^2 ),
 
-and propagated to per-cell ``(V_th, V_T)`` via the NB->Sigmoid bridge.
-The runtime overhead of the propagation is amortised: the variation field
-is drawn once at array instantiation and held fixed.
+and propagated to per-cell ``(V_th, V_T)``. The drawn ``Delta`` sets the
+per-cell *spread*, but the field *mean* is pinned to the calibrated
+operating point ``(V_th_nom, V_T_nom)`` that the write-DAC centres on, not
+the bare Neel-Brown half-switch voltage (which sits ~50 mV lower); see the
+``delta`` branch below. The runtime overhead of the propagation is
+amortised: the variation field is drawn once at array instantiation and
+held fixed.
 
 Implementation notes
 --------------------
@@ -123,12 +127,26 @@ class VariationSampler:
             Delta_field = np.maximum(
                 _draw_rel(Delta_nom, self.cfg.cv_delta), 0.5
             )
+            # Delta is the dominant process channel; it sets the per-cell SPREAD
+            # of (V_th, V_T). The MEAN, however, is pinned to the calibrated
+            # operating point the write-DAC centres on (V_th_nom, V_T_nom), not
+            # the bare NB half-switch voltage: seating cells at the raw NB V_th
+            # would put every cell ~50 mV below the DAC centre (843 vs 894 mV for
+            # Device A) and impose a spurious systematic bias on the whole
+            # variation study (errata). So recentre the Delta-driven NB field:
             log_term = math.log(t_p / tau_0 / math.log(2.0))
-            V_th = (V_c0_nom * (1.0 - log_term / Delta_field)).astype(np.float32)
-            # Analytic NB slope at V = V_th: beta_NB = 2 ln(2) (Delta/V_c0).
-            beta_NB = 2.0 * math.log(2.0) * (Delta_field / V_c0_nom)
-            beta_s = eta_c * beta_NB
-            V_T = np.maximum(1.0 / beta_s, 1e-4).astype(np.float32)
+            V_th_NB = V_c0_nom * (1.0 - log_term / Delta_field)         # per-cell
+            V_th_NB_nom = V_c0_nom * (1.0 - log_term / Delta_nom)       # at E[Delta]
+            V_th = (V_th_nom + (V_th_NB - V_th_NB_nom)).astype(np.float32)
+            # NB slope beta_s ~ Delta/V_c0, so V_T = 1/beta_s ~ 1/Delta. Carry the
+            # same Delta-driven spread while pinning E[V_T] = V_T_nom:
+            #     V_T = V_T_nom * (Delta_nom / Delta_field).
+            # eta_c and V_c0 cancel in this ratio, so the recentred field no longer
+            # depends on the C2C-narrowing constant (eta_c kept only for signature
+            # back-compatibility; it does not affect the result here).
+            V_T = np.maximum(
+                V_T_nom * (Delta_nom / Delta_field), 1e-4
+            ).astype(np.float32)
         elif self.cfg.mode == "sigmoid_direct":
             V_th = _draw_rel(V_th_nom, self.cfg.sigma_V_th_rel)
             V_T = np.maximum(_draw_rel(V_T_nom, self.cfg.sigma_V_T_rel), 1e-4)
