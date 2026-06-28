@@ -3,7 +3,7 @@
 回答 ③：在没有商用许可证、只用开源工具链的前提下，路线图各阶段能做到哪些、哪些受限。
 
 **开源工具链**：`ngspice ≥ 43` (OSDI) + `OpenVAF-Reloaded` (编译 Verilog-A → `.osdi`) + `sky130` 开源 CMOS PDK
-(做外围晶体管) + `Xschem` (原理图) + `Magic`/`KLayout` (版图/PEX)。安装见 [`SETUP_opensource.md`](SETUP_opensource.md)。
+(做外围晶体管) + `Xschem` (原理图) + `Magic`/`KLayout` (版图/PEX)。安装见 [`../../eda/SETUP_opensource.md`](../../eda/SETUP_opensource.md)。
 
 > 当前机器已安装 ngspice 46 与 OpenVAF-Reloaded `20260616-2-gc592eed6`，并完成
 > Verilog-A → OSDI → ngspice 的端到端回归。

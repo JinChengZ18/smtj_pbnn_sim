@@ -25,7 +25,7 @@
 3. 跑（无需 EDA，确认 Python 侧仍绿）：
    `python eda/testbenches/gen_golden.py && python eda/testbenches/psw_mc_harness.py`
 4. 跑 `python eda/testbenches/run_regression.py`，确认 OSDI 编译和 ngspice DC 扫描仍 PASS（R²≥0.99）。
-5. 读 [`ROADMAP.md`](ROADMAP.md) 找当前阶段，按下方 DoD 推进；每产一个可信数即更新 [`../docs/errata.md`](../docs/errata.md) 与本文件。
+5. 读 [`ROADMAP.md`](ROADMAP.md) 找当前阶段，按下方 DoD 推进；每产一个可信数即更新 [`../../docs/errata.md`](../../docs/errata.md) 与本文件。
 
 ## 决策账本（已钉死，勿重议）
 

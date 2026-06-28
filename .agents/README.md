@@ -2,7 +2,8 @@
 
 > 本目录是**所有维护 agent（Claude / Codex / 其它）对本仓库"项目理解 + 协作管理"文件的唯一归口**。
 > 新接手的 agent：先读本文件 → 再跳到对应领域的「续传点」(§1)。
-> 这里**只放** agent 协作/编排/环境相关的元信息；**项目内容**（EDA 状态、论文、勘误）留在各自目录，本文件只做指针。
+> 这里放 agent 协作/编排/环境元信息，以及 EDA 的**内部规划/状态/调研记录**（`.agents/eda/` —— STATUS、ROADMAP、PLAN_execution、OPEN_SOURCE_FEASIBILITY、MANUAL_SETUP_NEEDED、research/，原在 `eda/` 主目录，现统一归此）。
+> **用户向内容**（论文交付稿 `article/`、复现文档 `docs/` 与各 `README.md`）留在各自目录。
 
 ## 0. 一分钟定位 (where am I)
 - **仓库** `smtj_pbnn_sim` —— sMTJ 概率位神经网络 (PBNN) + 蓄水池计算 (RC) 的**标定行为级仿真器**，
@@ -14,7 +15,7 @@
 ## 1. 续传点 (authoritative resume points — 勿在本文件复制其内容)
 | 领域 | 单一真相源 | 说明 |
 |---|---|---|
-| EDA 晶体管级验证/创新 | `eda/STATUS.md` | **长时程任务唯一续传点**（当前状态 / 决策账本 D1–D8 / 验证账本 / 各阶段 DoD）。读它，再读 `eda/ROADMAP.md`。 |
+| EDA 晶体管级验证/创新 | `.agents/eda/STATUS.md` | **长时程任务唯一续传点**（当前状态 / 决策账本 D1–D8 / 验证账本 / 各阶段 DoD）。读它，再读 `.agents/eda/ROADMAP.md`。 |
 | 论文交付稿 | `article/` | 只放交付内容；**禁止**写本地引用 / TODO / 勘误指针（见 §2）。 |
 | 勘误总表 | `docs/errata.md` | E1/E2 已修；R1–R7 待 EDA 验证；N1–N3 注记。 |
 | Claude-CLI 私有跨会话记忆 | `<user>\.claude\projects\…-smtj-pbnn-sim\memory\` | Claude Code 自动记忆（**仓库外**，按 cwd 派生）。本目录是**仓库内**的跨 agent 通道；二者各自维护、内容保持一致。 |
@@ -36,7 +37,7 @@
   OpenVAF-Reloaded(20260616)、sky130A(`/opt/pdk/sky130A`)、KLayout、**Magic 8.3.668**。
 - **Magic 升级已完成并验证**（2026-06-26）：`/usr/local/bin/magic` = 8.3.668 ≥ 8.3.306，
   sky130A techfile 正常加载 ⇒ Magic/TCL **routing → LVS → PEX** 路线**已解锁**
-  （Magic extract→ext2spice 已实跑通，9 器件 + 寄生 C 提取成功）。详见 `eda/MANUAL_SETUP_NEEDED.md`。
+  （Magic extract→ext2spice 已实跑通，9 器件 + 寄生 C 提取成功）。详见 `.agents/eda/MANUAL_SETUP_NEEDED.md`。
 - **LVS netgen 注意**：`/usr/bin/netgen`(apt) 是**网格生成器**(Schoeberl/Vienna)，**不是** LVS netgen
   (Tim Edwards)。做 LVS 前先确认装了正确的 netgen（open_pdks 版）。
 - **Windows 工具路径**（ngspice/openvaf）记于 `eda/tools.local.json`（gitignored，逐机重建）。
@@ -53,6 +54,6 @@
 - **本会话已落地的真实提取数**：写线 IR-drop（R3，`eda/extraction/writeline/`：N=256→16.5%·776Ω，
   li1 灾难）、SA 版后寄生/能量（R1/R5，`eda/hero/sa_postlayout.py`：35.25fF，23–74fJ/决策）、
   SA 器件集 9→11 + DRC 0 违例 + netgen LVS 工具链打通。
-- **可分步执行清单（带 DoD + 状态）= [`../eda/PLAN_execution.md`](../eda/PLAN_execution.md)**（创新主线
+- **可分步执行清单（带 DoD + 状态）= [`eda/PLAN_execution.md`](eda/PLAN_execution.md)**（创新主线
   A0/A1+A2 Hero/A3 第二篇拆成步骤 + "立即可开工 5 动作"）。**SA 的 routing→全 LVS 是 GUI 收尾**
-  （`eda/hero/layout/LVS_GUI_CHECKLIST.md`）。续传真相源仍是 `eda/STATUS.md`。
+  （`eda/hero/layout/LVS_GUI_CHECKLIST.md`）。续传真相源仍是 `.agents/eda/STATUS.md`。

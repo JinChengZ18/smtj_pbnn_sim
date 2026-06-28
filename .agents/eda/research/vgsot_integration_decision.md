@@ -16,7 +16,7 @@
 
 - ❌ **不把完整 LLG 转写成 Verilog-A**：没必要。`smtj_pbnn_sim` 的紧凑 Sigmoid/NB 模型已经是 LLG 校准后的抽象；电路仿真要的就是这个紧凑层。
 - ❌ **不复用 Hikstor `.va`**：版权 + 确定性 + 别的器件 + Spectre 专用。只把它的**三端拓扑与 @cross 脉宽计时**当写法参考（用于 P2 的 Spectre 路，若将来有许可证）。
-- ✅ **新写一个 MIT 紧凑模型**：已完成 → [`../models/smtj_sot.va`](../models/smtj_sot.va)。复现校准 Sigmoid/τ(V)/⟨s⟩，OpenVAF 安全（随机性在 harness）。本次 Python 金标准对实测 46 点 **R²=0.9919**、写能量 0.783 pJ，均 PASS。
+- ✅ **新写一个 MIT 紧凑模型**：已完成 → [`../../../eda/models/smtj_sot.va`](../../../eda/models/smtj_sot.va)。复现校准 Sigmoid/τ(V)/⟨s⟩，OpenVAF 安全（随机性在 harness）。本次 Python 金标准对实测 46 点 **R²=0.9919**、写能量 0.783 pJ，均 PASS。
 
 ## 决策二：submodule——把 vgsot-sim 挂在 eda/ 下做 ground-truth，不并入核心 sim
 

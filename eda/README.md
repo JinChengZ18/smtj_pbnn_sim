@@ -34,7 +34,6 @@ KLayout 完成，原理图由 Xschem 导出。所有工具均无需商业许可�
 eda/
 ├── README.md
 ├── SETUP_opensource.md        # 工具链安装与运行
-├── research/                  # 调研记录（工具选型、图表惯例、设计验证）
 ├── models/smtj_sot.va         # Verilog-A SOT-MTJ 紧凑模型
 ├── testbenches/               # ngspice 回归、写路径、SAR 电容能量、瞬态波形
 ├── hero/                      # 读出/写-DAC 电路与版图；schematics/ 原理图导出
@@ -60,5 +59,5 @@ eda/
 ## 相关文档
 
 - 工具链：[`SETUP_opensource.md`](SETUP_opensource.md)
-- 调研记录：[`research/`](research/)
+- 内部调研记录与执行计划（agent 协作，不在用户复现路径上）：[`../.agents/eda/`](../.agents/eda/)
 - 勘误与物理标定：[`../docs/errata.md`](../docs/errata.md)、[`../docs/physics_grounding.md`](../docs/physics_grounding.md)
