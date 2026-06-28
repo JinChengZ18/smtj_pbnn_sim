@@ -25,6 +25,22 @@ HERO = REPO / "eda" / "hero"
 WL = REPO / "eda" / "extraction" / "writeline"
 OUT = REPO / "article" / "figs"
 OUT.mkdir(parents=True, exist_ok=True)
+# Raw UNNUMBERED per-panel exports (no (a)(b)(c)); the PPT (article/ppt/, via
+# eda/build_ppt_figs.py) composes these, adds the panel letters + figure number,
+# and exports the numbered figure to article/figs/. See memory: figures carry no
+# baked panel letters -- the deck adds them, for portability.
+PANELS = REPO / "figures" / "panels"
+PANELS.mkdir(parents=True, exist_ok=True)
+
+
+def save_panels(fig, axes, stem):
+    """Save each axes of `fig` as its own PNG (no panel letter) to figures/panels/."""
+    fig.canvas.draw()
+    rend = fig.canvas.get_renderer()
+    for i, axx in enumerate(axes):
+        ext = axx.get_tightbbox(rend).transformed(fig.dpi_scale_trans.inverted())
+        fig.savefig(PANELS / f"{stem}_{'abcdef'[i]}.png", dpi=200,
+                    bbox_inches=ext.expanded(1.06, 1.10))
 
 PURPLE, RED, DEEP, GREEN, LILAC, GOLD = \
     "#5E3F8C", "#A82038", "#9580BD", "#1A6B5A", "#C99FD4", "#D4A017"
@@ -106,7 +122,7 @@ def fig2():
                   label=r"$V_T$ Bernoulli decision window (%.1f mV)" % VT)
     ax[0].axvline(0, color="0.5", ls=":", lw=1)
     ax[0].set_xlabel("input-referred offset (mV)"); ax[0].set_ylabel("density")
-    ax[0].set_title("(a) Spec inversion: budget SA offset against $V_T$, not TMR margin")
+    ax[0].set_title("Spec inversion: budget SA offset against $V_T$, not TMR margin")
     ax[0].legend(fontsize=8.5)
     # (b) accuracy vs V_offset/V_T for each cancellation option at a representative readout
     cond = next(c for c in pa["conditions"] if c["V_in_V"] == 0.5 and "1024" in c["layer"])
@@ -122,11 +138,13 @@ def fig2():
                        textcoords="offset points", xytext=(6, 4))
     ax[1].axhline(0.15, color="0.6", ls="--", lw=1, label="MNIST noise floor 0.15 pp")
     ax[1].set_xlabel(r"residual offset / $V_T$"); ax[1].set_ylabel("accuracy drop vs baseline (pp)")
-    ax[1].set_title("(b) Pareto @ V_in=0.5 V, F=1024 (marker size $\\propto$ area$\\times$energy)")
+    ax[1].set_title("Pareto @ V_in=0.5 V, F=1024 (marker size $\\propto$ area$\\times$energy)")
     ax[1].legend(fontsize=8.5)
-    design_cmp_panel(ax[2], "readout_sa", "(c) Readout SA design space vs literature",
+    design_cmp_panel(ax[2], "readout_sa", "Readout SA design space vs literature",
                      "input-referred offset (×$V_T$)", "readout energy / decision (fJ)", logy=True)
-    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_16.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout()
+    save_panels(fig, ax, "ch04_16")
+    fig.savefig(OUT / "Chapter04_local_16.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -176,7 +194,7 @@ def fig4():
     ax[0].plot(E, MC, "-", color="0.6", lw=1, zorder=1)
     ax[0].set_xscale("log")
     ax[0].set_xlabel("energy per step (fJ)"); ax[0].set_ylabel("memory capacity")
-    ax[0].set_title("(a) Reservoir iso-energy frontier: ADC bits trade MC for energy")
+    ax[0].set_title("Reservoir iso-energy frontier: ADC bits trade MC for energy")
     fig.colorbar(s, ax=ax[0], label="ADC bits b")
     # (b) honest RC-vs-ESN ratio: baseline vs grounded ADC variants
     base = rc["baseline"]["ratio"]
@@ -193,9 +211,12 @@ def fig4():
     ax[1].set_ylabel(r"energy advantage vs digital ESN ($\times$)")
     ax[1].set_title("(b) Reservoir energy advantage with a physical ADC readout")
     ax[1].legend(fontsize=9)
-    design_cmp_panel(ax[2], "sar_adc", "(c) SAR readout design space vs literature",
+    design_cmp_panel(ax[2], "sar_adc", "SAR readout design space vs literature",
                      "SA offset (×$V_T$; 0 = n/r)", "comparator energy (fJ)", logy=True)
-    fig.tight_layout(); fig.savefig(OUT / "Chapter05_local_09.png", dpi=200, bbox_inches="tight")
+    ax[1].set_title("Reservoir energy advantage with a physical ADC readout")
+    fig.tight_layout()
+    save_panels(fig, ax, "ch05_09")
+    fig.savefig(OUT / "Chapter05_local_09.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -223,7 +244,7 @@ def fig5():
         ax[0].annotate(f"remote cells drop\nbelow $V_{{\\mathrm{{th}}}}$ (row $\\gtrsim${rc});\n{drop_mV:.0f} mV end droop",
                        xy=(rc, VTH), xytext=(max(rc - 150, 5), VTH - 0.045), fontsize=8, color=RED)
     ax[0].set_xlabel("cell row in column"); ax[0].set_ylabel("write voltage at cell (V)")
-    ax[0].set_title("(a) Per-row write voltage along a tall column")
+    ax[0].set_title("Per-row write voltage along a tall column")
     ax[0].legend(fontsize=8, loc="lower left")
     # (b) P_sw for three target operating points; pre-distortion holds each at target
     for pt, c in zip((0.5, 0.9, 0.99), (DEEP, RED, PURPLE)):
@@ -236,10 +257,13 @@ def fig5():
     ax[1].set_title("(b) Pre-distortion holds $P_\\mathrm{sw}$ at target across operating points")
     ax[1].legend(fontsize=7.5, loc="center left")
     # (c) write-path design space vs surveyed literature (numbered markers + legend)
-    design_cmp_panel(ax[2], "write_dac_ir", "(c) Write-path design space vs literature",
+    design_cmp_panel(ax[2], "write_dac_ir", "Write-path design space vs literature",
                      "residual remote-row write error on N=256 (mV)",
                      "circuit-layer completeness (0–5)")
-    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")
+    ax[1].set_title("Pre-distortion holds $P_\\mathrm{sw}$ at target across operating points")
+    fig.tight_layout()
+    save_panels(fig, ax, "ch04_18")
+    fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 

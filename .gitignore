@@ -18,3 +18,4 @@ data/fashion_mnist/
 experiments/data/
 .claude/settings.local.json
 .claude/worktrees/
+article/ppt/autofigs_*.pdf
