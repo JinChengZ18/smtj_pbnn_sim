@@ -1,6 +1,6 @@
 # 附录A 代码与数据可用性
 
-本文的全部仿真、训练与电路评估均可由公开代码与公开数据复现。本附录给出软件构成、运行环境与逐项结果的复现入口，使审阅者无需额外约定即可重跑核心结论。
+本文的全部仿真、训练与电路评估均可由公开代码与公开数据复现。本附录给出软件构成、运行环境与逐项结果的复现入口。
 
 ## A.1 软件构成
 
@@ -15,9 +15,11 @@
 
 ## A.2 运行环境
 
-- Python 3.10 及以上；核心依赖为 PyTorch、NumPy、SciPy、Matplotlib、pandas (网络/仿真) 与 PyYAML。
-- 数据集训练在单张消费级 GPU 或 CPU 上即可完成；本文 MNIST 与表格任务的单次训练在分钟量级。
-- 电路评估在 Linux 环境 (本文使用 WSL Ubuntu) 下通过原生 ngspice 与 sky130A PDK 运行；Windows 侧仅用于纯文本/绘图脚本。
+Python 3.10 及以上；核心依赖为 PyTorch、NumPy、SciPy、Matplotlib、pandas (网络/仿真) 与 PyYAML。
+
+数据集训练在单张消费级 GPU 或 CPU 上即可完成；本文 MNIST 与表格任务的单次训练在分钟量级。
+
+电路评估在 Linux 环境 (本文使用 WSL Ubuntu) 下通过原生 ngspice 与 sky130A PDK 运行；Windows 侧仅用于纯文本/绘图脚本。
 
 ## A.3 关键结果的复现入口
 
