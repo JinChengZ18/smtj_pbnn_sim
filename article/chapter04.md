@@ -216,7 +216,23 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 排名显示四点信息。其一，SRAM-CIM以6.71J排在最便宜位置但其易失，在无写保持成本的训练阶段占优，部署阶段需要外部刷新，不在本表的统计范围；在非易失架构中STT-MRAM以10.42J最低。其二，PBNN sMTJ以11.91J排在第四，是STT-MRAM的1.14倍——所有非易失CIM选项中PBNN比STT-MRAM贵14%，比ReRAM、PCRAM都更低，与FeRAM几乎持平。这一定位与4.5节的鲁棒性结果合起来给出明确的取舍：为换取在比特翻转率5%至10%下精度保持在97%以上的属性 (对照FP-NN在同一条件下的52.32%)，付出14%的训练能耗溢价是合理的。其三，把PBNN的随机源从sMTJ换为CMOS p-bit ASIC，总能耗升至49.52J，是sMTJ的4.2倍，这4.2倍是磁性器件相对CMOS的物理优势：sMTJ的Ohmic写能是$$V^2 t/R$$，在第二章工作点上算出$$0.78\,\mathrm{pJ}$$，而具有可比噪声裕度的CMOS Bernoulli发生器在同等时钟下需要约$$5\,\mathrm{pJ}$$。其四，以PCRAM作权重存储的FP-NN (56.44J) 和以随机ReRAM作概率源的PBNN (452.80J) 都在训练阶段成本不可承受，因为它们的per-cell写能在50至100pJ量级，无法承受每个mini-batch里数十亿次的读写。
 
-## 4.6 本章小结
+## 4.6 外围电路的器件—电路协同设计与开源验证
+
+前述各节在器件与阵列的行为级抽象上评估了精度、鲁棒性与能效，其中外围电路的能量与非理想性以工艺数量级常数代入。本节把这一层落到晶体管级：在全开源工艺设计套件 (SkyWater sky130) 上，让器件物理的定量结论去驱动读出与写入外围的电路设计，并以ngspice晶体管级仿真与版图寄生提取加以验证，使4.3节中以占位常数表示的外围项获得可信替代。器件侧并行保留两套模型，一套是对实测数据回归的代数紧凑模型，承担全部电路与系统迭代，另一套是宏自旋Landau–Lifshitz–Gilbert随机动力学求解器，物理上更完整、计算量更大，专用于交叉验证；在0.75 ns自旋轨道矩写脉冲下两模型的判决阈值相差约0.2 mV，约为判决窗$$V_T=23.4\,\mathrm{mV}$$的百分之一，足以支持以代数模型驱动整条设计流程。
+
+概率位判决正确与否的尺度，是器件开关概率Sigmoid的斜率所定义的伯努利判决窗$$V_T$$，而非确定性隧穿磁阻读出余量。这一规格替换是读出设计的出发点：读出灵敏放大器的输入折合失调应按$$V_T$$预算。这与既有概率位存内计算的读出处理不同，后者或以隧穿磁阻余量保证读出裕度而把比较器当作理想[^pbnn_cim]，或在训练侧补偿器件Sigmoid的斜率与位移却仍假设理想比较器[^pbit_var]，均未把比较器失调规格与器件Sigmoid斜率联系起来。在sky130上实现StrongARM锁存比较器[^strongarm]，对输入对与锁存管阈值失配做120次蒙特卡洛 (Pelgrom面积反比律[^pelgrom]，失配系数取该工艺量级)，得到输入折合失调$$\sigma_\mathrm{off}=9.21\,\mathrm{mV}=0.39\,V_T$$。即未经失调消除的平凡比较器，其失调已与判决窗同量级，会以每输出列一个系统性阈值偏移的形式注入误差，恰是4.5节判定为致命的那一类误差。
+
+关键在于这一失调能否被读出链路吸收。以电流灵敏读出的跨阻$$R_\mathrm{TI}$$为桥，把毫伏失调折算到popcount域，有$$\sigma_\mathrm{pc}=\sigma_\mathrm{off}\cdot 2\,\mathrm{PC_{FS}}/V_\mathrm{in}$$，其中$$\mathrm{PC_{FS}}\approx 3\sqrt F$$为扇入$$F$$决定的满量程popcount，$$V_\mathrm{in}$$为比较器差分输入范围，跨阻取动态范围允许的最大增益。这给出一条协同设计准则：跨阻增益由扇入设定，并据此判定何时平凡比较器即足够。取扇入1024、$$V_\mathrm{in}=0.6\,\mathrm V$$，准则给出$$R_\mathrm{TI}=613\,\Omega$$；在sky130上以popcount正比的差分电流驱动该前端并扫描，提取失调在整条链路中映射到约2.5个popcount，落在精度曲线膝点之下，从晶体管级确认了在该扇入与输入范围下平凡比较器即足够 (图4.16)。因此对常见扇入与$$V_\mathrm{in}\ge0.5\,\mathrm V$$，平凡比较器即为帕累托最优；仅在低压、宽扇入、增益欠预算的列才需启用失调消除，可只在越过膝点的列触发单容自调零 (隐藏于地址译码、较双容方案省约15%面积、无时序代价[^autozero])，其余列直接用裸比较器，从而把磁存储读出中始终开启的失调消除[^autozero]改为按扇入与斜率条件触发；更高分辨的双StrongARM锁存可把基线失调再降约30%[^dsa]，属可选拓扑替换。读出端省下的校准由写端补上：每列残余的系统性阈值偏移折叠进写数模转换器的逐列3至4位静态微调，其附加开关能量不足单次写能量的1%。
+
+![图4.15 StrongARM灵敏放大器电路（sky130，由Xschem导出）](figs/Chapter04_local_15.png)
+
+**图4.15** 斜率匹配概率位读出所用的StrongARM灵敏放大器：差分输入对、交叉耦合再生锁存、四个时钟控预充PMOS与一个尾电流源，器件均为sky130工艺单元，标注沟道宽长比。
+
+![图4.16 斜率匹配读出的失调预算与帕累托](figs/Chapter04_local_16.png)
+
+**图4.16** (a) sky130 StrongARM输入折合失调 ($$0.39\,V_T$$) 与判决窗$$V_T$$的相对关系，按$$V_T$$而非磁阻余量预算失调。(b) 扇入1024、$$V_\mathrm{in}=0.5\,\mathrm V$$下四种失调消除方案的精度跌幅对剩余失调，除最低压宽扇入区外跌幅均在统计涨落内，平凡比较器位于帕累托前沿。
+
+## 4.7 本章小结
 
 本章把全文主线下同一硬件单元在机器学习推断任务上的可达性能与边界这一问题，落到一条端到端硬件仿真流水线之上。其关键设计是让软件基线、硬件感知与全栈评估三档模式共享同一份潜参数检查点：三档既共用$\boldsymbol{\Theta}$张量，也借助硬二值STE技巧复用BN滑动统计，使训练所得检查点无需重新训练即可切换到真实硬件语义下加以评估。这一安排避免了硬件感知训练中常见的训练与推理语义不一致带来的偏差，使同一仿真器能够同时服务于训练循环、PPA估算与鲁棒性扫描。配套的CLT高斯化前向把训练阶段的$T$次显式Bernoulli抽样压缩为一次解析近似，使每步训练复杂度回到与确定性矩阵乘法相近的量级——这是PBNN由算法可行但训练昂贵推进到训练代价与确定性BNN持平的关键。
 
@@ -234,6 +250,18 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 [^brown1963]: Brown W F. Thermal fluctuations of a single-domain particle. *Physical Review*, 1963, 130(5): 1677–1686. [doi:10.1103/PhysRev.130.1677](https://doi.org/10.1103/PhysRev.130.1677)
 [^krizakova2022]: Krizakova V, Perumkunnil M, Couet S, Gambardella P, Garello K. Spin-orbit torque switching of magnetic tunnel junctions for memory applications. *Journal of Magnetism and Magnetic Materials*, 2022, 562: 169692. [doi:10.1016/j.jmmm.2022.169692](https://doi.org/10.1016/j.jmmm.2022.169692)
+
+[^pbnn_cim]: Gu Y, et al. A probabilistic binary neural network based on SOT-MRAM compute-in-memory. arXiv:2403.19374, 2024（以隧穿磁阻余量保证读出、比较器理想化）。
+
+[^pbit_var]: Automatic extraction and compensation of p-bit device variations in large Boltzmann-machine arrays. arXiv:2410.16915, 2024（在训练侧补偿Sigmoid斜率与位移，假设理想比较器）。
+
+[^strongarm]: Razavi B. The StrongARM latch [A circuit for all seasons]. *IEEE Solid-State Circuits Magazine*, 2015, 7(2): 12–17. [doi:10.1109/MSSC.2015.2418155](https://doi.org/10.1109/MSSC.2015.2418155). StrongARM锁存是时钟触发的动态再生锁存比较器，判决稳定后无直流通路、静态功耗为零，是存储器与存内计算灵敏放大的主流拓扑，失调主要来自输入对与锁存管的阈值失配。
+
+[^pelgrom]: Pelgrom M J M, Duinmaijer A C J, Welbers A P G. Matching properties of MOS transistors. *IEEE Journal of Solid-State Circuits*, 1989, 24(5): 1433–1439. [doi:10.1109/JSSC.1989.572629](https://doi.org/10.1109/JSSC.1989.572629). 失配标准差与器件面积平方根成反比，$$\sigma_{\Delta V_\mathrm{th}}=A_{V_T}/\sqrt{WL}$$。
+
+[^dsa]: A low-voltage low-offset dual strong-arm latch comparator. *IEEE Asian Solid-State Circuits Conference (A-SSCC)*, 2017（28 nm FDSOI，实测输入失调约8.5 mV，较常规StrongARM低约30%）。
+
+[^autozero]: Dong Q, et al. A 1 Mb 28 nm STT-MRAM with 2.8 ns read using a single-cap offset-cancelled sense amplifier. *IEEE International Solid-State Circuits Conference (ISSCC)*, 2018（失调标准差降逾60%、较双容自调零省约15%面积、自调零相位隐藏于译码无时序代价；按约2×隧穿磁阻余量预算、自调零始终开启）。
 [^cim_neurosim_validation]: Lu A, Peng X, Li W, Jiang H, Yu S. NeuroSim simulator for compute-in-memory hardware accelerator: validation and benchmark. *Frontiers in Artificial Intelligence*, 2021, 4: 659060. [doi:10.3389/frai.2021.659060](https://doi.org/10.3389/frai.2021.659060)
 [^cim_dnn_neurosim_v2]: Peng X, Huang S, Jiang H, Lu A, Yu S. DNN+NeuroSim V2.0: an end-to-end benchmarking framework for compute-in-memory accelerators for on-chip training. *IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems*, 2021, 40(11): 2306–2319. [doi:10.1109/TCAD.2020.3043731](https://doi.org/10.1109/TCAD.2020.3043731)
 [^cim_neurosim_v15]: Read J, Lee M-Y, Huang W-H, Luo Y-C, Lu A, Yu S. NeuroSim V1.5: improved software backbone for benchmarking compute-in-memory accelerators with device and circuit-level non-idealities. *arXiv preprint*, 2025. [arXiv:2505.02314](https://arxiv.org/abs/2505.02314)
