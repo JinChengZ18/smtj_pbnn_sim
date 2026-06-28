@@ -4,6 +4,27 @@ Web survey (8 representative arxiv/journal papers, 2023–2026) of how the field
 CIRCUIT/ARRAY figures, to guide the thesis architecture figure (task ②) and the fig-4.1 augmentation
 (task ④). Internal record; deliverable figures live in article/.
 
+## Project production norms (BINDING — how our deliverable figures are built)
+These are hard rules for every figure under `article/figs/`; they override the survey below on conflict.
+1. **No baked panel letters or figure numbers in generator output.** Generators emit clean panels
+   (descriptive titles only) to `figures/` (analysis) or as vector SVG (schematics). The `(a)(b)(c)`
+   letters are added only in the chapter decks `article/ppt/Chapter0{4,5}_local.pptx`; the figure number
+   lives in the markdown caption. Rationale: rearrange/renumber panels without regenerating code.
+2. **No hard-coded document/draft strings rendered into an image** — never draw "Chapter 04", "图4.18",
+   "supplement", "fig 12", a filename, etc. onto the plot. (Such strings inside a docstring or a
+   `savefig(...)` path are fine — only RENDERED text is forbidden.) The image shows only its own content.
+3. **No Chinese in any deliverable figure product.** All in-image text is English; Chinese lives in the
+   caption. (The vendored `eda/vendor/vgsot-sim` Chapter-02 scripts are separate upstream, out of scope.)
+4. **Comparison plots label points directly, never via a legend** — short design name beside each marker
+   (leader lines if needed), de-collide overlapping markers, and never show two indistinguishable "ours"
+   points (disambiguate, e.g. "ours" vs "ours (auto-zero)").
+5. **In-figure math uses real subscripts, never "_" form** — `$V_\mathrm{th}$` (matplotlib) or
+   `<tspan baseline-shift="sub">` (SVG); never a literal "V_th".
+6. **Pipeline:** `eda/gen_supplement_figs.py` emits letter-free panels to `figures/panels/`;
+   `eda/build_ppt_figs.py` appends them to the chapter deck and exports each appended slide (clipped to
+   the panel row) to `article/figs/`. Circuit schematics keep their vector .svg/.pdf pipeline and are NOT
+   routed through the deck (no rasterization).
+
 ## Per-paper notes
 - **arXiv:2511.03203** (SOT-MRAM spiking CIM macro, 28 nm): architecture = block/dataflow, 128×128
   crossbar grid centre + peripheral functions as labelled boxes, grayscale. Cells transistor-level
