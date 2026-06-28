@@ -1,35 +1,97 @@
-"""IR-drop model (optional).
+"""Write-line IR-drop model (sky130-grounded resistive ladder).
 
-Wire-resistance-induced voltage droop on metal lines becomes meaningful at
-sub-array sizes above ~512x512 in advanced nodes, or with low-resistance
-MTJ stacks. For the default 256x256 / R_P ~ 5 kohm operating point used in
-this thesis it can be neglected at the single-bit readout level.
+Metal write-line resistance droops the delivered write voltage along a column: a cell at row ``r``
+sees ``V_target - I_wr * R_par(r)``, where ``R_par(r)`` is the cumulative line resistance to that
+row. At the thesis *read* operating point the popcount-path droop is negligible (256x256, R_P in the
+kohm range), but the *write* line is significant at tall columns. sky130 ``extresist`` extraction
+(``eda/extraction/writeline/``; poly self-check 47.96 vs 48.2 ohm/sq) gives a round-trip (BL+SL)
+write-line resistance of ~128 ohm at N=256 on met2 / 1 um width -- 16.5% of the 776 ohm SOT branch,
+about 148 mV -- which pulls the remote write point below the calibrated 0.896 V threshold and shifts
+the switching-probability Sigmoid, raising the remote write-error rate.
 
-This module is left as a documented stub. To enable IR-drop modeling,
-implement a simple resistive-ladder per-row solver and call it from
-:meth:`smtj_pbnn_sim.array.tile.Tile.mac` before the `linear` call.
-
-Reference:
-    Wan et al., "Scaling limits of memristor-based routers for
-    asynchronous neuromorphic systems", arXiv:2307.08116, 2023.
+This module provides (i) the grounded resistive-ladder solver, (ii) the per-row delivered-voltage and
+switching-probability profile, and (iii) the IR-aware per-row write *pre-distortion* that restores the
+target voltage at every row. It is exercised by ``experiments/20_write_ir_drop.py`` and can be applied
+to a per-cell probability map via :func:`apply_write_ir`.
 """
 
 from __future__ import annotations
 
+import math
+from typing import TYPE_CHECKING, List
 
-def estimate_ir_drop(rows: int, cols: int, r_wire_per_cell: float,
-                     r_cell: float) -> float:
-    """First-order estimate of worst-case IR drop along a row.
+if TYPE_CHECKING:                      # keep the module importable without torch (see array/__init__)
+    from torch import Tensor
 
-    Args:
-        rows: Number of rows in the crossbar.
-        cols: Number of columns.
-        r_wire_per_cell: Metal resistance per cell pitch [ohm].
-        r_cell: Equivalent cell resistance [ohm].
+# --- sky130-extracted write-line + calibrated device constants ------------------------------------#
+R_WIRE_PER_CELL_MET2 = 0.5      # ohm per cell pitch, round-trip BL+SL, met2 @1 um (extresist: N=256 -> 128 ohm)
+R_SOT = 776.0                   # SOT write-branch resistance [ohm] (Chapter 2.3)
+V_TH = 0.8958                   # calibrated write threshold [V] (Chapter 2.3 / errata)
+V_T = 0.02341                   # Bernoulli decision window [V]; Sigmoid slope beta_s = 1/V_T
 
-    Returns:
-        Worst-case voltage-droop fraction in [0, 1).
-    """
-    # Sum of arithmetic series for a uniformly loaded line.
-    r_line = r_wire_per_cell * cols
+
+def r_par(row: int, r_wire_per_cell: float = R_WIRE_PER_CELL_MET2) -> float:
+    """Cumulative write-line parasitic resistance to ``row`` [ohm] (row 0 = driven end)."""
+    return r_wire_per_cell * (row + 1)
+
+
+def estimate_ir_drop(rows: int, r_wire_per_cell: float = R_WIRE_PER_CELL_MET2,
+                     r_cell: float = R_SOT) -> float:
+    """Worst-case (farthest row) IR-droop fraction of the delivered write voltage, in [0, 1)."""
+    r_line = r_wire_per_cell * rows
     return r_line / (r_line + r_cell)
+
+
+def psw(v: float) -> float:
+    """Calibrated switching-probability Sigmoid at delivered voltage ``v`` [V]."""
+    return 1.0 / (1.0 + math.exp(-(v - V_TH) / V_T))
+
+
+def _i_wr(v_target: float) -> float:
+    """First-order write current set by the target write voltage across the SOT branch [A]."""
+    return v_target / R_SOT
+
+
+def delivered_voltage(v_target: float, rows: int,
+                      r_wire_per_cell: float = R_WIRE_PER_CELL_MET2,
+                      predistort: bool = False) -> List[float]:
+    """Per-row delivered write voltage.
+
+    Without compensation each row droops by ``I_wr * R_par(r)``; with ``predistort`` the driver
+    raises the head voltage by the same amount so every row receives ``v_target``.
+    """
+    i = _i_wr(v_target)
+    if predistort:
+        return [v_target for _ in range(rows)]
+    return [v_target - i * r_par(r, r_wire_per_cell) for r in range(rows)]
+
+
+def psw_profile(v_target: float, rows: int,
+                r_wire_per_cell: float = R_WIRE_PER_CELL_MET2,
+                predistort: bool = False) -> List[float]:
+    """Per-row switching probability under (un)compensated write-line IR drop."""
+    return [psw(v) for v in delivered_voltage(v_target, rows, r_wire_per_cell, predistort)]
+
+
+def predistortion_codes(v_target: float, rows: int,
+                        r_wire_per_cell: float = R_WIRE_PER_CELL_MET2) -> List[float]:
+    """Per-row head-voltage boost ``I_wr * R_par(r)`` [V] that flattens the column to ``v_target``."""
+    i = _i_wr(v_target)
+    return [i * r_par(r, r_wire_per_cell) for r in range(rows)]
+
+
+def apply_write_ir(p: Tensor, v_target: float,
+                   r_wire_per_cell: float = R_WIRE_PER_CELL_MET2,
+                   predistort: bool = False) -> Tensor:
+    """Degrade a per-cell write-probability map ``p`` (shape (rows, cols)) by row-dependent IR drop.
+
+    The nominal target probability ``p`` is realised at ``v_target``; rows farther from the driver
+    receive less voltage and a lower switching probability (unless ``predistort`` restores it).
+    Returns a new tensor; the input is unchanged. Default off in the accuracy path -- this models a
+    tall-column write-fidelity effect, not the negligible read-path droop.
+    """
+    import torch
+    rows = p.shape[0]
+    factors = psw_profile(v_target, rows, r_wire_per_cell, predistort)
+    scale = torch.tensor(factors, dtype=p.dtype, device=p.device).clamp_(0.0, 1.0) / max(psw(v_target), 1e-9)
+    return (p * scale.unsqueeze(1)).clamp_(0.0, 1.0)
