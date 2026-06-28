@@ -64,11 +64,58 @@ def _short_ref(lbl, ours):
     return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
 
 
+def _place_labels(ax, items):
+    """Place each label next to its own data point, greedily avoiding collisions with
+    other labels, the markers, and the axes edge. Adds a short leader only when a label
+    has to be displaced. `items`: dicts with x, y (data), text, color, weight, fontsize."""
+    fig = ax.figure
+    fig.canvas.draw()
+    rend = fig.canvas.get_renderer()
+    P = fig.dpi / 72.0
+    disp = [ax.transData.transform((it["x"], it["y"])) for it in items]
+    marker = [(x - 5, y - 5, x + 5, y + 5) for (x, y) in disp]
+    ab = ax.get_window_extent(rend)
+    axbox = (ab.x0, ab.y0, ab.x1, ab.y1)
+
+    def ovl(a, b):
+        dx = min(a[2], b[2]) - max(a[0], b[0]); dy = min(a[3], b[3]) - max(a[1], b[1])
+        return dx * dy if dx > 0 and dy > 0 else 0.0
+
+    cands = [(9, 3, "left", "center"), (-9, 3, "right", "center"), (5, 10, "left", "bottom"),
+             (5, -12, "left", "top"), (-5, 10, "right", "bottom"), (-5, -12, "right", "top"),
+             (14, -2, "left", "center"), (-14, -2, "right", "center"),
+             (3, 18, "left", "bottom"), (3, -20, "left", "top")]
+    placed = []
+    for i in sorted(range(len(items)), key=lambda i: -disp[i][1]):
+        it = items[i]; px, py = disp[i]
+        w = 0.58 * it["fontsize"] * len(it["text"]) * P
+        h = 1.25 * it["fontsize"] * P
+        best, bestpen = None, 1e30
+        for (dx, dy, ha, va) in cands:
+            x0 = px + dx * P - (0 if ha == "left" else w)
+            y0 = py + dy * P - (0 if va == "bottom" else (h if va == "top" else h / 2))
+            box = (x0, y0, x0 + w, y0 + h)
+            pen = sum(ovl(box, pb) for pb in placed)
+            pen += sum(ovl(box, marker[j]) for j in range(len(items)) if j != i)
+            pen += 0.6 * (w * h - ovl(box, axbox))   # prefer staying inside the axes
+            if pen < bestpen:
+                bestpen, best = pen, (dx, dy, ha, va, box)
+            if pen <= 0.0:
+                break
+        dx, dy, ha, va, box = best
+        placed.append(box)
+        lead = bestpen > 1.0 or (dx * dx + dy * dy) > 230
+        ax.annotate(it["text"], xy=(it["x"], it["y"]), textcoords="offset points",
+                    xytext=(dx, dy), ha=ha, va=va, fontsize=it["fontsize"], color=it["color"],
+                    fontweight=it["weight"], zorder=6,
+                    arrowprops=dict(arrowstyle="-", color="0.6", lw=0.5, shrinkB=2) if lead else None)
+
+
 def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False):
     """Plot the submodule design-space comparison (ours vs surveyed literature) on
-    `ax`, labelled DIRECTLY in the panel (no legend): markers that share an x are
-    jittered apart, 'ours' is labelled at its marker, and the literature designs
-    are labelled in a leader-lined column. Reads the multi-agent survey JSON."""
+    `ax`, labelled DIRECTLY at each point (no legend): markers that share an x are
+    jittered apart and every design name is placed beside its own marker with
+    collision avoidance. Reads the multi-agent survey JSON."""
     sv = jload(REPO / "eda" / "design_survey" / "submodule_survey.json")
     pts = json.loads(next(s for s in sv["submodules"] if s["key"] == key)["compare"]["figure_data"])["points"]
     xs = [p["x"] for p in pts]
@@ -87,19 +134,12 @@ def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False):
                    zorder=5 if ours else 3, alpha=0.95 if ours else 0.85)
     if logy:
         ax.set_yscale("log")
-    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.26)
-    ax.figure.canvas.draw()
-    lit = sorted([(i, p) for i, p in enumerate(pts) if not p.get("is_ours")], key=lambda t: t[1]["y"])
-    for j, (i, p) in enumerate(lit):
-        fy = 0.05 + 0.90 * (j / max(len(lit) - 1, 1))
-        ax.annotate(_short_ref(p["label"], False), xy=(xj[i], p["y"]), xycoords="data",
-                    xytext=(0.985, fy), textcoords="axes fraction", ha="right", va="center",
-                    fontsize=6.4, color="0.2",
-                    arrowprops=dict(arrowstyle="-", color="0.65", lw=0.5, shrinkB=3))
-    for i, p in enumerate(pts):
-        if p.get("is_ours"):
-            ax.annotate(_short_ref(p["label"], True), (xj[i], p["y"]), textcoords="offset points",
-                        xytext=(7, 6), fontsize=7.2, color=RED, fontweight="bold", zorder=6)
+    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.30)
+    items = [dict(x=xj[i], y=p["y"], text=_short_ref(p["label"], bool(p.get("is_ours"))),
+                  color=RED if p.get("is_ours") else "0.2",
+                  weight="bold" if p.get("is_ours") else "normal",
+                  fontsize=7.4 if p.get("is_ours") else 6.6) for i, p in enumerate(pts)]
+    _place_labels(ax, items)
 
 
 # ---------- Fig S1: device-model validation (LLG vs behavioral sigmoid) ----------
@@ -120,10 +160,7 @@ def fig1():
     ax.axhline(0.5, color="0.7", ls=":", lw=1.0)
     ax.text(d["VTH"] + 0.002, 0.06, r"$V_{th}=%.4f$ V" % d["VTH"], color="0.3", fontsize=9)
     ax.set_xlabel(r"write voltage $V$ (V)"); ax.set_ylabel(r"switching probability $P_{sw}$")
-    diff_vt = d["threshold_diff_mV"] / (d["VT"] * 1e3)
-    ax.set_title("Device-model validation: LLG physics vs calibrated behavioral sigmoid\n"
-                 r"(threshold match %.2f mV = %.3f$\,V_T$, $R^2$=%.2f)"
-                 % (d["threshold_diff_mV"], diff_vt, d["r2"]))
+    ax.set_title(r"LLG vs behavioral $P_{sw}$ validation")
     ax.legend(fontsize=9, loc="upper left")
     fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_22.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
@@ -144,7 +181,7 @@ def fig2():
                   label=r"$V_T$ Bernoulli decision window (%.1f mV)" % VT)
     ax[0].axvline(0, color="0.5", ls=":", lw=1)
     ax[0].set_xlabel("input-referred offset (mV)"); ax[0].set_ylabel("density")
-    ax[0].set_title("Spec inversion: budget SA offset against $V_T$, not TMR margin")
+    ax[0].set_title(r"SA offset vs $V_T$ budget")
     ax[0].legend(fontsize=8.5)
     # (b) accuracy vs V_offset/V_T for each cancellation option at a representative readout
     cond = next(c for c in pa["conditions"] if c["V_in_V"] == 0.5 and "1024" in c["layer"])
@@ -160,9 +197,9 @@ def fig2():
                        textcoords="offset points", xytext=(6, 4))
     ax[1].axhline(0.15, color="0.6", ls="--", lw=1, label="MNIST noise floor 0.15 pp")
     ax[1].set_xlabel(r"residual offset / $V_T$"); ax[1].set_ylabel("accuracy drop vs baseline (pp)")
-    ax[1].set_title("Pareto @ V_in=0.5 V, F=1024 (marker size $\\propto$ area$\\times$energy)")
+    ax[1].set_title("Offset-cancellation Pareto")
     ax[1].legend(fontsize=8.5)
-    design_cmp_panel(ax[2], "readout_sa", "Readout SA design space vs literature",
+    design_cmp_panel(ax[2], "readout_sa", "Readout SA vs literature",
                      "input-referred offset (×$V_T$)", "readout energy / decision (fJ)", logy=True)
     fig.tight_layout()
     save_panels(fig, ax, "ch04_16")
@@ -183,7 +220,7 @@ def fig3():
     ax[0].set_xscale("log", base=2); ax[0].set_yscale("log")
     ax[0].set_xlabel("column height N (cells)")
     ax[0].set_ylabel(r"parasitic R / 776 $\Omega$ (%)")
-    ax[0].set_title("Write-line IR-drop grows with column height")
+    ax[0].set_title("Write-line IR-drop vs column height")
     ax[0].legend(fontsize=9)
     # (b) sky130 CMOS write driver: delivered V and overhead vs pull-up width (measured)
     wp = [1, 2, 4, 6, 7, 8, 16, 32, 64]
@@ -198,7 +235,7 @@ def fig3():
     ax[1].set_ylabel("delivered flat-top voltage (V)", color=PURPLE)
     ax2.set_ylabel("driver energy overhead (%)", color=GREEN)
     ax2.set_yscale("log")
-    ax[1].set_title("1.8 V CMOS driver into 776 $\\Omega$: divider vs overdrive")
+    ax[1].set_title("Write-driver voltage delivery")
     ax[1].legend(handles=[l1, l2], fontsize=9, loc="center right")
     fig.tight_layout()
     save_panels(fig, ax, "ch04_17")
@@ -218,7 +255,7 @@ def fig4():
     ax[0].plot(E, MC, "-", color="0.6", lw=1, zorder=1)
     ax[0].set_xscale("log")
     ax[0].set_xlabel("energy per step (fJ)"); ax[0].set_ylabel("memory capacity")
-    ax[0].set_title("Reservoir iso-energy frontier: ADC bits trade MC for energy")
+    ax[0].set_title("Reservoir MC vs energy (ADC bits)")
     fig.colorbar(s, ax=ax[0], label="ADC bits b")
     # (b) honest RC-vs-ESN ratio: baseline vs grounded ADC variants
     base = rc["baseline"]["ratio"]
@@ -233,11 +270,10 @@ def fig4():
         ax[1].text(i, v + 0.6, "%.0f$\\times$" % v, ha="center", fontsize=10)
     ax[1].axhspan(30, 35, color=GOLD, alpha=0.25, label="30-35x with physical ADC")
     ax[1].set_ylabel(r"energy advantage vs digital ESN ($\times$)")
-    ax[1].set_title("(b) Reservoir energy advantage with a physical ADC readout")
+    ax[1].set_title("RC energy advantage vs digital ESN")
     ax[1].legend(fontsize=9)
-    design_cmp_panel(ax[2], "sar_adc", "SAR readout design space vs literature",
+    design_cmp_panel(ax[2], "sar_adc", "SAR readout vs literature",
                      "SA offset (×$V_T$; 0 = n/r)", "comparator energy (fJ)", logy=True)
-    ax[1].set_title("Reservoir energy advantage with a physical ADC readout")
     fig.tight_layout()
     save_panels(fig, ax, "ch05_09")
     fig.savefig(OUT / "Chapter05_local_09.png", dpi=200, bbox_inches="tight")
@@ -268,7 +304,7 @@ def fig5():
         ax[0].annotate(f"remote cells drop\nbelow $V_{{\\mathrm{{th}}}}$ (row $\\gtrsim${rc});\n{drop_mV:.0f} mV end droop",
                        xy=(rc, VTH), xytext=(max(rc - 150, 5), VTH - 0.045), fontsize=8, color=RED)
     ax[0].set_xlabel("cell row in column"); ax[0].set_ylabel("write voltage at cell (V)")
-    ax[0].set_title("Per-row write voltage along a tall column")
+    ax[0].set_title("Per-row write voltage")
     ax[0].legend(fontsize=8, loc="lower left")
     # (b) P_sw for three target operating points; pre-distortion holds each at target
     for pt, c in zip((0.5, 0.9, 0.99), (DEEP, RED, PURPLE)):
@@ -278,13 +314,12 @@ def fig5():
         ax[1].axhline(pt, color=c, lw=1.1, ls="--", alpha=0.7)
     ax[1].plot([], [], color="0.5", ls="--", label="IR-aware pre-distortion")
     ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel(r"write probability $P_\mathrm{sw}$")
-    ax[1].set_title("(b) Pre-distortion holds $P_\\mathrm{sw}$ at target across operating points")
+    ax[1].set_title(r"Pre-distortion holds $P_\mathrm{sw}$ on target")
     ax[1].legend(fontsize=7.5, loc="center left")
-    # (c) write-path design space vs surveyed literature (numbered markers + legend)
-    design_cmp_panel(ax[2], "write_dac_ir", "Write-path design space vs literature",
+    # (c) write-path design space vs surveyed literature (direct in-panel labels)
+    design_cmp_panel(ax[2], "write_dac_ir", "Write-path vs literature",
                      "residual remote-row write error on N=256 (mV)",
                      "circuit-layer completeness (0–5)")
-    ax[1].set_title("Pre-distortion holds $P_\\mathrm{sw}$ at target across operating points")
     fig.tight_layout()
     save_panels(fig, ax, "ch04_18")
     fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")

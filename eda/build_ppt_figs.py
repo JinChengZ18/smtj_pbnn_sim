@@ -29,6 +29,7 @@ from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
+from pptx.oxml.ns import qn
 from PIL import Image
 import fitz
 
@@ -39,7 +40,7 @@ OUT = REPO / "article" / "figs"
 SOFFICE = r"C:\Program Files\LibreOffice\program\soffice.exe"
 TAG = "AUTOFIG:"                       # marker (in slide notes) for our appended slides
 MARGIN, GAP, TOP = 0.25, 0.14, 0.55    # inches, within the slide
-LETTER_DY = 0.34
+LETTER_DX, LETTER_DY = 0.05, 0.02      # panel letter sits just inside each panel's top-left corner
 
 # chapter deck -> list of figures (stem in figures/panels/, panel letters, output name)
 DECKS = {
@@ -60,10 +61,15 @@ def is_auto(slide):
 
 
 def remove_autoslides(prs):
+    """Drop only our own previously-appended slides, removing BOTH the slide-id entry
+    and its relationship so the orphaned slide part is not re-serialized (otherwise the
+    package corrupts on repeated runs and LibreOffice can't load it)."""
     lst = prs.slides._sldIdLst
-    for sid, slide in list(zip(list(lst), prs.slides)):
+    for sid, slide in list(zip(list(lst), list(prs.slides))):
         if is_auto(slide):
+            rId = sid.get(qn("r:id"))
             lst.remove(sid)
+            prs.part.drop_rel(rId)
 
 
 def append_fig(prs, fig):
@@ -87,15 +93,15 @@ def append_fig(prs, fig):
         x = MARGIN + i * (pw + GAP)
         slide.shapes.add_picture(str(path), Inches(x), Inches(TOP), width=Inches(pw))
         if n > 1:                                 # single-panel figures get no letter
-            tb = slide.shapes.add_textbox(Inches(x + 0.05), Inches(TOP - LETTER_DY),
-                                          Inches(1.0), Inches(0.32))
+            tb = slide.shapes.add_textbox(Inches(x + LETTER_DX), Inches(TOP + LETTER_DY),
+                                          Inches(0.6), Inches(0.30))
             tf = tb.text_frame; tf.word_wrap = False
             tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
             r = tf.paragraphs[0].add_run()
             r.text = f"({letters[i]})"
             r.font.bold = True; r.font.size = Pt(14); r.font.color.rgb = RGBColor(0x20, 0x20, 0x20)
     slide.notes_slide.notes_text_frame.text = TAG + fig["stem"]
-    clip = (MARGIN - 0.12, TOP - LETTER_DY - 0.05, 10.0 - MARGIN + 0.12, TOP + ph_max + 0.1)
+    clip = (MARGIN - 0.12, TOP - 0.06, 10.0 - MARGIN + 0.12, TOP + ph_max + 0.1)
     return clip                                   # inches: (x0, y0, x1, y1)
 
 
