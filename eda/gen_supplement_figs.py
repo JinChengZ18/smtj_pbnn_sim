@@ -211,17 +211,30 @@ def fig5():
     v_nopd = Vt - Iw * rpar
     psw = lambda v: 1.0 / (1.0 + np.exp(-(v - VTH) / VT))
     fig, ax = plt.subplots(1, 3, figsize=(16.6, 4.6))
+    # (a) per-row write voltage: droop vs flattened, with the calibrated V_th crossing
     ax[0].plot(r, v_nopd, "-", color=RED, lw=2, label="no compensation (base-driven)")
     ax[0].axhline(Vt, color=PURPLE, lw=2, ls="--", label="IR-aware pre-distortion")
+    ax[0].axhline(VTH, color=GREEN, lw=1.6, ls=":", label=r"calibrated $V_\mathrm{th}=%.3f$ V" % VTH)
+    ax[0].fill_between(r, v_nopd, VTH, where=(v_nopd < VTH), color=RED, alpha=0.16)
+    below = np.where(v_nopd < VTH)[0]
+    if len(below):
+        rc = int(below[0]); drop_mV = (Vt - v_nopd[-1]) * 1e3
+        ax[0].axvline(rc, color="0.55", lw=0.9, ls=":")
+        ax[0].annotate(f"remote cells drop\nbelow $V_{{\\mathrm{{th}}}}$ (row $\\gtrsim${rc});\n{drop_mV:.0f} mV end droop",
+                       xy=(rc, VTH), xytext=(max(rc - 150, 5), VTH - 0.045), fontsize=8, color=RED)
     ax[0].set_xlabel("cell row in column"); ax[0].set_ylabel("write voltage at cell (V)")
     ax[0].set_title("(a) Per-row write voltage along a tall column")
-    ax[0].legend(fontsize=9)
-    ax[1].plot(r, psw(v_nopd), "-", color=RED, lw=2, label="no compensation")
-    ax[1].axhline(psw(Vt), color=PURPLE, lw=2, ls="--", label="IR-aware pre-distortion")
-    ax[1].fill_between(r, psw(v_nopd), psw(Vt), color=RED, alpha=0.12)
-    ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel("write probability $P_{sw}$")
-    ax[1].set_title("(b) Write probability flattened to target at every row")
-    ax[1].legend(fontsize=9)
+    ax[0].legend(fontsize=8, loc="lower left")
+    # (b) P_sw for three target operating points; pre-distortion holds each at target
+    for pt, c in zip((0.5, 0.9, 0.99), (DEEP, RED, PURPLE)):
+        Vtgt = VTH + VT * np.log(pt / (1 - pt))
+        v = Vtgt - (Vtgt / 776.0) * rpar
+        ax[1].plot(r, psw(v), "-", color=c, lw=1.9, label=r"$P_\mathrm{target}=%.2f$" % pt)
+        ax[1].axhline(pt, color=c, lw=1.1, ls="--", alpha=0.7)
+    ax[1].plot([], [], color="0.5", ls="--", label="IR-aware pre-distortion")
+    ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel(r"write probability $P_\mathrm{sw}$")
+    ax[1].set_title("(b) Pre-distortion holds $P_\\mathrm{sw}$ at target across operating points")
+    ax[1].legend(fontsize=7.5, loc="center left")
     # (c) write-path design space vs surveyed literature (numbered markers + legend)
     design_cmp_panel(ax[2], "write_dac_ir", "(c) Write-path design space vs literature",
                      "residual remote-row write error on N=256 (mV)",
