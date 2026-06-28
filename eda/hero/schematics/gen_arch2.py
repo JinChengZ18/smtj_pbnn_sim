@@ -44,20 +44,20 @@ def devstack(cx, cy):
     # free layer (switchable, accent) adjacent to the track
     S.append(f'<rect x="{cx-20}" y="{cy+6}" width="40" height="22" fill="{FREE}" stroke="{STROKE}" stroke-width="1.6"/>')
     S.append(f'<line x1="{cx}" y1="{cy+10}" x2="{cx}" y2="{cy+24}" stroke="{ACC}" stroke-width="2" marker-start="url(#ar)" marker-end="url(#ar)"/>')
-    tx(cx + 50, cy + 21, "free (switchable)", 10, ACC, a="start")
+    tx(cx + 46, cy + 21, "free", 10, ACC, a="start")
     # tunnel barrier + pinned
     ln(cx - 20, cy + 4, cx + 20, cy + 4, STROKE, 2)
-    tx(cx + 50, cy + 2, "MgO barrier", 10, SUB, a="start")
+    tx(cx + 46, cy + 2, "MgO", 10, SUB, a="start")
     S.append(f'<rect x="{cx-20}" y="{cy-22}" width="40" height="24" fill="{PIN}" stroke="{STROKE}" stroke-width="1.6"/>')
     S.append(f'<line x1="{cx-9}" y1="{cy-10}" x2="{cx+9}" y2="{cy-10}" stroke="{STROKE}" stroke-width="2" marker-end="url(#ahs)"/>')
-    tx(cx + 50, cy - 12, "pinned (fixed)", 10, SUB, a="start")
+    tx(cx + 46, cy - 12, "pinned", 10, SUB, a="start")
     # read terminal
     ln(cx, cy + 28, cx, cy + 30, STROKE, 1.6)
     ln(cx, cy - 22, cx, cy - 46, STROKE, 1.6); tx(cx, cy - 52, "read", 10, SUB)
 
 
 def main():
-    W, H = 1250, 720
+    W, H = 1250, 612
     S.append(f'<svg viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">')
     S.append('<defs>'
              f'<marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="{ARR}"/></marker>'
@@ -124,8 +124,9 @@ def main():
     # ---- inter-tier arrows + closed loop ----
     arrow(236, MY, 300, MY); arrow(530, MY, 594, MY); arrow(974, MY, 1038, MY)
     tx(268, MY - 8, "cell", 10, BODY); tx(562, MY - 8, "I_col", 10, BODY); tx(1006, MY - 8, "code", 10, BODY)
-    ln(1126, YT, 1126, 78, ARR, 1.6, dash=1); ln(1126, 78, 415, 78, ARR, 1.6, dash=1); arrow(415, 78, 415, YT, ARR, 2.2, dash=1)
-    tx(770, 74, "closed-loop sampling  x(r+1)", 11, ACC, it=1)
+    # closed-loop sampling feedback: routed along the bottom gap (not over the title)
+    ln(1126, YB, 1126, 482, ARR, 1.6, dash=1); ln(1126, 482, 415, 482, ARR, 1.6, dash=1); arrow(415, 482, 415, YB, ARR, 2.2, dash=1)
+    tx(770, 476, "closed-loop sampling  x(r+1)", 11, ACC, it=1)
 
     # ---- bottom band: abstraction <-> sky130 grounding ----
     tx(40, 506, "abstraction layer  ↔  grounding:", 12, TITLE, "bold", a="start")
