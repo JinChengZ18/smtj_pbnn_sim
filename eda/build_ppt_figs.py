@@ -59,10 +59,13 @@ def build_slide(prs, fig):
         ph = pw * im.height / im.width
         x = margin + i * (pw + gap)
         slide.shapes.add_picture(str(path), Inches(x), Inches(top), width=Inches(pw))
-        tb = slide.shapes.add_textbox(Inches(x), Inches(top - 0.42), Inches(0.7), Inches(0.4))
-        r = tb.text_frame.paragraphs[0].add_run()
+        tb = slide.shapes.add_textbox(Inches(x + 0.05), Inches(top - 0.30), Inches(1.0), Inches(0.32))
+        tf = tb.text_frame
+        tf.word_wrap = False                          # keep "(a)" on one line
+        tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
+        r = tf.paragraphs[0].add_run()
         r.text = f"({'abcdef'[i]})"
-        r.font.bold = True; r.font.size = Pt(15); r.font.color.rgb = TITLE_RGB
+        r.font.bold = True; r.font.size = Pt(14); r.font.color.rgb = RGBColor(0x20, 0x20, 0x20)
     # NOTE: the deck adds only the (a)(b)(c) panel letters; the figure NUMBER
     # (图 X.Y) lives in the markdown caption, so it is intentionally NOT baked in.
 

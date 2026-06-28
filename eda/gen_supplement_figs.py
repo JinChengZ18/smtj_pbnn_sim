@@ -54,30 +54,47 @@ def jload(p):
 
 def _short_ref(lbl, ours):
     if ours:
-        return "ours"
+        return "ours (auto-zero)" if "auto-zero" in lbl.lower() else "ours"
     w = lbl.replace(",", " ").replace(":", " ").split()
     return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
 
 
-def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False, legend_fs=6.0):
+def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False):
     """Plot the submodule design-space comparison (ours vs surveyed literature) on
-    `ax`. Markers are NUMBERED and a legend maps numbers->refs, so labels never
-    overlap. Reads eda/design_survey/submodule_survey.json (multi-agent survey)."""
+    `ax`, labelled DIRECTLY in the panel (no legend): markers that share an x are
+    jittered apart, 'ours' is labelled at its marker, and the literature designs
+    are labelled in a leader-lined column. Reads the multi-agent survey JSON."""
     sv = jload(REPO / "eda" / "design_survey" / "submodule_survey.json")
-    sm = next(s for s in sv["submodules"] if s["key"] == key)
-    pts = json.loads(sm["compare"]["figure_data"])["points"]
-    for i, pt in enumerate(pts, 1):
-        ours = bool(pt.get("is_ours"))
-        ax.scatter(pt["x"], pt["y"], s=180 if ours else 60, marker="*" if ours else "o",
-                   c=RED if ours else PURPLE, edgecolor="black", zorder=4 if ours else 3,
-                   alpha=0.95 if ours else 0.8, label=f"{i}. {_short_ref(pt['label'], ours)}")
-        ax.annotate(str(i), (pt["x"], pt["y"]), textcoords="offset points", xytext=(4, 3),
-                    fontsize=6.5, color=RED if ours else "0.25", fontweight="bold", zorder=5)
+    pts = json.loads(next(s for s in sv["submodules"] if s["key"] == key)["compare"]["figure_data"])["points"]
+    xs = [p["x"] for p in pts]
+    xr = (max(xs) - min(xs)) or 1.0
+    groups = {}
+    for i, p in enumerate(pts):
+        groups.setdefault(round(p["x"], 6), []).append(i)
+    xj = {}
+    for idxs in groups.values():
+        for k, i in enumerate(idxs):
+            xj[i] = pts[i]["x"] + (k - (len(idxs) - 1) / 2.0) * 0.020 * xr
+    for i, p in enumerate(pts):
+        ours = bool(p.get("is_ours"))
+        ax.scatter(xj[i], p["y"], s=180 if ours else 55, marker="*" if ours else "o",
+                   c=RED if ours else PURPLE, edgecolor="black", linewidth=0.8,
+                   zorder=5 if ours else 3, alpha=0.95 if ours else 0.85)
     if logy:
         ax.set_yscale("log")
-    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.22)
-    ax.legend(fontsize=legend_fs, loc="best", framealpha=0.85,
-              handletextpad=0.3, labelspacing=0.25, borderpad=0.3)
+    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.26)
+    ax.figure.canvas.draw()
+    lit = sorted([(i, p) for i, p in enumerate(pts) if not p.get("is_ours")], key=lambda t: t[1]["y"])
+    for j, (i, p) in enumerate(lit):
+        fy = 0.05 + 0.90 * (j / max(len(lit) - 1, 1))
+        ax.annotate(_short_ref(p["label"], False), xy=(xj[i], p["y"]), xycoords="data",
+                    xytext=(0.985, fy), textcoords="axes fraction", ha="right", va="center",
+                    fontsize=6.4, color="0.2",
+                    arrowprops=dict(arrowstyle="-", color="0.65", lw=0.5, shrinkB=3))
+    for i, p in enumerate(pts):
+        if p.get("is_ours"):
+            ax.annotate(_short_ref(p["label"], True), (xj[i], p["y"]), textcoords="offset points",
+                        xytext=(7, 6), fontsize=7.2, color=RED, fontweight="bold", zorder=6)
 
 
 # ---------- Fig S1: device-model validation (LLG vs behavioral sigmoid) ----------
