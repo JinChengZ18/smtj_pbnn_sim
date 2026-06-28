@@ -40,4 +40,4 @@
 1. ~~安装 ngspice≥43 + OpenVAF-Reloaded；跑通 P1 回归。~~ ✅
 2. P2 写路径子电路 (sky130) + harness 随机写 + 能量积分。
 3. P3 差分列 + 灵敏放大 + 自写失配 MC。
-…按 ROADMAP 依赖图推进，每阶段产数即更新 `docs/errata.md`。
+…按 ROADMAP 依赖图推进，每阶段产数即更新 `../errata.md`。

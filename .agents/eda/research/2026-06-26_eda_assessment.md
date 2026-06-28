@@ -2,7 +2,7 @@
 
 > 产出方式：读全项目 + 一次 7-智能体工作流 (工具选型 / 器件模型桥接 / 电路模块 / 验证方法学 /
 > 储池电路 / PDK 可行性) + 一个对抗式事实核查智能体。所有工具、紧凑模型、PDK 可用性均经网络核实。
-> 本文件是可引用的持久记录；勘误见 [`../../../docs/errata.md`](../../../docs/errata.md)，落地计划见 [`../ROADMAP.md`](../ROADMAP.md)。
+> 本文件是可引用的持久记录；勘误见 [`../../errata.md`](../../errata.md)，落地计划见 [`../ROADMAP.md`](../ROADMAP.md)。
 
 被引用的论文论断 (供下文对照)：
 - **(a)** 差分双单元读出消除共模/IR/漏电偏置：$I_\mathrm{col}^\mathrm{diff}\propto\delta G\cdot V_\mathrm{read}/2\cdot\sum w_i x_i$

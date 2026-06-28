@@ -1,7 +1,6 @@
 # 勘误与待修正清单 (Errata)
 
 统一记录论文 (`article/`) 与仿真器代码 (`src/`) 中的已知错误、过度声明与待验证论断。
-本表由 2026-06-26 的 EDA 工具/电路设计可行性调研产生 (含一次 7-智能体工作流 + 对抗式事实核查)，
 完整调研记录见 [`../.agents/eda/research/2026-06-26_eda_assessment.md`](../.agents/eda/research/2026-06-26_eda_assessment.md)。
 
 许多条目的「修正」依赖尚未开展的可信 EDA 仿真 (见 [`../.agents/eda/ROADMAP.md`](../.agents/eda/ROADMAP.md))，

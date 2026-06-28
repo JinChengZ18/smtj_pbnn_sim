@@ -1,6 +1,6 @@
 # `eda/` — 器件-电路验证层与回灌接口
 
-本目录在开源工具链上把 `smtj_pbnn_sim` 的电路级数值从「数量级占位」升级为「提取值」，并把这些值
+本目录在开源工具链上把 `smtj_pbnn_sim` 的电路级数值从「数量级」升级为「提取值」，并把这些值
 回灌主仿真器。器件用自写的 Verilog-A SOT-MTJ 紧凑模型（OpenVAF 编译为 OSDI、ngspice 调用），CMOS
 外围用 SkyWater sky130 工艺；版图、寄生提取、规则检查与版图—原理图一致性分别由 Magic、Netgen、
 KLayout 完成，原理图由 Xschem 导出。所有工具均无需商业许可证。
@@ -58,6 +58,4 @@ eda/
 
 ## 相关文档
 
-- 工具链：[`SETUP_opensource.md`](SETUP_opensource.md)
-- 内部调研记录与执行计划（agent 协作，不在用户复现路径上）：[`../.agents/eda/`](../.agents/eda/)
-- 勘误与物理标定：[`../docs/errata.md`](../docs/errata.md)、[`../docs/physics_grounding.md`](../docs/physics_grounding.md)
+- 勘误与物理标定：[`../.agents/errata.md`](../.agents/errata.md)、[`../docs/physics_grounding.md`](../docs/physics_grounding.md)

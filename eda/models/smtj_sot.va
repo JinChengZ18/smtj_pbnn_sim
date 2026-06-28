@@ -38,7 +38,7 @@ module smtj_sot(wr, rd, com, st, psw, tau, sinf);
 
    // ---- calibrated parameters: Device A, P->AP, t_p = 0.75 ns (Chapter 2.3) ----
    //      Defaults = the auto-fit operating point the simulator actually uses
-   //      (see docs/errata.md N1: 0.8958 V / beta_s 42.71, derived from the
+   //      (see .agents/errata.md N1: 0.8958 V / beta_s 42.71, derived from the
    //       chapter calibration 0.894 V / 44.6).
    parameter real Vth   = 0.895783 from (0:inf);  // sigmoid center [V]
    parameter real VT    = 0.023414 from (0:inf);  // slope param = 1/beta_s [V]

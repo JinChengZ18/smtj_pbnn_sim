@@ -17,10 +17,11 @@
 |---|---|---|
 | EDA 晶体管级验证/创新 | `.agents/eda/STATUS.md` | **长时程任务唯一续传点**（当前状态 / 决策账本 D1–D8 / 验证账本 / 各阶段 DoD）。读它，再读 `.agents/eda/ROADMAP.md`。 |
 | 论文交付稿 | `article/` | 只放交付内容；**禁止**写本地引用 / TODO / 勘误指针（见 §2）。 |
-| 勘误总表 | `docs/errata.md` | E1/E2 已修；R1–R7 待 EDA 验证；N1–N3 注记。 |
+| 勘误总表 | `errata.md` | E1/E2 已修；R1–R7 待 EDA 验证；N1–N3 注记。 |
 | Claude-CLI 私有跨会话记忆 | `<user>\.claude\projects\…-smtj-pbnn-sim\memory\` | Claude Code 自动记忆（**仓库外**，按 cwd 派生）。本目录是**仓库内**的跨 agent 通道；二者各自维护、内容保持一致。 |
 
-## 2. 多 agent 协作约定 (conventions — 违反会互相踩踏)
+## 2. 多 agent 协作约定
+
 - **并行 worktree**：用户同时跑多个 Claude worktree（`.claude/worktrees/*`），改动相互独立。
 - **同步靠 merge 进 master**：用户在 **MAIN checkout 的 `master` 上直接提交**。你的分支同步方式 =
   **把分支 merge 进 master**（master 一旦分叉，FF-only 会失败）；小心保留用户的提交。

@@ -10,7 +10,7 @@ external override. The remaining CMOS peripherals (DAC, counter, areas)
 are still 28 nm order-of-magnitude and SHOULD be replaced with sky130 /
 NeuroSim floorplan output before reporting their absolute numbers.
 
-NOTE (see ``docs/errata.md``, item E1): NeuroSim does NOT model the sMTJ
+NOTE (see ``.agents/errata.md``, item E1): NeuroSim does NOT model the sMTJ
 stochastic SOT write -- that energy is physically grounded here via
 ``V_wr**2 / R_SOT * t_write``. The NeuroSim/Spectre replacement above
 applies only to the CMOS-peripheral constants (DAC, read sense, counter,

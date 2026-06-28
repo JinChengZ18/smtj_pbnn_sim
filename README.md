@@ -2,7 +2,7 @@
 
 PyTorch-based hardware simulator for **stochastic SOT-MTJ probabilistic computing**. The same calibrated sMTJ device is used two ways: as a **memoryless Bernoulli p-bit** for **probabilistic binary neural networks (PBNN)**, and as a **stateful random-telegraph node** for **reservoir computing (RC)** — a temporal-processing extension that exploits the device's voltage-tunable relaxation time as fading memory.
 
-> **Project status and per-experiment results**: [`docs/status.md`](./docs/status.md). Full version history: [`CHANGELOG.md`](./CHANGELOG.md). Code architecture: [`docs/architecture.md`](./docs/architecture.md).
+> **Project status and per-experiment results**: [`.agents/status.md`](./.agents/status.md). Full version history: [`CHANGELOG.md`](./CHANGELOG.md). Code architecture: [`docs/architecture.md`](./docs/architecture.md).
 
 ## Layered architecture
 
@@ -30,7 +30,7 @@ The same `θ` checkpoint is usable in all three modes without modification.
 
 ### Stateful node (reservoir computing)
 
-`SMTJReservoir` (in `reservoir.node`) leaves the *same* device free to evolve instead of resetting it each step, turning it into a random-telegraph dynamical node. The voltage-tunable relaxation time `τ(V) = 1/(r↑+r↓)` supplies fading memory and the `tanh(ΔV/V_c0)` transfer supplies nonlinearity, so only a linear ridge readout is trained — no recurrent weight matrix is stored or learned. A noise-free `meanfield` mode mirrors PBNN's `software` mode. RC favours a lower-barrier (more superparamagnetic) device than PBNN; the device-optimization guidance is summarized in [`docs/status.md`](./docs/status.md).
+`SMTJReservoir` (in `reservoir.node`) leaves the *same* device free to evolve instead of resetting it each step, turning it into a random-telegraph dynamical node. The voltage-tunable relaxation time `τ(V) = 1/(r↑+r↓)` supplies fading memory and the `tanh(ΔV/V_c0)` transfer supplies nonlinearity, so only a linear ridge readout is trained — no recurrent weight matrix is stored or learned. A noise-free `meanfield` mode mirrors PBNN's `software` mode. RC favours a lower-barrier (more superparamagnetic) device than PBNN; the device-optimization guidance is summarized in [`.agents/status.md`](./.agents/status.md).
 
 ## Quick start
 
@@ -98,18 +98,18 @@ smtj_pbnn_sim/
 ├── pyproject.toml
 ├── configs/{device, array, experiment} (all parameters live in YAML, not in code)
 ├── data/smtj_psw_curves/               (real device measurements)
-├── docs/
-│   ├── status.md                       (project status + per-experiment results)
+├── docs/                               (user-facing: how to understand / reproduce)
 │   ├── architecture.md
 │   ├── calibration_guide.md
-│   ├── experiment_findings.md
+│   ├── experiment_findings.md          (expected per-experiment results)
 │   └── physics_grounding.md
+├── .agents/                            (internal: project status, errata ledger, EDA plans)
 ├── demo/                               (principle-figure scripts, incl. 05 reservoir computing)
 ├── experiments/                        (01–13 PBNN, 14–19 reservoir computing, 20 write IR-drop)
 ├── figures/                            (experiment outputs)
 ├── scripts/extract_chapter2_data.py    (data ingestion)
 ├── src/smtj_pbnn_sim/                  (device · array · nn · sampling · reservoir · ppa · train)
-└── tests/                              (93 unit tests)
+└── tests/                              (95 unit tests)
 ```
 
 ## License

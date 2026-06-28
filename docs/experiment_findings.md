@@ -2,7 +2,7 @@
 
 Detailed per-experiment findings for the **PBNN experiments (01–13)** in the `smtj_pbnn_sim` simulator. All numerical results are from the Chapter 2.3 primary-reference device (Device A, P->AP, t_w = 0.75 ns) unless noted otherwise.
 
-> **Reservoir-computing experiments (14–19, v0.3.0)** are not duplicated here; their headline results live in [`status.md`](./status.md) (RC section) and the deeper rationale in `CHANGELOG.md` 0.3.0.
+> **Reservoir-computing experiments (14–19, v0.3.0)** are not duplicated here; their headline results live in [`../.agents/status.md`](../.agents/status.md) (RC section) and the deeper rationale in `CHANGELOG.md` 0.3.0.
 
 ---
 

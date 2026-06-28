@@ -5,7 +5,7 @@
 
 ## 当前状态  （last update: 2026-06-28，多智能体仿真器评估 + 修正 + ①130nm/⑤提取口径回填）
 
-- **🔬 仿真器独立评估（2026-06-28，指令②③①⑤）**：按同类仿真器规范（NeuroSim/aihwkit/CrossSim/MemTorch + p-bit/RC 文献）对 `smtj_pbnn_sim` 做 6 维并行评审 + 对抗式代码核查（16 智能体工作流，run `wf_f37327ff-9d2`）。**总体「基本合理、存在可控缺口」**。已修：DPM-01（delta 变异重心锚定标定工作点，消除 843-vs-894mV 偏置）、ARR-1（修复 ir_drop 测试）、DPM-02（eta_c→5.62 自洽）、ARR-2..5（crossbar 真差分 + docstring 去过度声明）、RC-02（exp18「IPC」改为诚实的保留-$r^2$ 容量代理 + 论文/图5.6 回填）、PPA-3/4（读出架构 docstring 自洽化）。驳回：NN-01（论文已正确表述为「梯度感知变异」）、NN-02（θ×100 近确定性 被表4.1/图A.3-A.4 的 T 扫描经验数据驳回）。缓办：exp05a CNN 附录（影响<0.1pp，未重训）、PPA-1/2（面积/延迟待 sky130 ADC/SA 提取）。**完整账本见 [`../../docs/errata.md`](../../docs/errata.md) §S。** 全 95 单测通过。**①**：130nm(sky130) 外围已在 `chapter04.md` §4.6 论证为合理（唯一全开源 PDK；MTJ 为 BEOL 节点无关器件，量级对齐驰拓 IEDM2024 无沟道 SOT-MRAM；p-bit IC 实测亦在 130nm；商用 MRAM 外围 22-28nm 故 130nm 偏保守、报比值）。**⑤**：§4.6 增「工艺节点 + 各项提取方式」方法学段（ngspice MC/Magic extresist/器件 C 提取/OpenVAF），§5.5 加交叉引用。
+- **🔬 仿真器独立评估（2026-06-28，指令②③①⑤）**：按同类仿真器规范（NeuroSim/aihwkit/CrossSim/MemTorch + p-bit/RC 文献）对 `smtj_pbnn_sim` 做 6 维并行评审 + 对抗式代码核查（16 智能体工作流，run `wf_f37327ff-9d2`）。**总体「基本合理、存在可控缺口」**。已修：DPM-01（delta 变异重心锚定标定工作点，消除 843-vs-894mV 偏置）、ARR-1（修复 ir_drop 测试）、DPM-02（eta_c→5.62 自洽）、ARR-2..5（crossbar 真差分 + docstring 去过度声明）、RC-02（exp18「IPC」改为诚实的保留-$r^2$ 容量代理 + 论文/图5.6 回填）、PPA-3/4（读出架构 docstring 自洽化）。驳回：NN-01（论文已正确表述为「梯度感知变异」）、NN-02（θ×100 近确定性 被表4.1/图A.3-A.4 的 T 扫描经验数据驳回）。缓办：exp05a CNN 附录（影响<0.1pp，未重训）、PPA-1/2（面积/延迟待 sky130 ADC/SA 提取）。**完整账本见 [`../errata.md`](../errata.md) §S。** 全 95 单测通过。**①**：130nm(sky130) 外围已在 `chapter04.md` §4.6 论证为合理（唯一全开源 PDK；MTJ 为 BEOL 节点无关器件，量级对齐驰拓 IEDM2024 无沟道 SOT-MRAM；p-bit IC 实测亦在 130nm；商用 MRAM 外围 22-28nm 故 130nm 偏保守、报比值）。**⑤**：§4.6 增「工艺节点 + 各项提取方式」方法学段（ngspice MC/Magic extresist/器件 C 提取/OpenVAF），§5.5 加交叉引用。
 - **⭐ 战略转向（2026-06-27 顶刊重审）**：计划从"验证优先 P1–P7"改为**创新优先**。验证 ≠ 顶刊贡献，且多数候选新电路 2024–26 已被做掉；新颖性 = **规格反转 + 闭环 + 反向设计方法学**。主线：**Hero=斜率匹配 p-bit 读出（C1+C2，SA 失调按 V_T 预算 + 闭环 MNIST 92.8%→~97%，关 R2）**；**第二篇=RC 等能量 {N,M,b} 套利（C3，修 R6）**。**P1–P7 first-cut 降为基础/支撑层**。目标期刊 TCAS-I/TVLSI/TED（不投 Nat.Electron./ISSCC）。详见 [`research/2026-06-27_innovation_replan.md`](research/2026-06-27_innovation_replan.md) 与 ROADMAP 顶部「创新优先重排」。ROADMAP 另列**两层贡献层级**：Tier A=创新（A0 方法学 / A1-A2 Hero / A3 第二篇），Tier B=大论文基础工程（B1–B9，引先验为实现基础，单独不投顶刊但是合格学位工作），+ 大论文章节映射。
 - **路线**：开源 ngspice（本机无 EDA 许可证）。工具链已装齐并验证：**ngspice-46 + OpenVAF-reloaded 20260616**（已加入当前用户 PATH；路径亦记于 `eda/tools.local.json`）。回归目标 `Vth=0.895783 V / VT=0.023414 V`。
 - **当前阶段**：**P1 已完成 ✅**；**P2 first-cut 已完成**（理想脉冲+串阻驱动；待 sky130 CMOS 驱动细化）。
@@ -26,7 +26,7 @@
 3. 跑（无需 EDA，确认 Python 侧仍绿）：
    `python eda/testbenches/gen_golden.py && python eda/testbenches/psw_mc_harness.py`
 4. 跑 `python eda/testbenches/run_regression.py`，确认 OSDI 编译和 ngspice DC 扫描仍 PASS（R²≥0.99）。
-5. 读 [`ROADMAP.md`](ROADMAP.md) 找当前阶段，按下方 DoD 推进；每产一个可信数即更新 [`../../docs/errata.md`](../../docs/errata.md) 与本文件。
+5. 读 [`ROADMAP.md`](ROADMAP.md) 找当前阶段，按下方 DoD 推进；每产一个可信数即更新 [`../errata.md`](../errata.md) 与本文件。
 
 ## 决策账本（已钉死，勿重议）
 
