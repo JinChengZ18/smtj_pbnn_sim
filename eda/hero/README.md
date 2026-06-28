@@ -1,74 +1,33 @@
-# `eda/hero/` — Hero (A1): slope-matched p-bit readout (sky130)
+# `eda/hero/` — 读出与写通路电路设计（sky130）
 
-The flagship innovation (ROADMAP Tier-A A1; closes errata R2). **The contribution is not
-"we built a sense amp" (those are mature) — it is budgeting the SA input-referred offset
-against the device's OWN sigmoid slope V_T=23.4mV (the Bernoulli decision window, not a
-deterministic TMR margin), and closing the loop to MNIST accuracy.** Non-obvious inversion:
-Exp.08 finds V_T slope "accuracy-irrelevant" (BatchNorm absorbs it), yet V_T turns out to
-SET the readout-circuit cost, because the SA offset is a per-column V_th shift in disguise —
-exactly the error class Exp.08 finds fatal.
+本目录是 sMTJ-PBNN 外围的 sky130 电路设计：斜率匹配概率位读出（跨阻 + StrongARM 灵敏放大）、
+电压型电阻串写-DAC 与 IR 感知写预畸变，以及列共享读出。`schematics/` 导出期刊级原理图，
+`layout/` 给出脚本化版图。电路脚本需在 WSL 中调用 ngspice（含 sky130 模型）；精度耦合脚本在
+Windows/GPU 上调用 `smtj_pbnn_sim`。
 
-## Files
-| File | What | Run |
+## 脚本与运行
+
+| 文件 | 作用 | 运行 |
 |---|---|---|
-| `strongarm_sa.spice` | StrongARM latched comparator in sky130 (the differential current-mode SA) | `ngspice -b` (WSL) |
-| `run_offset_mc.py` | input-referred offset Monte-Carlo (Pelgrom Vth mismatch) vs V_T; `[N] [area-scale]` | WSL python3 |
-| `offset_mc_summary.json` / `offset_mc_s4.json` | offset MC results (1x / 4x input-pair area) | — |
-| `readout_mapping.py` | **B5: readout transimpedance bridges SA mV -> popcount -> accuracy (closes the loop)** | python (reads upstream JSON) |
-| `layout/gen_sa_layout.py` + `sa_devices.gds` | scripted sky130 SA device layout -> GDS ("导出版图" deliverable) | WSL KLayout |
-| `../interface/hero_closed_loop.py` | device-physics decision shift + first-cut accuracy (Exp.08 anchors) | Windows python |
-| `../interface/hero_mnist_sweep.py` | RIGOROUS accuracy axis: train PBNN-MLP, inject `sigma_sense_offset_V`, sweep -> acc | Windows GPU |
+| `strongarm_sa_core.spice` | StrongARM 锁存比较器（11 器件，LVS 参考） | ngspice / Netgen（WSL） |
+| `run_offset_mc.py` | 输入折合失调蒙特卡洛（Pelgrom 阈值失配）对 $$V_T$$ | `python3`（WSL） |
+| `sa_postlayout.py` | 提取器件电容后的判决能量 | `python3`（WSL） |
+| `run_readout_frontend.py` | 斜率匹配读出前端：popcount 电流 → 跨阻 → StrongARM，在环验证 | `python3`（WSL，ngspice） |
+| `readout_mapping.py` | 把失调（mV）经跨阻折算到 popcount 域与精度 | `python3` |
+| `pareto_offset_cancellation.py` | 精度跌幅对剩余失调的帕累托（含失调消除选项） | `python3` |
+| `run_write_dac.py` | 电压型电阻串写-DAC：单调性、最低有效位、量程 | `python3`（WSL，ngspice） |
+| `ir_aware_writedac.py` | IR 感知逐行写预畸变（远端写概率补偿） | `python3` |
+| `write_dac_trim.py` | 摊销式逐列阈值微调 | `python3` |
+| `layout/gen_sa_layout.py` | 脚本化 sky130 SA 器件版图 → GDS | KLayout（WSL） |
+| `schematics/build_schematics.sh` | 由 Xschem 导出原理图（图 6–10） | WSL（见 `schematics/`） |
 
-## Results (sky130, ngspice; AVT a sky130-class assumption -> report RATIOS not absolute mV)
+## 主要结果（sky130；失配系数为该工艺量级假设，故以比值报告）
 
-- **StrongARM works** in sky130 (vind=+20mV -> outp=1.8V, outn~1uV).
-- **Plain SA offset**: sigma_offset = 11.05 mV = **0.47 V_T**, 3sigma = **1.42 V_T** (N=24 MC, 1x).
-  -> a plain SA re-injects ~half a decision-window of per-column V_th shift. **This rewrites
-  claim (a)/(c): bias cancels at the MTJ level (P3), but the SA offset re-introduces it.**
-- **Offset-vs-area co-design**: 4x input-pair area drops the offset well below the 0.3 V_T
-  budget (`offset_mc_s4.json` reports ~0.04 V_T, but that is GRID-RESOLUTION-LIMITED at the
-  ~1mV floor; Pelgrom 1/sqrt(area) + latch-offset gain-suppression predict a few mV). The
-  qualitative co-design (area buys offset margin) is clear; the small-offset value needs a
-  finer vind grid. Either way it bounds the SA area to meet a budget, or motivates
-  auto-zero/chopper (cited prior art ISSCC 2018).
-- **Accuracy axis**: `hero_mnist_sweep.py` injects the offset at inference (the new R2
-  `sigma_sense_offset_V` channel) and re-evaluates FULL_STACK MNIST accuracy (see
-  `../interface/hero_mnist_summary.json`). NB: use `sigmoid_direct` variation (V_th at
-  nominal); `delta` mode centers V_th at the NB-bridge 0.843V (~53mV systematic) and
-  corrupts FULL_STACK — the documented checkpoint-inference trap.
-  **Result**: baseline 96.80%; a per-cell random offset up to 30mV (1.28 V_T) leaves accuracy
-  ~flat (96.8%) — the per-cell model UNDERSTATES, because the offset is small vs V_th=896mV and
-  per-cell averaging + theta-x100 tolerate it. The SA offset is per-OUTPUT-COLUMN SYSTEMATIC
-  (one SA per column), so the **per-column model is the needed refinement** for the real
-  accuracy curve (inject a per-output offset on the preactivation before sign, mapped from the
-  SA volts via P3's popcount LSB). This is the key modeling decision for the hero accuracy axis.
-- **Readout mapping (B5, `readout_mapping.py`) — the loop is now CLOSED end-to-end.** The
-  three upstream numbers live in different units (LSB_I=5.1 µA/popcount from P3; σ_offset=11.05 mV
-  from the SA MC; accuracy vs σ_popcount from the sweep). The current-sense readout's
-  transimpedance bridges them: `LSB_V = LSB_I·R_TI` [V/popcount] ⇒ `σ_pc = σ_offset_V / LSB_V`.
-  **Co-design law**: set R_TI to the max the column dynamic range allows
-  (`PC_FS·LSB_V ≤ V_in/2` ⇒ `σ_pc = σ_offset_V·2·PC_FS/V_in`).
-  **Result (honest, and more nuanced than a scare-story)**: at max-gain readout (R_TI≈400–700 Ω),
-  the plain SA's 0.47·V_T maps to only **σ_pc≈3–5 popcount → accuracy drop <0.15 pp** — a
-  correctly-budgeted readout transimpedance largely absorbs the plain SA offset. It only bites
-  when V_in is small (0.4 V) AND fan-in is large (layer-2, PC_FS=96): σ_pc=5.3 → −0.14 pp. So the
-  contribution is a **quantified design boundary**, not "auto-zero is mandatory": for MNIST-scale
-  fan-in with V_in≥0.5 V a plain SA suffices (save the auto-zero area/energy); low-voltage,
-  wide-fan-in, or under-budgeted gain is where auto-zero / larger SA area earn their keep. This
-  also reconciles the Exp.08 paradox quantitatively (V_T-scale per-column shift IS tolerated by
-  BN+network up to the curve knee ~4–8 popcount — but only if the readout maps it below the knee,
-  which costs transimpedance gain / dynamic range).
+- StrongARM 在 sky130 工作：差分 +20 mV 输入即判决至轨。
+- 平凡比较器输入折合失调 $$\sigma_\mathrm{off}=9.2\,\mathrm{mV}=0.39\,V_T$$（120 次蒙特卡洛）。
+- 斜率匹配读出：扇入 1024、$$V_\mathrm{in}=0.6\,\mathrm V$$ 下 $$R_\mathrm{TI}=613\,\Omega$$，
+  在环提取 $$\sigma_\mathrm{pc}\approx2.5$$ 个 popcount，落在精度曲线膝点之下 → 该扇入下平凡比较器即足够。
+- 失调-面积协同：增大输入对面积按 $$1/\sqrt{\text{area}}$$ 降低失调；低压宽扇入区才需自调零。
 
-## Honest caveats (must appear in the paper)
-- AVT is a sky130-class assumption (not the PDK statistical mismatch model); 130nm/1.8V is
-  pessimistic -> all conclusions are RATIOS (offset/V_T, area), never absolute mV.
-- Offset modelled as per-cell V_th-equivalent (first-cut); per-output-column systematic is
-  the refinement.
-- RNG owned by the Python harness (OpenVAF/ngspice can't do reliable in-model $rdist).
-
-## Next (the interactive-EDA boundary)
-- Auto-zero/chopper SA variant (offset << V_T) — switched-cap, more involved.
-- **Magic LAYOUT -> GDS -> Netgen LVS -> ext2spice PEX -> post-layout corner sim** of one
-  SA + column slice. This is the "导出版图" deliverable but needs interactive Magic/Xschem
-  GUI work (or a scripted tcl flow) — the natural hand-off / decision point.
-- Hero figure: extracted sigma_offset -> hero_mnist curve -> accuracy recovery at iso read-energy.
+电路设计的器件级原理图与说明见 `schematics/`；其在论文中的定位与对比见
+[`../../article/supplement_eda_codesign.md`](../../article/supplement_eda_codesign.md)。

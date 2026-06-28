@@ -65,6 +65,7 @@ python experiments/16_rc_hardware_ppa.py         # sMTJ-RC vs digital ESN energy
 python experiments/17_rc_robustness.py           # D2D variation + read-noise limits
 python experiments/18_rc_benchmarks.py           # Mackey-Glass + IPC capacities
 python experiments/19_rc_temperature.py          # temperature as a tau knob
+python experiments/20_write_ir_drop.py           # write-line IR drop + IR-aware pre-distortion
 
 # Principle demos (figures):
 python demo/05_reservoir_computing_principle.py
@@ -104,7 +105,7 @@ smtj_pbnn_sim/
 │   ├── experiment_findings.md
 │   └── physics_grounding.md
 ├── demo/                               (principle-figure scripts, incl. 05 reservoir computing)
-├── experiments/                        (01–13 PBNN, 14–19 reservoir computing)
+├── experiments/                        (01–13 PBNN, 14–19 reservoir computing, 20 write IR-drop)
 ├── figures/                            (experiment outputs)
 ├── scripts/extract_chapter2_data.py    (data ingestion)
 ├── src/smtj_pbnn_sim/                  (device · array · nn · sampling · reservoir · ppa · train)

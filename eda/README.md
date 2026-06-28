@@ -1,84 +1,64 @@
-# `eda/` — sMTJ-PBNN 器件-电路协同设计与验证工作区
+# `eda/` — 器件-电路验证层与回灌接口
 
-本目录是把 `smtj_pbnn_sim` 从**纯算法/行为级评估器**推进到**可信电路级验证**的工作区，
-并构建二者之间的**接口**：用 EDA (Verilog-A + Spectre/ngspice + 版图/寄生提取) 产出的可信数值，
-替换仿真器中被标注为「28nm 数量级占位符」的不成熟内容 (CMOS 外围能量/延迟/面积、IR-drop 空桩)，
-并在电路级证实或修正论文的几条承重论断。
+本目录在开源工具链上把 `smtj_pbnn_sim` 的电路级数值从「数量级占位」升级为「提取值」，并把这些值
+回灌主仿真器。器件用自写的 Verilog-A SOT-MTJ 紧凑模型（OpenVAF 编译为 OSDI、ngspice 调用），CMOS
+外围用 SkyWater sky130 工艺；版图、寄生提取、规则检查与版图—原理图一致性分别由 Magic、Netgen、
+KLayout 完成，原理图由 Xschem 导出。所有工具均无需商业许可证。
 
-## 为什么需要这个目录 (定位)
+## 环境准备
 
-- `smtj_pbnn_sim` 目前**独立运作**：器件 Sigmoid/Néel-Brown、差分 XNOR-popcount、T 步展开、训练
-  都是真实且经晶圆校准的；但 PPA 层除 SOT 写能量 (0.78 pJ, $V^2t/R$) 外，全部外围常数是占位值，
-  IR-drop 是空桩，**没有任何晶体管网表 / SPICE / 版图 / PDK**。
-- 本工作不是「换个更高级仿真器」，而是**新增一层 + 做接口**：
-  器件 Verilog-A 模型 → Spectre/ngspice 电路仿真 → 版图/寄生提取 → 把提取数值**回灌** `smtj_pbnn_sim`。
+工具链（ngspice + OpenVAF + sky130 + Magic/Netgen/KLayout/Xschem）的安装见
+[`SETUP_opensource.md`](SETUP_opensource.md)。各 Python 脚本需要电路工具在 `PATH` 上；纯解析脚本
+（写能量、SAR 电容能量等）只需 `python3 + numpy`。
 
-## 关键事实 (已网络核实，详见 research/)
+## 复现各项结果
 
-- **没有任何 PDK 自带可用的 SOT-MTJ**：开源 (sky130/IHP SG13G2) 与 foundry-academic (GF22FDX eMRAM)
-  都不含可编辑的 SOT-MTJ。**任何路线都必须自带 Verilog-A 的 MTJ 模型**，CMOS PDK 只做外围。
-- **ARM `mram_simulation_framework`** (BSD-3) 是好骨架，但**只支持 STT/VCMA、不含 SOT**——须自行加自旋霍尔写分支。
-- **NeuroSim V1.5 无 MTJ 单元** (SRAM/RRAM/FeFET/nvCap)，只能给 CMOS 外围估能耗/面积；sMTJ 写能量须自仿。
-- 混合信号结构 (模拟随机写/读核 + 数字 T 步展开环) → 需 **AMS + 实数建模 (RNM)**。
-- 随机切换须**事件驱动 + 显式种子** ($rdist on @(cross/timer))，**不能**用裸模拟瞬态噪声。
+以下命令均在本目录下运行。
+
+| 结果 | 命令 | 产出 |
+|---|---|---|
+| Verilog-A 模型对金标准回归 | `python testbenches/gen_golden.py && python testbenches/run_regression.py` | 86 点 DC 扫描，`max\|err\|≈3.5e-4`、$$R^2=1.0$$ |
+| 写路径能量与交付电压 | `python testbenches/write_mc_harness.py` | 器件级 0.78 pJ / 端到端含驱动 ~0.8 pJ；`write_summary.json` |
+| 写线 IR 压降（提取方块电阻） | 见 `extraction/writeline/README.md` | 各列高往返金属电阻占 776 Ω 比例 |
+| StrongARM 灵敏放大失调/能量 | `python hero/run_offset_mc.py && python hero/sa_postlayout.py` | $$\sigma_\mathrm{off}=9.2$$ mV、判决能 ~48 fJ |
+| 斜率匹配读出前端（在环验证） | `python hero/run_readout_frontend.py` | $$R_\mathrm{TI}=613\,\Omega$$、$$\sigma_\mathrm{pc}\approx2.5$$ |
+| 电压型电阻串写-DAC | `python hero/run_write_dac.py` | 单调性、最低有效位、量程 |
+| 列共享 SAR 电容阵列能量 | `python testbenches/sar_capdac_energy.py` | 各位电容开关能量上下界 |
+| 期刊级原理图（图 6–10） | `wsl … bash hero/schematics/build_schematics.sh *.sch` | `*.png/svg/pdf`（详见 `hero/schematics/`） |
+
+电路提取值经 `interface/load_tech_params.py` 注入主仿真器并重算每-MAC 与 MNIST PPA。
 
 ## 目录结构
 
 ```
 eda/
 ├── README.md
-├── STATUS.md                           # ★ 单一续传点：状态/DoD/决策账本/验证账本
-├── ROADMAP.md                          # 分阶段计划 (可落实为 agentic 工作流)；与 todo 同步
-├── OPEN_SOURCE_FEASIBILITY.md          # ③ ngspice 各阶段可行性矩阵
-├── SETUP_opensource.md                 # 开源工具链 (ngspice+OpenVAF) 安装与运行
-├── research/
-│   ├── 2026-06-26_eda_assessment.md    # 已事实核查的调研报告 (工具选型 + 待办)
-│   └── vgsot_integration_decision.md   # ② vgsot-sim 整合决策
-├── models/
-│   └── smtj_sot.va                     # ★ MIT Verilog-A SOT-sMTJ 紧凑模型 (P1)
-├── testbenches/
-│   ├── gen_golden.py                   # Python 金标准生成 (已跑: R²=0.9919, 0.78pJ)
-│   ├── psw_mc_harness.py               # 随机写 harness (已跑: seeded Bernoulli 复现 Sigmoid)
-│   ├── golden_psw.csv / *_summary.json
-│   ├── regression_psw.spice            # ngspice DC 扫描回归网表
-│   ├── run_regression.py               # P1: 编译.va+跑ngspice+对金标准断言 (R²=1.0)
-│   ├── write_path.spice                # P2: 写路径瞬态网表
-│   └── write_mc_harness.py             # P2: Python-in-the-loop 能量/开销/可行性/随机写
-├── vendor/vgsot-sim/                   # submodule: 用户 LLG 全物理模型 (真值参考)
-├── extraction/                         # 提取的 PPA LUT/能量-面积表 (替换占位符)
-└── interface/                          # 回灌 smtj_pbnn_sim 的 Python 胶水 (「新接口」)
+├── SETUP_opensource.md        # 工具链安装与运行
+├── research/                  # 调研记录（工具选型、图表惯例、设计验证）
+├── models/smtj_sot.va         # Verilog-A SOT-MTJ 紧凑模型
+├── testbenches/               # ngspice 回归、写路径、SAR 电容能量、瞬态波形
+├── hero/                      # 读出/写-DAC 电路与版图；schematics/ 原理图导出
+├── extraction/                # 提取的能量/面积/写线 IR 数据（YAML/CSV）
+├── interface/                 # 把提取值回灌 smtj_pbnn_sim 的 Python 胶水
+└── vendor/vgsot-sim/          # submodule：宏自旋 LLG 求解器（真值参考）
 ```
 
-## 与主仓库的关系 / 接口设计
+## 与主仿真器的接口
 
-| `smtj_pbnn_sim` 中的占位/空桩 | `eda/` 中的可信替代 | 接口落点 |
+`smtj_pbnn_sim` 不依赖 `eda/`；`eda/` 单向地把提取值写入仿真器可读的配置或默认值。下表给出各占位项
+与其提取替代的对应；其中读出能量与写线 IR 已折入仿真器默认值（`ppa/tech_params.py`、
+`array/ir_drop.py`），使仿真器单独运行即得可信数值。
+
+| `smtj_pbnn_sim` 中的项 | `eda/` 提供的提取值 | 状态 |
 |---|---|---|
-| `ppa/tech_params.py` 外围常数 (e_dac/e_read/e_count/a_*) | `extraction/` 提取的能量-面积表 | `interface/` 构造一个由提取值填充的 `TechParams` |
-| `ppa/energy.py` `per_mac_energy` | 含真实 ADC/驱动开销的每-MAC 能量 | 同上，重算并回灌 |
-| `array/ir_drop.py` (空桩) | `extraction/` PEX 线压降 | 替换 `estimate_ir_drop` 为查表/拟合 |
-| `device/` 行为 Sigmoid/telegraph | `models/` Verilog-A 模型 (回归一致) | 双仿真器回归测试 (research §5) |
-| `device/variation.py` | + `sigma_sense_offset` 通道 (来自 SA 失配 MC) | 新增变异通道 |
+| `ppa/tech_params.py` 读出能量 `e_smtj_read` | sky130 StrongARM 灵敏放大判决能 48 fJ | 已折入默认值 |
+| `array/ir_drop.py` 写线压降 | 提取方块电阻的阻性梯子解算 | 已折入（`experiments/20_write_ir_drop.py` 演示） |
+| `ppa/reservoir_energy.py` ADC 能量 | StrongARM 比较器 + SAR 电容阵列 | 已折入默认值 |
+| `ppa/tech_params.py` 写-DAC/计数器能量 | sky130 DAC/计数器 | 仍为数量级占位（待提取） |
+| `device/` 行为 Sigmoid | `models/smtj_sot.va`（回归一致） | 双模型交叉验证 |
 
-> 接口原则：`smtj_pbnn_sim` 不依赖 `eda/`；`eda/` 单向地把可信常数/查表写入仿真器可读的配置
-> (YAML / Python dataclass)，使「替换占位符」是一次**配置注入**而非代码耦合。
+## 相关文档
 
-## 当前状态
-
-> 单一续传点见 [`STATUS.md`](STATUS.md)（状态 / 各阶段 DoD / 决策账本 / 验证账本）。下面是概要。
-
-- [x] 调研完成并事实核查 (research/)
-- [x] 勘误登记并修复 E1/E2 (`../docs/errata.md`)
-- [x] 路线图与 todo 计划 (ROADMAP.md + 会话 todo)
-- [x] ② vgsot-sim 整合决策：新写 MIT `.va`，不复用 Hikstor PDK；vgsot 作 submodule 真值参考
-- [x] ③ 开源可行性矩阵 (OPEN_SOURCE_FEASIBILITY.md)
-- [x] P0 决策：无许可证 → 开源 ngspice 路线；回归目标钉死 0.8958V/0.0234V (errata N1)
-- [x] **P1 完成**：`smtj_sot.va` 已写；Python 金标准已验证 (对实测 46 点 R²=0.9919、写能量 0.783 pJ、τ(0V)=67.8ns)；ngspice 46 + OpenVAF-Reloaded OSDI 回归 86 点 PASS (`max|err|=3.51e-4`, R²=1.00000)
-- [ ] **当前阶段**：P2 写路径
-- [ ] P2–P7：见 ROADMAP.md
-
-## 相关文件
-
-- 调研报告：[`research/2026-06-26_eda_assessment.md`](research/2026-06-26_eda_assessment.md)
-- 路线图：[`ROADMAP.md`](ROADMAP.md)
-- 勘误：[`../docs/errata.md`](../docs/errata.md)
-- 物理标定审计：[`../docs/physics_grounding.md`](../docs/physics_grounding.md)
+- 工具链：[`SETUP_opensource.md`](SETUP_opensource.md)
+- 调研记录：[`research/`](research/)
+- 勘误与物理标定：[`../docs/errata.md`](../docs/errata.md)、[`../docs/physics_grounding.md`](../docs/physics_grounding.md)
