@@ -7,9 +7,10 @@
 > 来源工作流 `wf_3df4813c-07b`（6 智能体：3 调研 + 3 对比，254k tokens，85 工具调用，含 WebSearch/WebFetch）。
 > **结构化原始数据**（每子模块 6 篇真实文献 + 两轴对比 + 论证 + figure_data）：
 > [`../../../eda/design_survey/submodule_survey.json`](../../../eda/design_survey/submodule_survey.json)。
-> **对照图**（raw，未标号；经 `article/ppt/` 标号后入 `article/figs/`）：
-> `figures/design_cmp_{readout_sa,write_dac_ir,sar_adc}.png`，由
-> [`../../../eda/gen_design_comparison_figs.py`](../../../eda/gen_design_comparison_figs.py) 生成。
+> **对照图**：各子模块的设计空间对比已作为子图 (c) 内嵌于 `Chapter04_local_16`（读出 SA）、
+> `Chapter04_local_18`（写线 IR 预畸变）、`Chapter05_local_09`（列共享 SAR），由
+> [`../../../eda/gen_supplement_figs.py`](../../../eda/gen_supplement_figs.py) 的 `design_cmp_panel()`
+> 直接在图内标注（不用 legend）生成，再经 `article/ppt/` 的链路加 (a)(b)(c) 并入 `article/figs/`。
 
 引用核验说明：以下均为子代理经 WebSearch/WebFetch 找到的真实论文；少数仅有摘要/付费正文的条目，其
 **数值**（mV 失调、fJ/op、节点）已在 JSON 中标 *unverified*，引入论文时须复核或仅作定性引用。
