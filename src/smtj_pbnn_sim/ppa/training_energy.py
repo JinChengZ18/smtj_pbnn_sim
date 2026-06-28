@@ -67,7 +67,6 @@ def pbnn_step_energy(rows: int, cols: int, T: int, batch: int,
     tech = tech or default_28nm()
     e_mac = per_mac_energy(tech)
     macs_per_sample = rows * cols
-    # Forward: T stochastic sample-and-read on each cell
     e_fwd = batch * macs_per_sample * T * e_mac
     # Backward input gradient: digital INT8 mul through STE,
     # plus T stochastic re-reads of W for the W^T product.
@@ -256,7 +255,6 @@ def network_training_energy(layer_dims: Iterable[tuple[int, int]],
     keys_pbnn = ("forward", "backward_input", "backward_weight", "theta_update")
     keys_fp = ("forward", "backward_input", "backward_weight", "weight_write")
     if arch_lower == "pbnn":
-        # sMTJ PBNN (default)
         keys = keys_pbnn
         per_step = {k: 0.0 for k in keys}
         for rows, cols in layer_dims:

@@ -211,9 +211,6 @@ def fit_neel_brown_from_vth_vs_tw(
     Delta_guess = max(1.0, b / 0.05)        # crude initial; refined below
     for _ in range(8):
         V_c0 = a - b * math.log(math.log(2.0)) * 0.0  # leading order: V_c0 ~= a
-        # NB closed form V_th(t_p) = V_c0 (1 - ln(t/tau0/ln2) / Delta)
-        # => V_th = V_c0 + V_c0/Delta * ln(ln 2) - (V_c0/Delta) * ln(t/tau0)
-        # => intercept a = V_c0 + b * ln(ln 2);  slope m = -b = -V_c0/Delta
         V_c0 = a - b * math.log(math.log(2.0))
         Delta = V_c0 / b
         Delta_guess = Delta

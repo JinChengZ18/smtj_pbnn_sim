@@ -203,8 +203,6 @@ class PBNNConv2d(torch.nn.Module):
             T_eff = self.T_full_stack if T is None else int(T)
             with torch.no_grad():
                 # Use soft p for Bernoulli sampling (mirrors PBNNLinear).
-                # After theta scaling, p is near {0,1} so samples are
-                # near-deterministic and converge to sign(theta).
                 p = self._p_soft_for_sampling()
                 acc: Optional[Tensor] = None
                 for _ in range(T_eff):
