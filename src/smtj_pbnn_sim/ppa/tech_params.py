@@ -2,10 +2,13 @@
 
 Defaults are set to the Chapter 2.3 measurement point: SOT-MTJ on 300 mm
 wafer, beta-W channel of R_SOT = 776 ohm, 0.75 ns write pulse at V_wr ~
-0.9 V, giving E_write ~ 0.78 pJ per cell. CMOS peripherals (DAC, counter,
-read sense) follow standard 28 nm order-of-magnitude figures and SHOULD
-be replaced with NeuroSim V1.5 floorplan output before reporting absolute
-numbers.
+0.9 V, giving E_write ~ 0.78 pJ per cell. The read-sense energy is now
+grounded in a sky130 StrongARM sense-amplifier extraction (``eda/``,
+errata R1): ``e_smtj_read = 48 fJ`` replaces the former 28 nm 5 fJ
+placeholder, so the simulator reports a credible read fraction without an
+external override. The remaining CMOS peripherals (DAC, counter, areas)
+are still 28 nm order-of-magnitude and SHOULD be replaced with sky130 /
+NeuroSim floorplan output before reporting their absolute numbers.
 
 NOTE (see ``docs/errata.md``, item E1): NeuroSim does NOT model the sMTJ
 stochastic SOT write -- that energy is physically grounded here via
@@ -34,9 +37,9 @@ class TechParams:
     t_write: float       = 0.75e-9     # write pulse width [s]
 
     # ---- CMOS peripheral energies (28 nm order of magnitude) -------------#
-    e_dac_step: float    = 5.0e-15     # one DAC code-set, per cell
-    e_smtj_read: float   = 5.0e-15     # bit-line read of one row activation
-    e_count_inc: float   = 0.5e-15     # one counter increment (CMOS digital)
+    e_dac_step: float    = 5.0e-15     # one DAC code-set, per cell (28 nm placeholder; awaits sky130 DAC)
+    e_smtj_read: float   = 4.8e-14     # sky130 StrongARM SA decision (eda/ extraction, ~48 fJ central; range 23-74); replaces 28 nm 5 fJ placeholder (errata R1)
+    e_count_inc: float   = 0.5e-15     # one counter increment (CMOS digital; 28 nm placeholder)
     e_sram_byte: float   = 5.0e-12     # one byte read from local SRAM
     e_dram_byte: float   = 6.4e-10     # one byte read from off-chip DRAM (Horowitz)
 
@@ -64,10 +67,10 @@ class TechParams:
     a_counter: float     = 50.0
 
     # ---- Identifying meta -----------------------------------------------#
-    name: str = "28nm-sot-default"
-    note: str = ("Chapter-2.3-grounded SOT-MTJ defaults plus 28 nm CMOS "
-                 "order-of-magnitude. Replace with NeuroSim V1.5 floorplan "
-                 "for accurate absolute numbers.")
+    name: str = "sky130-read-sot-default"
+    note: str = ("Chapter-2.3-grounded SOT-MTJ write + sky130-extracted "
+                 "StrongARM read (e_smtj_read=48 fJ); DAC/counter/areas "
+                 "remain 28 nm order-of-magnitude pending sky130 floorplan.")
 
     @property
     def e_smtj_write(self) -> float:
@@ -201,12 +204,13 @@ MEMORIES: dict[str, MemoryParams] = {
     ),
     "smtj": MemoryParams(
         name="sMTJ (SOT-MTJ stochastic, PBNN)",
-        e_read_per_bit=5.0e-15,           # CMOS sense-amp readout
+        e_read_per_bit=4.8e-14,           # sky130 StrongARM SA (eda/ extraction; errata R1)
         e_write_per_cell=0.78e-12,        # physics-grounded V^2/R * t
         t_write=0.75e-9,
         bits_per_weight=4,                 # T (default sweet-spot from exp 06)
         volatile=False,
-        citation=("Garello 2019 VLSI; Manchon 2019 Rev Mod Phys 91"),
+        citation=("Garello 2019 VLSI; Manchon 2019 Rev Mod Phys 91; "
+                  "read sky130 StrongARM SA (eda/)"),
     ),
 }
 

@@ -6,9 +6,10 @@ Reads eda/extraction/peripheral_energy.yaml and recomputes per-MAC + MNIST-MLP e
 with the extracted values, comparing against the 28 nm-placeholder defaults. smtj_pbnn_sim
 is NOT modified; values are injected one-way (the sim never imports eda/).
 
-Currently only the WRITE energy is EDA-extracted (P2 first-cut, channel+driver). read/DAC/
-counter remain placeholders pending sky130 (P4). Once P4 lands the ADC/sense numbers in the
-same YAML, this script reports the big peripheral-fraction shift (errata R1) with no code change.
+The READ energy (sky130 StrongARM SA, 48 fJ) and the channel+driver WRITE energy are now
+EDA-grounded; the read value is folded into the simulator default (ppa/tech_params), so the sim
+is independently credible. This script audits the legacy-placeholder -> grounded shift (errata
+R1) against an explicit 28 nm baseline; DAC/counter remain sky130-pending.
 
 Run: python eda/interface/load_tech_params.py
 """
@@ -49,8 +50,9 @@ def mnist_energy(pm, T):
 
 def main():
     ext = load_extract()
-    tp = tech_params.default_28nm()
-    pm_def = energy.per_mac_energy(tp)                 # placeholders + Ohmic write
+    tp = tech_params.default_28nm()                    # current default: sky130-grounded read
+    tp_legacy = tech_params.TechParams(e_smtj_read=5.0e-15)  # historical 28 nm read placeholder
+    pm_def = energy.per_mac_energy(tp_legacy)          # legacy 28 nm placeholders + Ohmic write
     e_write_ext = ext.get("e_smtj_write", tp.e_smtj_write)
     e_read = ext.get("e_smtj_read", tp.e_smtj_read)
     e_dac = ext.get("e_dac_step", tp.e_dac_step)
@@ -61,8 +63,8 @@ def main():
           f"({100*(pm_ext-pm_def)/pm_def:+.1f}%)")
     print(f"  write : {tp.e_smtj_write*1e12:.3f} pJ (Ohmic)  ->  {e_write_ext*1e12:.3f} pJ "
           f"(P2 +driver)   write fraction {100*e_write_ext/pm_ext:.1f}%")
-    print(f"  read  : {tp.e_smtj_read*1e15:.1f} fJ (28nm placeholder)  ->  {e_read*1e15:.1f} fJ "
-          f"(sky130 StrongARM SA)   read fraction {100*e_read/pm_ext:.1f}%")
+    print(f"  read  : {tp_legacy.e_smtj_read*1e15:.1f} fJ (legacy 28nm)  ->  {e_read*1e15:.1f} fJ "
+          f"(sky130 StrongARM SA, now sim default)   read fraction {100*e_read/pm_ext:.1f}%")
     print(f"  DAC/counter: still 28nm placeholders ({(e_dac+e_cnt)*1e15:.1f} fJ, "
           f"{100*(e_dac+e_cnt)/pm_ext:.1f}% of per-MAC) -- await sky130 DAC")
     rows = []
