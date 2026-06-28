@@ -29,12 +29,22 @@ and its `tanh` switching provides nonlinearity, so only a linear readout is trai
 * **Reservoir layer (`reservoir/`)**: `SMTJReservoir` — fixed random pool of telegraph nodes with input injection, optional spectral-radius-scaled recurrence, per-node Δ heterogeneity, ensemble averaging (devices/node), and a noise-free `meanfield` mode (RC analogue of PBNN `software`). Closed-form ridge `readout.py` (the only trained part); `tasks.py` (NARMA-10, memory-capacity, product-memory, sine/square); `metrics.py` (NRMSE, linear memory capacity, Jaeger 2001).
 * **Prototype & computability (exp 14)**: mean-field memory capacity ≈ 6.6, NARMA-10 NRMSE ≈ 0.61; real device (ensemble = 96) MC ≈ 2.0, NRMSE ≈ 0.81 — surfaces the readout shot-noise limit.
 * **Device-optimization guidance (exp 15)**: optimal barrier tracks the task timescale, τ\* ≈ 2.3·dt; the RC optimum **Δ ≈ 3.5–4.3 sits below the PBNN write device's Δ = 4.91** (RC wants a more superparamagnetic, lower-barrier device); the memory/nonlinearity trade-off is set by operating-point bias.
-* **Hardware PPA (exp 16)**: sMTJ-RC replaces the digital ESN's O(N²) recurrent matmul with O(N × ensemble) analog physics — **~38× lower energy** than a conventional digital ESN and **~8× better energy-per-MC**, though an idealized ADC-free CIM ESN remains a cheaper floor (honest bracket).
+* **Hardware PPA (exp 16)**: sMTJ-RC replaces the digital ESN's O(N²) recurrent matmul with O(N × ensemble) analog physics — **~30× lower energy** (per-node 8-bit; ~35× with a column-shared SAR) than a conventional digital ESN once the physical sky130 ADC is billed, though an idealized ADC-free CIM ESN remains a cheaper floor (honest bracket).
 * **Variation tolerance & noise (exp 17)**: D2D Δ heterogeneity, harmful to PBNN, instead *raises* node diversity and benefits RC; the real limit is readout signal-to-noise.
 * **Benchmark breadth (exp 18)**: Mackey-Glass chaotic single-step prediction and information-processing-capacity (IPC) decomposition by polynomial degree.
 * **Temperature as a τ knob (exp 19)**: zero-bias τ is strongly Arrhenius in temperature; a thermal-clock recipe (system clock following τ(T)) keeps memory capacity near-constant across a wide temperature range, and lets a target operating temperature constrain the barrier to fabricate.
 
+## EDA co-design grounding & robustness (v0.4.0)
+
+Grounds the CMOS-peripheral PPA inputs in an open-source sky130 (130 nm/1.8 V) flow and adds a seed-independence study; device physics and the PBNN/RC math are unchanged.
+
+* **Readout (sky130 StrongARM SA)**: input-referred offset σ ≈ 0.39·V_T (120-sample MC), decision energy ≈ 48 fJ — replaces the 5 fJ placeholder (errata R1). A slope-matched TIA maps the offset to ~2.5 popcount, so a plain comparator is Pareto-optimal at MNIST fan-in (auto-zero only for low-V_in / wide-fan-in columns).
+* **Write path**: voltage-mode resistor-string write-DAC (adopted after a binary-weighted current-steering first cut failed monotonicity at INL ~1.7 LSB), IR-aware per-row pre-distortion, and write-line IR extracted via Magic extresist (N=256 round-trip ~16.5% of R_SOT).
+* **PPA energies grounded**: `e_smtj_read` 48 fJ, `e_dac_step` ~34 fJ, `e_count_inc` ~19 fJ (`eda/testbenches/dac_counter_energy.py`); per-MAC peripheral share rises ~1% → ~11%, write still ~89%. Area constants remain placeholders (`.agents/eda/PPA_grounding_plan.md`).
+* **Seed-independence (exp 21)**: the four headline results are robust across 8 seeds — PBNN MNIST 97.01%±0.17, T64−T4 gap 0.21±0.11 pp, RC memory capacity 2.11±0.22, RC energy advantage 30.2×, device β_s 9.51±0.01 (Appendix C).
+* **CNN extension (exp 05a)**: PBNN-CNN on Fashion-MNIST (88.1%) and CIFAR-10 (67.2%); the binary-capacity cost grows with task difficulty (Appendix B).
+
 ## Tests & experiments
 
-* **93 unit tests** pass (was 61 before the RC extension; added telegraph, reservoir, and RC-energy cases).
-* **Experiments 01–13** (PBNN) and **14–19** (reservoir computing) all run end-to-end and produce figures; 01–04, 13 and 16 are torch-free.
+* **95 unit tests** pass (was 61 before the RC extension, 93 before the EDA-grounding round; added telegraph, reservoir, RC-energy, and the updated PPA-grounding cases).
+* **Experiments 01–13** (PBNN), **14–19** (reservoir computing), **20** (write-line IR-drop) and **21** (seed-independence) all run end-to-end and produce figures; 01–04, 13 and 16 are torch-free.

@@ -100,7 +100,7 @@ A T=1 explicit-sample pass is equivalent to a single Bernoulli draw, which has v
 
 ### PPA constants are placeholders for CMOS peripherals
 
-`tech_params.TechParams.e_dac_step`, `e_smtj_read`, `e_count_inc`, and all areas are 28 nm order-of-magnitude defaults. The **only** PPA number grounded in Chapter 2.3 is `e_smtj_write` (SOT channel dissipation). For absolute energy/latency comparisons, replace the CMOS constants with NeuroSim V1.5 floorplan-derived numbers.
+As of 0.4.0 the peripheral **energies** are sky130-grounded: `e_smtj_read` (~48 fJ, extracted StrongARM SA), `e_dac_step` (~34 fJ) and `e_count_inc` (~19 fJ) via `eda/testbenches/dac_counter_energy.py`, plus the physically-derived `e_smtj_write` (SOT channel dissipation). Only the **area** constants (`a_smtj_cell`, `a_sot_track`, `a_dac`, `a_counter`) remain 28 nm order-of-magnitude — replace via sky130 layout extraction before absolute area claims (plan in `.agents/eda/PPA_grounding_plan.md`).
 
 ### CSV column units
 
@@ -160,6 +160,38 @@ Files that should NOT be modified unless you have a specific reason:
 * `utils.seeding.set_global_seed` seeds Python, NumPy, and Torch.
 * The MNIST experiment writes `runs/<name>/resolved.yaml` alongside `best.pt`, so any run can be reproduced with `smtj-train --config runs/<name>/resolved.yaml`.
 * Training metrics are persisted to `runs/<name>/metrics.csv` with per-epoch loss, accuracy, and wall-clock timing.
+
+---
+
+## 0.4.0 -- sky130 EDA co-design grounding, figure/article refinement, seed-independence
+
+Grounds the simulator's CMOS-peripheral PPA inputs in an open-source sky130 (130 nm/1.8 V) flow, refines the thesis figures and prose to journal grade, restructures the appendices, and adds a reviewer-requested seed-independence study. No change to the device physics or the core PBNN/RC math.
+
+### Added -- sky130 EDA co-design (`eda/`)
+
+* Readout: StrongARM sense-amp extracted on sky130 (input-referred offset 0.39 V_T, decision energy ~48 fJ, replacing the 5 fJ placeholder, errata R1); slope-matched TIA front-end; column-shared SAR readout.
+* Write path: voltage-mode resistor-string write-DAC (adopted after a binary-weighted current-steering first cut failed monotonicity at INL ~1.7 LSB), IR-aware per-row write pre-distortion, and write-line IR extracted via Magic extresist (N=256 round-trip ~16.5% of R_SOT).
+* Journal schematics (Xschem -> SVG -> cairosvg) for the readout SA, the write path, and the SAR readout, plus a device->array->periphery->modes architecture diagram.
+* `eda/testbenches/dac_counter_energy.py`: grounds `e_dac_step` (~34 fJ) and `e_count_inc` (~19 fJ) in sky130 (ngspice analog core + sky130 stdcell-capacitance digital estimate).
+
+### Added -- experiments + supplement
+
+* `experiments/21_seed_independence.py`: re-runs the four headline conclusions over 8 seeds; all are seed-robust (PBNN MNIST 97.01%+-0.17, T64-T4 gap 0.21+-0.11 pp, RC memory capacity 2.11+-0.22, RC energy advantage 30.2x, device beta_s 9.51+-0.01).
+* `experiments/05a_*` CNN extension on Fashion-MNIST / CIFAR-10.
+* `article/supplement_eda_codesign.md` integrated into chapters 4-5.
+
+### Changed -- PPA grounding
+
+* `tech_params`: `e_smtj_read` 5 fJ -> 48 fJ, `e_dac_step` 5 fJ -> 34 fJ, `e_count_inc` 0.5 fJ -> 19 fJ (all sky130-grounded); per-MAC peripheral share ~1% -> ~11%, with the SOT write still ~89%. Only the four AREA constants remain 28 nm placeholders (plan in `.agents/eda/PPA_grounding_plan.md`).
+* `tests/test_ppa.py`: write-fraction threshold updated to the grounded breakdown. Suite: 93 -> 95 passing.
+
+### Changed -- article / figures
+
+* Figure production norms: generators bake no panel letters, figure numbers, Chinese, or hard-coded chapter strings; in-figure math uses real subscripts; comparison plots label points directly (no legend). Recorded in `.agents/eda/research/2026-06-28_figure_conventions.md`.
+* Analysis figures unified into the chapter decks (`article/ppt/Chapter0{4,5}_local.pptx`); the separate autofigs decks were removed.
+* Architecture diagram moved from Chapter 4 (图4.23) to Chapter 5 (图5.10), where it caps the unified three-mode discussion.
+* Appendices restructured: A = code & data availability (new), B = CNN extension (was A), C = seed-independence (new).
+* Trial-and-error / correction footnotes added (device V_th anchoring, read-energy 5->48 fJ, write-line IR, CIFAR-10 convergence).
 
 ---
 
