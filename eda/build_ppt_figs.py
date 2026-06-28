@@ -1,29 +1,34 @@
 #!/usr/bin/env python3
-"""Route the direct-gen analysis figures through a PPT so the panel letters
-(a)(b)(c) and the figure number live in the deck, not baked into the plots
-(portability; see project figure-norm memory).
+"""Route the matplotlib analysis figures through the chapter decks so the panel
+letters (a)(b)(c) live in the deck, not baked into the plots (portability).
 
-Pipeline (python-pptx + LibreOffice, per the user's choice):
+Per the user's choice, the figures are appended into the HAND-BUILT decks
+article/ppt/Chapter0*_local.pptx (one deck per chapter -- no separate autofigs
+deck), so all of a chapter's figures live together and order automatically. The
+existing hand-built slides are never modified: this script backs each deck up
+once (.bak), removes only its own previously-appended slides (tagged in the slide
+notes), and re-appends. Circuit schematics are NOT routed here -- they keep their
+vector .svg/.pdf pipeline.
+
+Pipeline (python-pptx + LibreOffice + PyMuPDF):
   1. eda/gen_supplement_figs.py emits each panel WITHOUT a letter to figures/panels/;
-  2. this script builds a clean auto-deck article/ppt/autofigs_<chap>.pptx (rebuilt
-     from scratch each run, so it never disturbs the hand-built Chapter0*_local.pptx),
-     one slide per figure: panels placed in a row, (a)(b)(c) added above each, and a
-     "图 X.Y" number;
-  3. LibreOffice renders the deck to PDF and PyMuPDF saves each slide to
-     article/figs/Chapter0*_local_NN.png (the numbered article figure).
+  2. this script appends one slide per figure (panels in a row at the slide top,
+     (a)(b)(c) above each) to the chapter deck;
+  3. LibreOffice renders the deck to PDF and PyMuPDF exports each appended slide,
+     CLIPPED to the panel row (so the 4:3 deck size is irrelevant), to
+     article/figs/Chapter0*_local_NN.png.
 
-Run (Windows):  python eda/build_ppt_figs.py
-Requires: python-pptx, PyMuPDF (fitz), LibreOffice (soffice).
+Run (Windows):  python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 """
 from __future__ import annotations
+import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
+from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.shapes import MSO_SHAPE
 from PIL import Image
 import fitz
 
@@ -32,60 +37,88 @@ PANELS = REPO / "figures" / "panels"
 PPT = REPO / "article" / "ppt"
 OUT = REPO / "article" / "figs"
 SOFFICE = r"C:\Program Files\LibreOffice\program\soffice.exe"
-TITLE_RGB = RGBColor(0x3F, 0x2A, 0x7A)
+TAG = "AUTOFIG:"                       # marker (in slide notes) for our appended slides
+MARGIN, GAP, TOP = 0.25, 0.14, 0.55    # inches, within the slide
+LETTER_DY = 0.34
 
-# figures routed through the PPT: which panels, the figure number, the output name
-FIGS = {
-    "ch04": [
-        {"stem": "ch04_16", "panels": ["a", "b", "c"], "num": "图 4.16", "out": "Chapter04_local_16"},
-        {"stem": "ch04_18", "panels": ["a", "b", "c"], "num": "图 4.18", "out": "Chapter04_local_18"},
+# chapter deck -> list of figures (stem in figures/panels/, panel letters, output name)
+DECKS = {
+    "Chapter04_local.pptx": [
+        {"stem": "ch04_16", "panels": "abc", "out": "Chapter04_local_16"},
+        {"stem": "ch04_17", "panels": "ab", "out": "Chapter04_local_17"},
+        {"stem": "ch04_18", "panels": "abc", "out": "Chapter04_local_18"},
     ],
-    "ch05": [
-        {"stem": "ch05_09", "panels": ["a", "b", "c"], "num": "图 5.9", "out": "Chapter05_local_09"},
+    "Chapter05_local.pptx": [
+        {"stem": "ch05_09", "panels": "abc", "out": "Chapter05_local_09"},
     ],
 }
-SLIDE_W, SLIDE_H = Inches(13.33), Inches(4.4)   # wide slide sized to a 3-panel row
 
 
-def build_slide(prs, fig):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
-    paths = [PANELS / f"{fig['stem']}_{p}.png" for p in fig["panels"]]
+def is_auto(slide):
+    return (slide.has_notes_slide
+            and slide.notes_slide.notes_text_frame.text.startswith(TAG))
+
+
+def remove_autoslides(prs):
+    lst = prs.slides._sldIdLst
+    for sid, slide in list(zip(list(lst), prs.slides)):
+        if is_auto(slide):
+            lst.remove(sid)
+
+
+def append_fig(prs, fig):
+    layout = min(prs.slide_layouts, key=lambda l: len(l.placeholders))  # blankest available
+    slide = prs.slides.add_slide(layout)
+    for ph in list(slide.placeholders):           # make it truly blank
+        ph._element.getparent().remove(ph._element)
+    bg = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, 0, 0, prs.slide_width, prs.slide_height)
+    bg.fill.solid(); bg.fill.fore_color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+    bg.line.fill.background(); bg.shadow.inherit = False   # white backing, no border/shadow
+    letters = fig["panels"]
+    paths = [PANELS / f"{fig['stem']}_{c}.png" for c in letters]
     n = len(paths)
-    margin, gap, top = 0.25, 0.12, 0.45
-    avail = SLIDE_W.inches - 2 * margin - (n - 1) * gap
+    avail = 10.0 - 2 * MARGIN - (n - 1) * GAP     # 10in usable width
     pw = avail / n
+    ph_max = 0.0
     for i, path in enumerate(paths):
         im = Image.open(path)
         ph = pw * im.height / im.width
-        x = margin + i * (pw + gap)
-        slide.shapes.add_picture(str(path), Inches(x), Inches(top), width=Inches(pw))
-        tb = slide.shapes.add_textbox(Inches(x + 0.05), Inches(top - 0.30), Inches(1.0), Inches(0.32))
-        tf = tb.text_frame
-        tf.word_wrap = False                          # keep "(a)" on one line
-        tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
-        r = tf.paragraphs[0].add_run()
-        r.text = f"({'abcdef'[i]})"
-        r.font.bold = True; r.font.size = Pt(14); r.font.color.rgb = RGBColor(0x20, 0x20, 0x20)
-    # NOTE: the deck adds only the (a)(b)(c) panel letters; the figure NUMBER
-    # (图 X.Y) lives in the markdown caption, so it is intentionally NOT baked in.
+        ph_max = max(ph_max, ph)
+        x = MARGIN + i * (pw + GAP)
+        slide.shapes.add_picture(str(path), Inches(x), Inches(TOP), width=Inches(pw))
+        if n > 1:                                 # single-panel figures get no letter
+            tb = slide.shapes.add_textbox(Inches(x + 0.05), Inches(TOP - LETTER_DY),
+                                          Inches(1.0), Inches(0.32))
+            tf = tb.text_frame; tf.word_wrap = False
+            tf.margin_left = tf.margin_right = tf.margin_top = tf.margin_bottom = 0
+            r = tf.paragraphs[0].add_run()
+            r.text = f"({letters[i]})"
+            r.font.bold = True; r.font.size = Pt(14); r.font.color.rgb = RGBColor(0x20, 0x20, 0x20)
+    slide.notes_slide.notes_text_frame.text = TAG + fig["stem"]
+    clip = (MARGIN - 0.12, TOP - LETTER_DY - 0.05, 10.0 - MARGIN + 0.12, TOP + ph_max + 0.1)
+    return clip                                   # inches: (x0, y0, x1, y1)
 
 
 def main():
-    PPT.mkdir(parents=True, exist_ok=True)
-    for chap, figs in FIGS.items():
-        prs = Presentation()
-        prs.slide_width, prs.slide_height = SLIDE_W, SLIDE_H
-        for fig in figs:
-            build_slide(prs, fig)
-        deck = PPT / f"autofigs_{chap}.pptx"
-        prs.save(deck)
-        # LibreOffice -> PDF
-        subprocess.run([SOFFICE, "--headless", "--convert-to", "pdf",
-                        "--outdir", str(PPT), str(deck)],
+    for deck_name, figs in DECKS.items():
+        deck = PPT / deck_name
+        if not deck.exists():
+            print("SKIP (missing):", deck_name); continue
+        bak = deck.with_suffix(".pptx.bak")
+        if not bak.exists():
+            shutil.copy2(deck, bak)               # one-time backup of the hand-built deck
+        prs = Presentation(str(deck))
+        remove_autoslides(prs)
+        base = len(prs.slides._sldIdLst)          # hand-built slide count
+        clips = [append_fig(prs, f) for f in figs]
+        prs.save(str(deck))
+        subprocess.run([SOFFICE, "--headless", "--convert-to", "pdf", "--outdir", str(PPT), str(deck)],
                        check=True, capture_output=True)
-        pdf = fitz.open(str(PPT / f"autofigs_{chap}.pdf"))
-        for i, fig in enumerate(figs):
-            pix = pdf.load_page(i).get_pixmap(dpi=200)
+        pdf = fitz.open(str(PPT / deck_name.replace(".pptx", ".pdf")))
+        for j, fig in enumerate(figs):
+            page = pdf.load_page(base + j)
+            x0, y0, x1, y1 = (v * 72 for v in clips[j])    # inches -> PDF points
+            pix = page.get_pixmap(clip=fitz.Rect(x0, y0, x1, y1), dpi=230)
             pix.save(str(OUT / f"{fig['out']}.png"))
             print("wrote", (OUT / f"{fig['out']}.png").relative_to(REPO))
         pdf.close()

@@ -18,4 +18,6 @@ data/fashion_mnist/
 experiments/data/
 .claude/settings.local.json
 .claude/worktrees/
-article/ppt/autofigs_*.pdf
+# PPT figure pipeline: generated PDFs (LibreOffice export) + one-time deck backups
+article/ppt/Chapter0*_local.pdf
+article/ppt/*.pptx.bak

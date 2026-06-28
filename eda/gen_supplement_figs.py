@@ -34,11 +34,16 @@ PANELS.mkdir(parents=True, exist_ok=True)
 
 
 def save_panels(fig, axes, stem):
-    """Save each axes of `fig` as its own PNG (no panel letter) to figures/panels/."""
+    """Save each axes of `fig` as its own PNG (no panel letter) to figures/panels/.
+    Unions any twin/overlapping axes (e.g. twinx) so secondary labels aren't clipped."""
+    from matplotlib.transforms import Bbox
     fig.canvas.draw()
     rend = fig.canvas.get_renderer()
     for i, axx in enumerate(axes):
-        ext = axx.get_tightbbox(rend).transformed(fig.dpi_scale_trans.inverted())
+        pos = tuple(round(v, 4) for v in axx.get_position().bounds)
+        sibs = [a for a in fig.axes if tuple(round(v, 4) for v in a.get_position().bounds) == pos]
+        bb = Bbox.union([a.get_tightbbox(rend) for a in sibs])
+        ext = bb.transformed(fig.dpi_scale_trans.inverted())
         fig.savefig(PANELS / f"{stem}_{'abcdef'[i]}.png", dpi=200,
                     bbox_inches=ext.expanded(1.06, 1.10))
 
@@ -178,7 +183,7 @@ def fig3():
     ax[0].set_xscale("log", base=2); ax[0].set_yscale("log")
     ax[0].set_xlabel("column height N (cells)")
     ax[0].set_ylabel(r"parasitic R / 776 $\Omega$ (%)")
-    ax[0].set_title("(a) Write-line IR-drop grows with column height")
+    ax[0].set_title("Write-line IR-drop grows with column height")
     ax[0].legend(fontsize=9)
     # (b) sky130 CMOS write driver: delivered V and overhead vs pull-up width (measured)
     wp = [1, 2, 4, 6, 7, 8, 16, 32, 64]
@@ -193,9 +198,11 @@ def fig3():
     ax[1].set_ylabel("delivered flat-top voltage (V)", color=PURPLE)
     ax2.set_ylabel("driver energy overhead (%)", color=GREEN)
     ax2.set_yscale("log")
-    ax[1].set_title("(b) 1.8 V CMOS driver into 776 $\\Omega$: divider vs overdrive")
+    ax[1].set_title("1.8 V CMOS driver into 776 $\\Omega$: divider vs overdrive")
     ax[1].legend(handles=[l1, l2], fontsize=9, loc="center right")
-    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_17.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout()
+    save_panels(fig, ax, "ch04_17")
+    fig.savefig(OUT / "Chapter04_local_17.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
