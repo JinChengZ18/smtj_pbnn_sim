@@ -280,6 +280,18 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 从主线层面看，本章工作的根本意义在于与第三章构成对偶：第三章在伊辛求解任务上验证了同一物理阵列能够以可机理归因的优势承担组合优化，本章则在PBNN推断任务上验证了同一物理阵列能够以同量级能效与结构性鲁棒性承担机器学习。两类任务之间在器件层、阵列层与仿真后端层均无硬件分歧，区别只在于外围调度——这正是第一章所设想的、由同一阵列在不同时间窗口分别承担两类传统分离任务在工程层面的可证明形态。综合两章结果，全自旋三位一体架构与时域展开范式在跨任务、跨架构、跨非理想性三个维度上均得到了可复现的定量支持，下一章将在此基础上对全文工作作出总结并讨论后续研究方向。
 
+## 脚注
+
+以下为说明性脚注 (随文排为脚注；与作为尾注的参考文献分列)。
+
+[^te_anchor]: 这是开发过程中的一处典型订正。最初实现直接以势垒采样的裸$$V_\mathrm{th}$$中心 (约0.843 V) 作为各单元判决阈值，在硬件感知训练下相当于在全部权重上叠加约50 mV ($$2.26\,V_T$$) 的系统性偏置，使全栈测试精度明显低于锚定后的水平；定位到该偏置源于势垒采样中心与写驱动名义工作点不一致后，改为仅以$$\Delta$$的离散驱动单元间方差、而把场均值锚定到标定工作点，精度方恢复至预期。
+
+[^te_read]: 外围能量经历了一次由占位到提取的订正。读出、数模转换器与计数器最初沿用28 nm数字默认值 (读出与数模转换器各约5 fJ、计数器约0.5 fJ)，据此曾得出外围仅约1%、优化意义不大的判断；经4.6节的sky130 StrongARM版图提取 (读出约48 fJ) 以及电阻串数模转换器与计数器的器件电容估算 (约34 fJ与约19 fJ) 订正后，外围占比升至约11%，优化重心相应从单纯的器件改进扩展到读出与写驱动电路的协同。
+
+[^te_ir]: 写线IR压降的严重性是经版图提取才显现的。阵列层最初按可忽略处理写线寄生 (仅保留行为级接口)，相应地正文4.3节亦只把读出受IR的影响视为可被数字阈值吸收；经Magic电阻提取与ngspice直流扫描后发现，低阻SOT写线 (776 Ω) 与金属互连在$$N=256$$时往返寄生达器件电阻的约16.5%，使远端写点跌破阈值，这一发现直接催生了本节随后的IR感知逐行写预畸变方案。
+
+[^tgate]: CMOS传输门由并联的NMOS与PMOS构成，对轨到轨范围内的模拟电压提供低且较对称的导通电阻；相较单管开关 (近电源轨时损失约一个阈值电压、导通电阻随电平强烈变化)，它能近乎无失真地把所选电阻串抽头电压传给写驱动，是模拟选择开关的常规做法。
+
 ## 参考文献
 
 [^neel1949]: Néel L. Théorie du traînage magnétique des ferromagnétiques en grains fins avec application aux terres cuites. *Annales de Géophysique*, 1949, 5: 99–136.
@@ -298,8 +310,6 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 [^dsa]: A low-voltage low-offset dual strong-arm latch comparator. *IEEE Asian Solid-State Circuits Conference (A-SSCC)*, 2017（28 nm FDSOI，实测输入失调约8.5 mV，较常规StrongARM低约30%）。
 
 [^autozero]: Dong Q, et al. A 1 Mb 28 nm STT-MRAM with 2.8 ns read using a single-cap offset-cancelled sense amplifier. *IEEE International Solid-State Circuits Conference (ISSCC)*, 2018（失调标准差降逾60%、较双容自调零省约15%面积、自调零相位隐藏于译码无时序代价；按约2×隧穿磁阻余量预算、自调零始终开启）。
-
-[^tgate]: CMOS传输门由并联的NMOS与PMOS构成，对轨到轨范围内的模拟电压提供低且较对称的导通电阻；相较单管开关 (近电源轨时损失约一个阈值电压、导通电阻随电平强烈变化)，它能近乎无失真地把所选电阻串抽头电压传给写驱动，是模拟选择开关的常规做法。
 
 [^pbit_asic]: An integrated-circuit-based probabilistic computer that uses voltage-controlled magnetic tunnel junctions as its entropy source. *Nature Electronics*, 2025, s41928-025-01439-6（实测130 nm CMOS）。
 
@@ -350,9 +360,3 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 [^lion]: Chen X, Liang C, Huang D, Real E, Wang K, Liu Y, Pham H, Dong X, Luong T, Hsieh C-J, Lu Y, Le Q V. Symbolic discovery of optimization algorithms. *Advances in Neural Information Processing Systems*, 2023, 36. [arXiv:2302.06675](https://arxiv.org/abs/2302.06675)
 [^cosine]: Loshchilov I, Hutter F. SGDR: stochastic gradient descent with warm restarts. *International Conference on Learning Representations*, 2017. [arXiv:1608.03983](https://arxiv.org/abs/1608.03983)
 [^onecycle]: Smith L N. A disciplined approach to neural network hyper-parameters: part 1—learning rate, batch size, momentum, and weight decay. *arXiv preprint*, 2018. [arXiv:1803.09820](https://arxiv.org/abs/1803.09820)
-
-[^te_anchor]: 这是开发过程中的一处典型订正。最初实现直接以势垒采样的裸$$V_\mathrm{th}$$中心 (约0.843 V) 作为各单元判决阈值，在硬件感知训练下相当于在全部权重上叠加约50 mV ($$2.26\,V_T$$) 的系统性偏置，使全栈测试精度明显低于锚定后的水平；定位到该偏置源于势垒采样中心与写驱动名义工作点不一致后，改为仅以$$\Delta$$的离散驱动单元间方差、而把场均值锚定到标定工作点，精度方恢复至预期。
-
-[^te_read]: 外围能量经历了一次由占位到提取的订正。读出、数模转换器与计数器最初沿用28 nm数字默认值 (读出与数模转换器各约5 fJ、计数器约0.5 fJ)，据此曾得出外围仅约1%、优化意义不大的判断；经4.6节的sky130 StrongARM版图提取 (读出约48 fJ) 以及电阻串数模转换器与计数器的器件电容估算 (约34 fJ与约19 fJ) 订正后，外围占比升至约11%，优化重心相应从单纯的器件改进扩展到读出与写驱动电路的协同。
-
-[^te_ir]: 写线IR压降的严重性是经版图提取才显现的。阵列层最初按可忽略处理写线寄生 (仅保留行为级接口)，相应地正文4.3节亦只把读出受IR的影响视为可被数字阈值吸收；经Magic电阻提取与ngspice直流扫描后发现，低阻SOT写线 (776 Ω) 与金属互连在$$N=256$$时往返寄生达器件电阻的约16.5%，使远端写点跌破阈值，这一发现直接催生了本节随后的IR感知逐行写预畸变方案。

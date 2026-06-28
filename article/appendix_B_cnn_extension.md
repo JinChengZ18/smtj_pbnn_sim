@@ -57,10 +57,14 @@ PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$
 
 卷积拓扑扩展实验定性地确认了正文两个核心结论对一般PBNN-CNN设计同样成立：(1) sMTJ随机采样不引入可观的额外训练精度代价 (PBNN-CNN与确定性BNN-CNN在两个数据集上差距均小于1.3个百分点)；(2) 时域展开提供按需可调的精度-能耗折中。同时，实验量化了两点难度依赖的工程提示：二值架构相对全精度的容量差距随任务难度从MNIST的约1.5pp扩大到CIFAR-10的约25pp，而在难任务上达到FULL_STACK渐近精度所需的采样次数也相应上升 (CIFAR-10建议$$T=16$$—$$32$$而非MNIST的$$T=4$$)。这些结论与正文基于MNIST-MLP的分析互为补充，未改变正文的主线判断。
 
+## 脚注
+
+以下为说明性脚注 (随文排为脚注；与作为尾注的参考文献分列)。
+
+[^te_cifar]: CIFAR-10二值网络的收敛是本扩展实验中的主要难点。沿用Fashion-MNIST的20轮固定学习率配置时，二值CNN在CIFAR-10上长时间停滞于约50%、远未收敛；改用60轮余弦退火后训练才稳定爬升至约67%，这也从训练动力学一侧印证了二值容量代价随任务难度急剧放大的规律。
+
 ## 参考文献
 
 [^xiao2017]: Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. *arXiv preprint*, 2017. [arXiv:1708.07747](https://arxiv.org/abs/1708.07747)
 [^binarynet]: Courbariaux M, Hubara I, Soudry D, El-Yaniv R, Bengio Y. Binarized neural networks: training deep neural networks with weights and activations constrained to +1 or -1. *arXiv preprint*, 2016. [arXiv:1602.02830](https://arxiv.org/abs/1602.02830)
 [^cifar10]: Krizhevsky A. Learning multiple layers of features from tiny images. *Technical Report*, University of Toronto, 2009.
-
-[^te_cifar]: CIFAR-10二值网络的收敛是本扩展实验中的主要难点。沿用Fashion-MNIST的20轮固定学习率配置时，二值CNN在CIFAR-10上长时间停滞于约50%、远未收敛；改用60轮余弦退火后训练才稳定爬升至约67%，这也从训练动力学一侧印证了二值容量代价随任务难度急剧放大的规律。
