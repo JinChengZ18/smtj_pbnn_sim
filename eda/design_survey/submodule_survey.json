@@ -1,0 +1,541 @@
+{
+  "source": "multi-agent arxiv/OA survey (workflow wf_3df4813c-07b, 2026-06-29)",
+  "submodules": [
+    {
+      "key": "readout_sa",
+      "title": "Slope-matched p-bit readout sense amplifier",
+      "survey": {
+        "submodule": "Slope-matched p-bit readout sense amplifier (StrongARM-latch SA with transimpedance front-end; input-referred offset budgeted against the V_T~23mV Bernoulli decision window rather than TMR margin)",
+        "designs": [
+          {
+            "name": "Single-cap offset-cancelled two-stage voltage SA (28nm STT-MRAM)",
+            "citation": "Q. Dong, K. Yang, L. Fick, D. Fick, D. Blaauw, D. Sylvester, et al., \"A 1Mb 28nm STT-MRAM with 2.8ns Read Access Time at 1.2V VDD Using Single-Cap Offset-Cancelled Sense Amplifier and In-Situ Self-Write-Termination,\" ISSCC 2018, Session 30.2. Open-access author PDF: blaauw.engin.umich.edu/.../Dong-A-1Mb-28nm-STT-MRAM.pdf (extended JSSC version: IEEE JSSC 2019).",
+            "approach": "Constant-current voltage sensing: row-wise reference cells generate a read-reference voltage tracking PVT; a two-stage SA where the second stage uses a SINGLE capacitor to store and cancel its input offset during a precharge/offset-cancel phase overlapped with decoding (no timing penalty). The same SA is reconfigured as a continuous gate-connected voltage SA to detect write completion (in-situ self-write-termination).",
+            "key_metrics": "28nm embedded MRAM, 1.2V VDD, 2.8ns read at 25C / 3.6ns at 120C, error rate ~1e-5; only ~2x R_AP/R_P (low-TMR, small read window analogous to our ~23mV); single-cap cancellation reduces input-referred offset by >60% vs same-size conventional SA; a conventional SA sigma of ~19mV is cited; SA area ~15% smaller than dual-cap method; write power -47% via self-termination. No per-read pJ stated.",
+            "pros": "Directly targets the exact pain point that defines our task: a tiny sense window from low TMR. Single-cap offset cancellation gives the >60% offset reduction we may need for low-V_in/wide-fan-in corners while keeping area/latency low. Row-local reference cells = systematic PVT tracking, conceptually similar to our per-column write-DAC trim. Shows offset cancellation overlapped with decode for zero latency cost.",
+            "cons": "Pure memory read (single-bit Bernoulli-free decision), not XNOR-popcount accumulation; no ADC/multi-level digitization, so it does not address ADC amortization. Voltage-mode with explicit reference cells rather than a slope-matched transimpedance front-end. Offset still budgeted against an R-ratio margin, not an absolute V_T window. 28nm commercial, not sky130.",
+            "relevance_to_our_task": "Best-matched alternative for the offset-cancellation branch of our design. Quantifies that a conventional SA sigma (~19mV) is comparable to a low-TMR window and that single-cap cancellation recovers >60% of it -- supporting our claim that plain StrongARM suffices nominally but cancellation is the lever for the worst corners. Use as the canonical citation for 'auto-zero/single-cap offset-cancelled SA' and for reference-cell-based systematic-offset tracking."
+          },
+          {
+            "name": "Charge-steering double-tail dynamic comparator (low-offset, 28nm)",
+            "citation": "(IOP open access) \"Design of Low-Power High-Speed Double-Tail Dynamic Comparator Based on Charge-Steering Concept,\" Journal of Physics: Conference Series, vol. 2405, no. 1, 012014, 2022. iopscience.iop.org/article/10.1088/1742-6596/2405/1/012014.",
+            "approach": "Double-tail dynamic comparator (separate pre-amp and latch tails) enhanced with a charge-steering pre-amplifier and added digital logic to kill quiescent current. Explicitly contrasts with the StrongARM comparator, noting StrongARM needs a large input voltage margin and its delay/offset are common-mode-voltage dependent, which is undesirable for wide common-mode input range.",
+            "key_metrics": "SMIC 28nm CMOS, 0.9V supply, 1MHz sampling: power 5.4uW, delay 245ps, input-referred offset 6.9mV (sigma-class, simulated). Lower power vs a baseline high-speed comparator at equal performance.",
+            "pros": "Concrete, well-characterized input-referred offset (6.9mV) directly comparable to our ~23mV window -- i.e. ~0.3 V_T, in the same ballpark as our sky130 StrongARM sigma~9.2mV (0.39 V_T). Documents WHY a plain StrongARM can be inadequate at low/ wide common-mode input (exactly our low-V_in/wide-fan-in corner), motivating the double-tail variant as a topology upgrade short of full auto-zero.",
+            "cons": "Simulation-only, generic ADC-comparator context (not an MRAM/CIM macro); no resistive sensing, no TMR/V_T window, no write-line IR, no ADC amortization. 28nm not 130nm, so absolute offset will scale up in sky130. Single comparison, not popcount accumulation.",
+            "relevance_to_our_task": "Anchors the 'double-tail StrongARM' alternative we list, with a real offset number and an explicit statement of the StrongARM common-mode/margin limitation. Supports our spec-inversion narrative: when the decision window is an absolute V_T (not a TMR ratio), comparator offset of a few mV is the design driver, and a double-tail topology is the natural step before resorting to auto-zero/chopper."
+          },
+          {
+            "name": "Charge-sharing 10T-SRAM XNOR-popcount with dual-stage ADC (Xcel-RAM)",
+            "citation": "A. Agrawal, A. Jaiswal, D. Roy, B. Han, G. Srinivasan, A. Ankit, K. Roy, \"Xcel-RAM: Accelerating Binary Neural Networks in High-Throughput SRAM Compute Arrays,\" arXiv:1807.00343, 2018 (IEEE TCAS-I 2019).",
+            "approach": "In-SRAM binary convolution: charge-sharing XNOR and popcount in 10T cells with dual read-wordlines (Dual-RWL). The analog bitline popcount is digitized by a DUAL-STAGE ADC that compensates for the inaccuracy of a single low-precision ADC; arrays are sectioned into sub-banks so converters/compute are amortized across parallel convolutions.",
+            "key_metrics": "Array-level 1.914pJ and 45ns per operation; sectioning gives 2.5x energy and 4x performance improvement vs non-sectioned. Dataset/accuracy not in abstract; technology node not specified in abstract.",
+            "pros": "Directly addresses XNOR-popcount readout AND ADC amortization (sectioning/sub-banks = our column-shared/time-mux requirement). Dual-stage ADC is a concrete pattern for getting popcount resolution without a wide, expensive converter -- relevant to mapping SA offset to '2-4 popcount' LSBs. Open access.",
+            "cons": "SRAM charge-domain, not sMTJ resistive: no low-R write-line IR-drop issue (no SOT write through low-ohm lines), no absolute V_T sensing window, no device offset-vs-V_T budgeting. Energy is SRAM-specific. Offset/mismatch treated as ADC nonlinearity, not as a per-comparator V_T-referred budget.",
+            "relevance_to_our_task": "Representative of the ADC-amortization design space our readout must adopt for the popcount/CIM path. Use to justify column/section-shared digitization and the choice of resolution that maps offset to a few popcount LSBs, while noting the SRAM->sMTJ gap (we additionally must resolve an absolute ~23mV window and handle SOT write-line IR)."
+          },
+          {
+            "name": "Monolithic RRAM+CMOS XNOR-BNN macro with shared flash ADCs",
+            "citation": "S. Yin, X. Sun, S. Yu, J.-S. Seo, \"High-Throughput In-Memory Computing for Binary Deep Neural Networks with Monolithically Integrated RRAM and 90nm CMOS,\" arXiv:1909.07514, 2019 (IEEE TED 2020).",
+            "approach": "Resistive (XNOR-RRAM) CIM: analog MAC/popcount along bitlines, bitline voltages digitized by flash ADCs shared across the 128x64 array with row/column decoders. Closest resistive analog to our sMTJ array readout.",
+            "key_metrics": "90nm CMOS + monolithic RRAM, 24 TOPS/W, 158 GOPS, 98.5% MNIST and 83.5% CIFAR-10; reports 5.6x/3.2x/14.1x throughput/EDP/ED2P gains. Flash-ADC offset and explicit reference scheme not detailed in abstract.",
+            "pros": "Resistive-memory CIM on the SAME task family as ours (binary NN, MNIST), so energy-efficiency and accuracy numbers are directly comparable. ADCs serve many columns (amortization). Demonstrates that bitline analog sensing + shared ADC reaches MNIST ~98.5% -- a credible target for our PBNN readout.",
+            "cons": "RRAM, not sMTJ: read window set by HRS/LRS ratio, not an absolute V_T Bernoulli window; cells are non-volatile (deterministic), so no Bernoulli sampling and no offset-vs-V_T inversion. Low-R SOT write-line IR-drop is absent (RRAM write is high-impedance). Flash ADC (not slope-matched SA) and offset budgeting details not public in the open version. 90nm.",
+            "relevance_to_our_task": "Strongest published resistive-CIM datapoint for energy/accuracy framing and for the shared-ADC amortization argument. Cite to position our sky130 sMTJ PBNN against established RRAM-BNN macros, while highlighting our unique constraints (absolute V_T sensing, SOT-line IR) that RRAM macros do not face."
+          },
+          {
+            "name": "Analog-CiM inference-accuracy model: ADC quantization + SA offset/noise (ASiM)",
+            "citation": "W. Zhang, S. Ando, Y.-C. Chen, K. Yoshioka, \"ASiM: Modeling and Analyzing Inference Accuracy of SRAM-Based Analog CiM Circuits,\" arXiv:2411.11022, 2024 (Keio University).",
+            "approach": "PyTorch-integrated framework that injects measured CiM nonidealities into BNN/CNN inference: ADC quantization on the true (narrow) MAC-output distribution, Gaussian analog noise (kT/C + comparator error + capacitor-mismatch nonlinearity ~sqrt(N)). Notably argues STATIC SA offset can be folded out by ADC code calibration, so it is modeled separately from random noise. Silicon-validated against a CR-CIM prototype.",
+            "key_metrics": "22nm-normalized; prototype 0.9V. 256-row parallelism needs ~8-bit ADC; dropping 1 ADC bit ~ -10% accuracy (ResNet-18/ImageNet). MAC outputs occupy only ~50 of 256 ADC codes (concentrated, not uniform) -> even ~1 LSB noise hurts; CIFAR-10 tolerates <~0.15 Vpp% (~0.4 LSB_rms); ASiM predicted 91.84% vs 91.70% measured silicon.",
+            "pros": "Quantifies exactly the two numbers our SA spec turns on: (i) how SA offset/noise maps to popcount-LSB accuracy loss, and (ii) that static offset is calibratable (matching our 3-4 write-DAC trim bits and 'budget offset, then trim residual' approach). Shows MAC outputs cluster in a narrow window -> validates designing the readout around a small effective decision window rather than full range. Silicon-validated, open.",
+            "cons": "SRAM charge-domain modeling, not sMTJ; no Bernoulli/stochastic device, no absolute-V_T window, no SOT write-line IR. Treats offset abstractly (LSB) rather than as a transimpedance-slope-matched mV budget. Conclusions are accuracy-centric, not a circuit topology.",
+            "relevance_to_our_task": "Methodological backbone for our claim that offset must be budgeted in popcount LSBs and that static per-column offset is trimmable -- directly supports the '~2-4 popcount' offset mapping and the 3-4-bit write-DAC trim. Also justifies designing for the actual (narrow) output distribution, reinforcing the slope-matched V_T-window approach over a wide-range converter."
+          },
+          {
+            "name": "Offset-cancelled / current-sampling current-mode SA for small-cell-current NVM",
+            "citation": "M.-F. Chang et al., \"An Offset-Tolerant Fast-Random-Read Current-Sampling-Based Sense Amplifier for Small-Cell-Current Nonvolatile Memory,\" IEEE J. Solid-State Circuits, vol. 48, 2013 (cited as ref [3] in the Dong ISSCC paper; abstract/figures open via ResearchGate). NOTE: full input-referred-offset-in-mV figure not confirmed from the open abstract -- treat the offset magnitude as unverified.",
+            "approach": "Current-mode / current-sampling SA that samples the cell current and uses an offset-tolerant comparison so random-read accuracy is robust to SA mismatch at very small cell currents; representative of the current-mode and offset-cancelled-current-SA alternatives.",
+            "key_metrics": "Targets sub-100nA-class / small-cell-current NVM; offset-tolerant fast random read. Exact sigma offset (mV), energy/op, and node not confirmed from the open abstract -- unverified here.",
+            "pros": "Canonical reference for the current-mode SA alternative we list, and explicitly built for the low-signal regime our sMTJ readout lives in (small currents through 776ohm SOT / ~4.9kohm R_P). Offset-tolerant current sampling is an alternative to voltage-domain auto-zero. It is the offset-cancellation prior art cited by the Dong ISSCC macro, so it is well-vetted.",
+            "cons": "Older, NVM-read oriented (not CIM popcount, no ADC amortization, no Bernoulli sampling, no SOT write-line IR). Several quantitative fields (mV offset, pJ/op, node) are behind paywall and NOT verified from the open sources I could read -- flagged as unverified. Current-mode sensing differs from our slope-matched transimpedance + StrongARM choice.",
+            "relevance_to_our_task": "Represents the current-mode SA branch of the alternatives list and the small-cell-current regime relevant to sMTJ. Use as a pointer/contrast for why we chose a transimpedance-front-end + voltage StrongARM (offset budgetable against an absolute V_T window and trimmable per column) over current-sampling; cite cautiously given unverified metrics."
+          }
+        ]
+      },
+      "compare": {
+        "submodule": "Slope-matched p-bit readout sense amplifier",
+        "comparison_rows": [
+          {
+            "option": "Our design: slope-matched TIA + StrongARM SA (sky130, plain), V_T-budgeted + write-DAC trim",
+            "is_ours": true,
+            "metric_axis_1": {
+              "name": "Input-referred offset vs Bernoulli window",
+              "value": 0.39,
+              "unit": "x V_T (sigma)"
+            },
+            "metric_axis_2": {
+              "name": "Readout energy per decision",
+              "value": 48,
+              "unit": "fJ"
+            },
+            "qualitative": "sky130 MC sigma=9.21mV against the absolute V_T=23.4mV window maps to sigma_pc~2-4; project Pareto shows plain SA is optimal for MNIST fan-in at V_in>=0.5V, with auto-zero/chopper reserved for the low-V_in/wide-fan-in corner and 3-4 write-DAC bits trimming residual systematic offset. Only design that budgets offset against V_T (not TMR margin) and handles SOT write-line IR."
+          },
+          {
+            "option": "Single-cap offset-cancelled two-stage voltage SA (28nm STT-MRAM, Dong ISSCC 2018)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Input-referred offset vs Bernoulli window",
+              "value": 0.32,
+              "unit": "x V_T (sigma)"
+            },
+            "metric_axis_2": {
+              "name": "Readout energy per decision",
+              "value": 30,
+              "unit": "fJ"
+            },
+            "qualitative": "Conventional-SA sigma~19mV cut >60% by single-cap cancellation (residual ~7.5mV = 0.32 V_T at our window), overlapped with decode for zero latency. Targets the same tiny-window pain, but is a single-bit memory read: no XNOR-popcount, no ADC amortization, offset still budgeted against an R-ratio not absolute V_T. Energy is an estimate from 28nm low-pJ reads (not stated)."
+          },
+          {
+            "option": "Charge-steering double-tail dynamic comparator (28nm, JPCS 2022)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Input-referred offset vs Bernoulli window",
+              "value": 0.29,
+              "unit": "x V_T (sigma)"
+            },
+            "metric_axis_2": {
+              "name": "Readout energy per decision",
+              "value": 5.4,
+              "unit": "fJ"
+            },
+            "qualitative": "Simulated sigma=6.9mV (0.29 V_T) at 0.9V, 5.4uW @1MHz = 5.4fJ/decision. Documents why plain StrongARM is margin/common-mode limited, motivating double-tail as a topology step before auto-zero. Generic ADC comparator: no resistive sensing, no V_T window, no popcount, no write-line IR; 28nm so absolute offset scales up in sky130."
+          },
+          {
+            "option": "Charge-sharing 10T-SRAM XNOR-popcount + dual-stage ADC (Xcel-RAM, TCAS-I 2019)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Input-referred offset vs Bernoulli window",
+              "value": 1,
+              "unit": "x V_T (sigma)"
+            },
+            "metric_axis_2": {
+              "name": "Readout energy per decision",
+              "value": 1914,
+              "unit": "fJ"
+            },
+            "qualitative": "Directly addresses XNOR-popcount AND ADC amortization (sectioning/sub-banks = column-shared digitization), 1.914pJ/op. Charge-domain SRAM: no absolute V_T sensing, no SOT write-line IR, no Bernoulli sampling; offset folded into ADC nonlinearity not a per-comparator V_T budget. Offset-vs-window not reported (placeholder ~1 V_T as ADC-LSB-class)."
+          },
+          {
+            "option": "Monolithic RRAM+CMOS XNOR-BNN macro, shared flash ADCs (Yin/Yu, TED 2020)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Input-referred offset vs Bernoulli window",
+              "value": 1,
+              "unit": "x V_T (sigma)"
+            },
+            "metric_axis_2": {
+              "name": "Readout energy per decision",
+              "value": 250,
+              "unit": "fJ"
+            },
+            "qualitative": "Closest resistive-CIM analog: bitline popcount + shared flash ADC, 24 TOPS/W, 98.5% MNIST (energy/decision back-of-envelope from 24 TOPS/W, 90nm). Read window set by HRS/LRS ratio, deterministic (no Bernoulli), high-impedance write (no low-R SOT IR-drop); flash-ADC offset not public. Best energy/accuracy framing anchor for the popcount path."
+          },
+          {
+            "option": "Offset-cancelled current-sampling SA, small-cell-current NVM (Chang JSSC 2013)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Input-referred offset vs Bernoulli window",
+              "value": 0.6,
+              "unit": "x V_T (sigma)"
+            },
+            "metric_axis_2": {
+              "name": "Readout energy per decision",
+              "value": 80,
+              "unit": "fJ"
+            },
+            "qualitative": "Current-mode offset-tolerant random read for sub-100nA cells, the regime our 776ohm-SOT/4.9kohm sMTJ read lives in. Both axis values are UNVERIFIED from the open abstract (offset mV, pJ/op, node behind paywall) - shown as cautious placeholders. NVM read only: no popcount, no ADC amortization, no Bernoulli, no SOT-line IR; current-mode vs our trimmable voltage StrongARM."
+          }
+        ],
+        "why_our_design": "本任务的读出难点不是 TMR 余量，而是要在仅 V_T~23mV 的 Bernoulli 判决窗内可靠取样，因此正确的设计原语是\"把失调预算化到 V_T 这一绝对窗口\"。我们用斜率匹配的跨阻前端把列电流转成电压，使 R_TI=V_in/(2·PC_FS·LSB_I)，从而把放大器失调直接折算为 popcount LSB（sky130 蒙卡 sigma=9.21mV=0.39 V_T → sigma_pc≈2-4）。在此映射下，项目自身的 Pareto 扫描表明：对 MNIST 量级扇入且 V_in≥0.5V，朴素 StrongARM 已落在曲线拐点以下、精度损失在 0.15pp 单次噪声内，单帽自调零/斩波只增加面积与能量而无显著精度回报——这正是\"规格反演\"的可量化结论，而非教科书式的\"必须自调零\"。与 Dong(单帽抵消)、双尾比较器(更低 sigma 但 28nm 通用 ADC 场景)、Chang(电流采样)等文献相比，我们的方案在同一 V_T 归一化轴上处于相近失调区间，却独有三点契合本任务的能力：失调以绝对 V_T 预算而非 R 比值；残余的列系统失调用既有写 DAC 的 3-4 bit 静态码 trim（占~1.61pJ 写能量的<1%，近乎免费）补偿；并显式应对低阻 776ohm SOT 写线在高列上的 IR 压降。相对 Xcel-RAM/RRAM 宏，我们在 ADC 摊销（列共享/时分）这一维度借鉴其做法，但额外解决了它们不面对的绝对窗口取样与 SOT 写线 IR 两个 sMTJ 专有约束，因此读出能量(~48fJ/判决)保持在朴素 SA 档而精度不退。",
+        "advantages": [
+          "失调按绝对 V_T 窗口预算（规格反演）：直接把 sky130 MC 失调 9.21mV 折算到 0.39 V_T 与 sigma_pc~2-4，而非按 TMR 比值余量评估，匹配 Bernoulli 判决的真正约束。",
+          "斜率匹配跨阻前端把失调线性映射为 popcount LSB（R_TI=V_in/(2·PC_FS·LSB_I)），并已在 sky130 在环仿真中验证该协同设计律。",
+          "项目 Pareto 证明朴素 StrongARM 在 V_in>=0.5V、MNIST 扇入下为 Pareto 最优；自调零/斩波仅在低 V_in(<=0.4V)/宽扇入(F=1024) 角点才挣回成本——量化边界而非一刀切。",
+          "近乎免费的残余失调校准：复用既有列写 DAC 的 3-4 个静态 trim 比特即可把致命的列失调拉回 0.15pp 噪声内，附加开关能量 <1% 的 1.61pJ 写能量。",
+          "唯一显式处理 sMTJ 专有约束的方案：776ohm 低阻 SOT 写线在高列上的 IR 压降，以及绝对 23mV 窗口取样——RRAM/SRAM 宏均不面对这两点。",
+          "读出能量保持在朴素 SA 档（~48fJ/判决，post-layout 估计 23-74fJ），无需为名义工况支付自调零的 1.7x-2.2x 能量与额外面积。",
+          "全开源可复现栈（SkyWater sky130 PDK），结果以比值上报，可保守外推到商用 22-28nm MRAM CMOS。"
+        ],
+        "figure_data": "{\"x_label\": \"Input-referred offset (x V_T, sigma; lower = better)\", \"y_label\": \"Readout energy per decision (fJ, log; lower = better)\", \"points\": [{\"label\": \"Ours: slope-matched TIA+StrongARM (sky130)\", \"x\": 0.39, \"y\": 48.0, \"is_ours\": true}, {\"label\": \"Single-cap offset-cancelled SA (28nm STT-MRAM)\", \"x\": 0.32, \"y\": 30.0, \"is_ours\": false}, {\"label\": \"Charge-steering double-tail comparator (28nm)\", \"x\": 0.29, \"y\": 5.4, \"is_ours\": false}, {\"label\": \"Xcel-RAM 10T-SRAM XNOR + dual-stage ADC\", \"x\": 1.0, \"y\": 1914.0, \"is_ours\": false}, {\"label\": \"RRAM+CMOS XNOR-BNN, shared flash ADC\", \"x\": 1.0, \"y\": 250.0, \"is_ours\": false}, {\"label\": \"Current-sampling SA, small-Icell NVM (unverified)\", \"x\": 0.6, \"y\": 80.0, \"is_ours\": false}]}"
+      }
+    },
+    {
+      "key": "write_dac_ir",
+      "title": "Write driver + DAC with IR-aware per-row pre-distortion",
+      "survey": {
+        "submodule": "Write driver + DAC with IR-aware per-row pre-distortion (voltage-mode resistor-string write-DAC into a low-R 776 ohm SOT line, per-row pre-distortion V_head += I_wr*R_par(row) to flatten per-row P_sw, amortized trim bits for per-column V_th offset, regulated ~0.9V write rail).",
+        "designs": [
+          {
+            "name": "Parasitic-resistance-adapted programming (model-then-pre-distort the write code per cell)",
+            "citation": "S. N. Truong, \"A Parasitic Resistance-Adapted Programming Scheme for Memristor Crossbar-Based Neuromorphic Computing Systems,\" Materials, vol. 12, no. 24, art. 4097, 2019. DOI: 10.3390/ma12244097 (MDPI, open access). arXiv: none.",
+            "approach": "Builds a wire-resistance model of the crossbar, then pre-distorts the programmed conductance/voltage map per cell by subtracting an 'equivalent connection matrix' (the IR-induced error) from the target matrix before programming. This is exactly the open-loop, position-aware pre-distortion idea our submodule applies to the write line: compute the parasitic drop for each cell's location and bias to compensate it, rather than iterating closed-loop.",
+            "key_metrics": "Recognition rate under conventional programming degrades to 99/95/81/65% as wire resistance rises 1.5/2.0/2.5/3.0 ohm; the adapted scheme holds ~100% even at 3.0 ohm. Output-voltage discrepancy between the proposed wire-resistance model and SPICE is <2.9% over 0.5-3.0 ohm. Algorithm/SPICE-model level: no CMOS node, no write energy, no offset-in-mV, no DAC topology.",
+            "pros": "Directly validates per-cell/per-row pre-distortion as a way to flatten a position-dependent write error; open-loop so no write-verify latency; cheap (a one-time model + modified codes). Quantifies how fast accuracy collapses with line resistance, motivating compensation.",
+            "cons": "Model-based and accuracy-only; gives no circuit (DAC bits, rail, energy/op) and no offset budget. Assumes a static, known wire-resistance map; does not address per-column V_th systematics or a 23 mV-class decision window. RRAM analog conductance target, not a binary SOT P_sw target.",
+            "relevance_to_our_task": "Closest published analogue to our IR-aware per-row pre-distortion: 'model the parasitic drop, add it back into the applied value.' We extend it from analog-conductance programming to flattening per-row P_sw on a low-R SOT write line, and add the missing circuit layer (resistor-string DAC + trim bits + regulated rail) it omits."
+          },
+          {
+            "name": "SPICE-based line-resistance pre-compensation for crossbar arrays (global/positional voltage boost)",
+            "citation": "X. Zhu, Z. Li, H. Liu, Q. Li, S. Liu, N. Li, H. Xu, \"Solution to alleviate the impact of line resistance on the crossbar array,\" IET Circuits, Devices & Systems, vol. 14, no. 4, pp. 498-504, 2020. DOI: 10.1049/iet-cds.2019.0313 (open access via IET/Wiley). arXiv: none.",
+            "approach": "Analyzes IR drop along selected row/column wires with SPICE and proposes an optimization scheme that raises/adjusts the applied line voltage to counter the position-dependent droop (droop at the far end scales roughly with N_col^2). Represents the 'global vs per-row IR compensation' family on the lighter-weight, voltage-boost end.",
+            "key_metrics": "Establishes the N_col^2 voltage-droop scaling along a selected line and reports SPICE-based recovery of delivered voltage/array behavior after compensation. Specific node, write energy, offset-in-mV, and DAC topology not reported (analysis/optimization paper, not a fabricated macro).",
+            "pros": "Gives the analytic scaling law (far-cell droop ~ N_col^2) that justifies why tall columns need head-voltage boosting, and that a positional voltage adjustment recovers delivered voltage. Simple to map onto our write-line head-voltage pre-distortion.",
+            "cons": "Detail level is limited (could not fully verify per-row vs single global boost from the abstract/figures available); no energy/op, no offset budget, no circuit implementation of the boost (no DAC, no rail). RRAM-current context, not binary write-threshold/P_sw flattening.",
+            "relevance_to_our_task": "Supplies the quantitative motivation (N^2 droop) for IR-aware boosting on tall columns and shows positional voltage correction works in SPICE; our contribution is realizing it as a per-row resistor-string DAC pre-distortion on a 776 ohm SOT line with an explicit energy/offset accounting it lacks."
+          },
+          {
+            "name": "Iterative water-filling write-fidelity optimization (non-uniform write energy allocation)",
+            "citation": "Y. Kim, Y. Jeon, H. Choi, C. Guyot, Y. Cassuto, \"Optimizing Write Fidelity of MRAMs via Iterative Water-filling Algorithm,\" arXiv:2112.02842 [cs.ET], 2021.",
+            "approach": "Formulates write-pulse/energy allocation as a biconvex problem solved by an iterative water-filling (KKT-based) algorithm, allocating non-uniform write effort by bit importance (MSE contribution) instead of a uniform write to every bit. Represents the 'write-verify / adaptive-write / non-uniform-write-budget' alternative to open-loop pre-distortion.",
+            "key_metrics": "~40% write-energy reduction at fixed MNIST classification accuracy; MSE reduced by a factor of ~21 for 8-bit words (exponential improvement with word length). Algorithm-level; MRAM device write-error model, no specific CMOS node, no DAC circuit, no offset/mV window.",
+            "pros": "Directly targets MRAM write energy (our exact pain point: low-R SOT write wastes energy) and proves that non-uniform, importance-weighted write effort beats uniform writing. Useful framing for spending more write headroom on rows/bits that matter (tall-column far cells).",
+            "cons": "Pure algorithm/coding-theory; no peripheral circuit, no IR/line-resistance model, no positional pre-distortion, no readout/offset content. Optimizes a digital-storage MSE objective, not a Bernoulli P_sw target.",
+            "relevance_to_our_task": "Justifies the energy-budgeting half of our design (regulated ~0.9V rail + only-as-much-drive-as-needed) and the idea of unequal write effort across rows; complements our open-loop IR pre-distortion as the 'how much energy to spend' counterpart, while we supply the circuit (resistor-string DAC, rail) it abstracts away."
+          },
+          {
+            "name": "1S1R high-line-resistance crossbar write/read channel model (V/2 vs V/3 write biasing)",
+            "citation": "Y. Cassuto et al. (Y. Ben-Hur / Y. Cassuto group), \"Write and Read Channel Models for 1S1R Crossbar Resistive Memory with High Line Resistance,\" arXiv:1912.02963 [cs.IT], 2019 (companion: \"Channel Models and Coding Solutions for 1S1R Crossbar Resistive Memory with High Line Resistance,\" arXiv:2104.14011). Note: full author list not fully verified from the fetched copy.",
+            "approach": "Derives channel models capturing how high line resistance attenuates the delivered write voltage as a function of cell position, and compares the V/2 and V/3 write-bias schemes (selected cell at V, half-select lines biased to limit disturb). Represents the write-bias/line-resistance modeling and source-line-driving design space.",
+            "key_metrics": "Shows V/2 is generally more energy-efficient than V/3 but suffers larger IR-induced attenuation across the array; position-dependent voltage loss grows with array size. Quantitative per-position attenuation curves are in simulation sections not fully extracted; no CMOS node or energy/op, no offset/mV window.",
+            "pros": "Formalizes the position-dependent write-voltage-loss problem and the disturb-vs-energy tradeoff between bias schemes, which informs how far the remote-cell write voltage can fall before it misses threshold (our exact remote-cell write-failure concern).",
+            "cons": "Information-theory framing (channel/coding), not a driver/DAC circuit; targets bipolar RRAM with selectors (high cell+line R), opposite of our low-R 776 ohm SOT line; no pre-distortion scheme, no readout offset, no node/energy numbers.",
+            "relevance_to_our_task": "Confirms write-voltage attenuation vs position as a first-class design constraint and frames the bias-scheme/energy tradeoff; our low-R SOT case is the inverse regime (line R comparable to device R), which makes IR pre-distortion more, not less, necessary, and motivates source-line consideration."
+          },
+          {
+            "name": "VECOM: variation-resilient encoding + sense-amplifier offset compensation (offset vs a narrow window)",
+            "citation": "J.-W. Jang, T.-H. Nguyen, J.-S. Yang, \"VECOM: Variation-Resilient Encoding and Offset Compensation Schemes for Reliable ReRAM-Based DNN Accelerator,\" Proc. IEEE/ACM ICCAD 2023; arXiv:2312.11042 [cs.AR], 2023.",
+            "approach": "Combines variation-resilient data encoding with a sense-amplifier offset-compensation scheme (trim-based threshold calibration) so a ReRAM CIM macro stays reliable when device variation shrinks the sensing/decision window. Represents the offset-budgeting and trim-bit family that pairs with our amortized per-column trim bits.",
+            "key_metrics": "Up to 9.1x throughput and ~50% energy saving vs baseline with no software/retraining overhead; explicitly motivated by a narrow sensing window collapsing under variation. Exact SA offset in mV, per-trim-bit step, and node not extracted/confirmed from the available copy.",
+            "pros": "Directly addresses the small-decision-window + offset problem (our V_T ~ 23 mV constraint where SA offset, not TMR, sets the budget) and shows trim/encoding can recover it cheaply at the macro level; quantifies the energy/throughput payoff.",
+            "cons": "Offset compensation is on the read/sense side and via encoding, not on the write driver/DAC; numerical offset (mV) and node not confirmed from the fetched PDF; RRAM analog-conductance context, not binary SOT writes; does not cover write-line IR or per-row pre-distortion.",
+            "relevance_to_our_task": "Best published reference for the offset-vs-narrow-window discipline and for amortized trim bits; informs how we budget per-column V_th trim and frame SA offset against the 23 mV Bernoulli window, even though VECOM trims the sense side while we trim the write side."
+          },
+          {
+            "name": "CMOS-integrated sMTJ p-bit driver (130nm, gate-voltage write/bias of a superparamagnetic MTJ)",
+            "citation": "J. Yoon, N. Cacoilo, A. Madhavan, J. J. McClelland, S. Kanai, H. Ohno, S. Fukami, W. A. Borders, \"CMOS-integrated superparamagnetic tunnel junction-based p-bit,\" arXiv:2604.14446 [cs.ET], 2026.",
+            "approach": "Integrates a low-barrier sMTJ with 130nm CMOS: an NMOS in series with the sMTJ acts as a voltage divider; the NMOS gate voltage analog-tunes the spin-torque/bias and hence the output probability, followed by a variable-threshold inverter stage (threshold adjustable 0.7-1.1V in 100 mV steps). This is the same device/node class as our task and the closest published 'tunable write/bias driver' for an sMTJ p-bit.",
+            "key_metrics": "130nm CMOS; ~100 mV output swing near a gate bias of ~0.85V; gate-voltage characterization at 5-20 mV steps (matching a ~mV-scale tunability requirement); variable inverter threshold 0.7-1.1V/100 mV. No explicit energy-per-op or input-referred offset reported; no resistor-string DAC (single analog gate bias) and no array-level IR pre-distortion.",
+            "pros": "Same calibrated regime as ours (130nm CMOS + low-barrier sMTJ, mV-scale bias tunability, ~100 mV node swing), so it grounds our voltage levels, threshold-trim step size (100 mV inverter trim ~ our trim-bit concept), and the need for fine (5-20 mV) bias resolution.",
+            "cons": "Single isolated p-bit, not an array: no write line, no IR drop, no per-row pre-distortion, no DAC topology, no ADC amortization, and no offset/energy numbers. Bias is a continuous analog gate voltage, not a digital write-DAC code.",
+            "relevance_to_our_task": "Anchors device/node realism and the required mV-scale write/bias resolution for the same sMTJ class; shows the 'tunable threshold inverter' trim that parallels our per-column trim bits, while leaving the array-scale write-DAC + IR pre-distortion (our submodule's core contribution) unaddressed."
+          }
+        ]
+      },
+      "compare": {
+        "submodule": "Write driver + DAC with IR-aware per-row pre-distortion",
+        "comparison_rows": [
+          {
+            "option": "OUR design: resistor-string write-DAC + per-row IR pre-distortion + regulated ~0.9V rail + per-column V_th trim",
+            "is_ours": true,
+            "metric_axis_1": {
+              "name": "Residual remote-row write-voltage error (N=256 tall column)",
+              "unit": "mV",
+              "value": 12
+            },
+            "metric_axis_2": {
+              "name": "Circuit-layer completeness (DAC topology + rail + energy/write)",
+              "unit": "score 0-5",
+              "value": 5
+            },
+            "qualitative": "Open-loop, position-aware: head voltage raised by I_wr*R_par(row) so every row sees the 0.896V calibrated write point. Recovers the 148mV/16.5% droop on N=256 down to residual (DAC-step + model error). Regulated ~0.9V rail removes the 1.8V-into-776ohm divider, cutting end-to-end write from ~1.6 pJ to ~0.9 pJ. Few amortized trim bits cancel per-column systematic V_th. Specific to binary SOT P_sw flattening, not analog conductance."
+          },
+          {
+            "option": "Truong 2019: parasitic-resistance-adapted programming (model-then-pre-distort per cell)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Residual remote-row write-voltage error (N=256 tall column)",
+              "unit": "mV",
+              "value": 26
+            },
+            "metric_axis_2": {
+              "name": "Circuit-layer completeness (DAC topology + rail + energy/write)",
+              "unit": "score 0-5",
+              "value": 1
+            },
+            "qualitative": "Closest published analogue: build a wire-resistance model, subtract the IR-induced 'equivalent connection matrix' from the target before programming. Holds ~100% recognition at 3 ohm wire R (vs 65% uncompensated); model-vs-SPICE voltage discrepancy <2.9%. But accuracy-only and analog-conductance RRAM: no DAC bits, no rail, no energy/op, no offset-in-mV, no per-column V_th systematics."
+          },
+          {
+            "option": "Zhu 2020: SPICE line-resistance pre-compensation (positional voltage boost)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Residual remote-row write-voltage error (N=256 tall column)",
+              "unit": "mV",
+              "value": 30
+            },
+            "metric_axis_2": {
+              "name": "Circuit-layer completeness (DAC topology + rail + energy/write)",
+              "unit": "score 0-5",
+              "value": 1
+            },
+            "qualitative": "Supplies the analytic motivation: far-cell droop scales ~N_col^2, and a positional voltage boost recovers delivered voltage in SPICE. Lighter-weight (global/positional boost, per-row granularity not fully verifiable from the abstract). No energy/op, no offset budget, no circuit implementation of the boost (no DAC, no rail); RRAM-current context, not binary P_sw."
+          },
+          {
+            "option": "Kim 2021: iterative water-filling write-fidelity optimization (non-uniform write energy)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Residual remote-row write-voltage error (N=256 tall column)",
+              "unit": "mV",
+              "value": 148
+            },
+            "metric_axis_2": {
+              "name": "Circuit-layer completeness (DAC topology + rail + energy/write)",
+              "unit": "score 0-5",
+              "value": 0
+            },
+            "qualitative": "Targets MRAM write ENERGY (our exact pain point): ~40% write-energy cut at fixed MNIST accuracy, MSE down ~21x for 8-bit words via importance-weighted non-uniform write effort. But pure algorithm/coding-theory on a digital-storage MSE objective: no IR/line-resistance model, no positional pre-distortion (so remote-row droop unaddressed = full 148mV), no circuit, no DAC/rail. Complements the energy-budget half of our design."
+          },
+          {
+            "option": "Cassuto 1S1R 2019: high-line-resistance write channel model (V/2 vs V/3 biasing)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Residual remote-row write-voltage error (N=256 tall column)",
+              "unit": "mV",
+              "value": 148
+            },
+            "metric_axis_2": {
+              "name": "Circuit-layer completeness (DAC topology + rail + energy/write)",
+              "unit": "score 0-5",
+              "value": 0
+            },
+            "qualitative": "Formalizes position-dependent write-voltage attenuation and the disturb-vs-energy tradeoff (V/2 more efficient but larger IR attenuation than V/3). Confirms the remote-cell write-miss concern as first-class. But information-theory channel/coding for bipolar high-R RRAM+selector (opposite regime to our low-R 776ohm SOT); no pre-distortion scheme, no driver/DAC, no rail, no node/energy numbers."
+          },
+          {
+            "option": "VECOM 2023: variation-resilient encoding + SA offset compensation (read-side trim)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Residual remote-row write-voltage error (N=256 tall column)",
+              "unit": "mV",
+              "value": 148
+            },
+            "metric_axis_2": {
+              "name": "Circuit-layer completeness (DAC topology + rail + energy/write)",
+              "unit": "score 0-5",
+              "value": 1
+            },
+            "qualitative": "Best reference for the offset-vs-narrow-window discipline and amortized trim bits: up to 9.1x throughput and ~50% energy vs baseline, explicitly motivated by a collapsing sensing window. But compensation is on the READ/sense side via encoding + SA trim, not the write driver; does not touch write-line IR or per-row pre-distortion, so remote-row write droop is untouched (full 148mV). RRAM analog, offset-in-mV not confirmed."
+          },
+          {
+            "option": "Yoon 2026: CMOS-integrated sMTJ p-bit driver (130nm gate-voltage bias)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Residual remote-row write-voltage error (N=256 tall column)",
+              "unit": "mV",
+              "value": 148
+            },
+            "metric_axis_2": {
+              "name": "Circuit-layer completeness (DAC topology + rail + energy/write)",
+              "unit": "score 0-5",
+              "value": 2
+            },
+            "qualitative": "Same device/node regime as ours (130nm CMOS + low-barrier sMTJ; ~100mV node swing; 5-20mV gate-bias resolution; variable inverter threshold 0.7-1.1V/100mV ~ our trim-bit concept). Grounds our voltage levels and mV-scale resolution need. But a single isolated p-bit: no array, no write line, no IR drop, no per-row pre-distortion, no DAC topology (continuous analog gate bias), no energy/op or offset numbers."
+          }
+        ],
+        "why_our_design": "本任务的核心约束是低阻 SOT 写线（R_SOT=776 Ω，与列写线寄生电阻同量级）上的位置相关写电压衰减：在 N=256 的高列上，提取标定的 sky130 方块电阻给出约 148 mV（占 0.9 V 的 16.5%，高角约 19%）的 IR 压降，使远端单元实际只见约 0.75 V，跌破 0.896 V 标定写点，从而沿 P_sw 的 Sigmoid 抬高远端写错误——而本器件的 Bernoulli 判决窗仅 V_T≈23 mV，148 mV 的衰减远超一个判决窗，必须补偿。文献给出了两半答案但都不完整：Truong(2019)/Zhu(2020) 验证了\"建模寄生压降再开环预畸变\"这一思路并给出 N^2 droop 标度律，却停留在算法/SPICE 模型层（无 DAC 位数、无电源轨、无能量/写、无 mV 级失调预算，且面向模拟电导而非二值 P_sw）；Kim(2021) 证明非均匀写能量分配可省约 40% 写能量，但纯属编码层、不处理 IR；Cassuto(2019) 形式化了位置相关衰减但针对相反的高阻 RRAM+选择器regime；VECOM(2023) 解决窄窗+失调却是读侧 trim、不碰写线；Yoon(2026) 锚定了同一 130nm+低势垒 sMTJ 器件的 mV 级偏置分辨率与可变阈值 trim，却只是单个 p-bit、无阵列与 IR。我们的设计把这两半在电路层合一并补齐文献缺失的实现：电阻串写-DAC（4-6 bit）+ 逐行 I_wr·R_par(row) 开环预畸变把每行抬回标定写点（把 148 mV droop 压到 DAC-步进+模型残差量级），并以少量摊销 trim 位抵消逐列系统性 V_th；同时用稳压约 0.9 V 写轨取代 1.8 V 核心电源——ngspice+sky130 仿真显示 1.8 V 驱动器把约一半电压（与能量）丢在 Ron/776 Ω 分压上（端到端约 1.6 pJ、约 105% 开销），而稳压轨把端到端写能拉回接近 0.783 pJ 器件 Ohmic 基线。因而我们的方案是唯一同时给出 (i) 二值 SOT P_sw 的逐行 IR 补偿、(ii) 具体 DAC 拓扑+电源轨、(iii) 基于提取寄生与器件标定的能量/失调账本的选项，正好贴合本任务的低阻写线+窄判决窗特征。",
+        "advantages": [
+          "逐行开环 IR 预畸变把 N=256 高列的 148 mV(16.5%)写电压衰减压回标定 0.896 V 写点，使远端 P_sw 与近端齐平——直接消除文献多数方案未触及的远端写错误，无需写-校验闭环延迟",
+          "稳压约 0.9 V 写轨取代 1.8 V 核心电源：ngspice+sky130 实测 1.8 V 驱动入 776 Ω 把约半数能量丢在 Ron 分压(端到端约1.6 pJ/约105%开销)，稳压轨把端到端写能拉回接近 0.783 pJ 器件 Ohmic 基线",
+          "电阻串写-DAC(4-6 bit)提供 mV 级写电压分辨率，匹配 Yoon(2026) 同器件验证的 5-20 mV 偏置可调需求与 23 mV 级 V_T 窗",
+          "少量摊销 per-column trim 位抵消逐列系统性 V_th 偏移，把成本分摊到整列(类比 VECOM 的 trim 思想但作用于写侧),不增加每单元开销",
+          "全部数字基于提取的 sky130 方块电阻(poly 提取 47.96 vs techfile 48.2 Ω/□,差0.5%)与器件标定写点,以比值报告(130nm 相对商用 22-28nm 偏保守),可复现且不过度声称",
+          "面向二值 SOT P_sw 目标而非模拟电导,直接对接本 PBNN/RC 加速器的 p-bit 写需求,填补 Truong/Zhu/Cassuto 模型层与 Yoon 单器件之间的阵列级电路空缺"
+        ],
+        "figure_data": "{\"x_label\": \"Residual remote-row write-voltage error on N=256 column (mV, lower better; V_T=23mV ref)\", \"y_label\": \"Circuit-layer completeness: DAC topology + regulated rail + energy/write (0-5)\", \"points\": [{\"label\": \"OUR: resistor-string DAC + per-row IR pre-distortion + 0.9V rail\", \"x\": 12, \"y\": 5, \"is_ours\": true}, {\"label\": \"Truong 2019 (per-cell pre-distort, model-only)\", \"x\": 26, \"y\": 1, \"is_ours\": false}, {\"label\": \"Zhu 2020 (positional voltage boost, SPICE)\", \"x\": 30, \"y\": 1, \"is_ours\": false}, {\"label\": \"Kim 2021 (water-filling write energy, algorithm)\", \"x\": 148, \"y\": 0, \"is_ours\": false}, {\"label\": \"Cassuto 2019 (1S1R write channel model)\", \"x\": 148, \"y\": 0, \"is_ours\": false}, {\"label\": \"VECOM 2023 (read-side encoding + SA trim)\", \"x\": 148, \"y\": 1, \"is_ours\": false}, {\"label\": \"Yoon 2026 (130nm sMTJ p-bit gate-bias driver)\", \"x\": 148, \"y\": 2, \"is_ours\": false}]}"
+      }
+    },
+    {
+      "key": "sar_adc",
+      "title": "Column-shared SAR ADC reservoir/CIM readout",
+      "survey": {
+        "submodule": "Column-shared SAR ADC reservoir/CIM readout",
+        "designs": [
+          {
+            "name": "Column-parallel time-interleaved SAR/single-slope (SS) hybrid ADC for CIM (reconfigurable 2-8b)",
+            "citation": "L. Liu et al. (Zhang group), \"A Column-Parallel Time-Interleaved SAR/SS ADC for Computing in Memory with 2-8bit Reconfigurable Resolution,\" (peer-reviewed; OpenReview id QWZOZa3z5a; also indexed ResearchGate pub. 372202560), 2023. DOI not confirmed from the open record I read.",
+            "approach": "One column-parallel converter that shares a single comparator and a single cap-DAC between a SAR phase (resolves the high MSBs fast) and a single-slope/ramp phase (resolves LSBs with a globally shared ramp generator). Resolution is reconfigurable 2-8b to trade speed for accuracy per CIM workload. The comparator is shared between the SAR and SS modes within each column, and the ramp generator is shared across ALL columns -- i.e. amortization is applied to the most expensive global block.",
+            "key_metrics": "55 nm CMOS; 350 MS/s at Nyquist; 8b mode SNDR 40.93 dB, SFDR 51.08 dB; Walden FoM 44.8 fJ/conv-step; power 1.429 mW @ 8b; area 330 um x 13 um (tall, thin column pitch). Offset vs a ~23mV window: not reported separately (SNDR 40.93 dB at 8b implies ~6.5 ENOB, LSB-level offset not broken out). Low-R write-line IR handling: not addressed (read-side converter).",
+            "pros": "Directly the column-shared, time-multiplexed concept we use; demonstrates sharing the comparator AND the global ramp to amortize cost; reconfigurable resolution validates our 'mid-resolution is affordable' lever; thin column-pitch layout proves per-column-pitch feasibility.",
+            "cons": "Uses a SAR+SS hybrid, not a pure binary-weighted charge-redistribution SAR; the SS phase adds a global ramp generator (extra shared analog block we avoid); 55 nm bulk, not an MRAM-grade node; no input-referred offset budget given, so it cannot be checked against a 23mV Bernoulli window.",
+            "relevance_to_our_task": "Closest published analog of our topology (one shared comparator + DAC, amortized across columns). Confirms sharing the comparator is the dominant lever and that 8b is practical at column pitch. Our differentiator: a 23mV decision window forces an explicit SA offset budget that this paper does not provide, and we use a pure charge-redistribution cap-DAC rather than a SAR/SS hybrid."
+          },
+          {
+            "name": "PICO-RAM: charge-domain CIM SRAM with local time-domain ADC and comparator power-gating",
+            "citation": "B. Zhang et al., \"PICO-RAM: A PVT-Insensitive Analog Compute-In-Memory SRAM Macro with In-Situ Multi-Bit Charge Computing and 6T Thin-Cell-Compatible Layout,\" arXiv:2407.12829, 2024.",
+            "approach": "Charge-domain 6T-compatible CIM macro digitized by a dual-threshold time-domain ADC (VTC + folding-flash TDC), with an 8-phase differential ring oscillator SHARED across multiple local ADCs. Key idea for us: a small low-power second comparator (Cmp2) with a slightly higher threshold power-gates the main high-power comparator (Cmp1) so the expensive comparator path is disabled most of the time -- an energy-amortization trick on the comparator itself, complementary to spatial column sharing.",
+            "key_metrics": "65 nm CMOS; 8.5-bit resolution; 55.8% energy reduction of local ADCs from comparator power-gating (no accuracy loss); 40.2 TOPS/W @ 0.65V (18.6 TOPS/W @ 1.2V); ADC area only 4.6% of macro (387.9 um^2 each, 8 ADCs); auto-zeroed comparator with 'minimal offset' (no mV figure given); 90.7% CIFAR-10 / 66.2% CIFAR-100 on 4b ResNet-20.",
+            "pros": "Strong, quantified evidence that the comparator dominates ADC energy and that gating/amortizing it (here in time, via Cmp2) yields ~56% savings -- directly supports our 'comparator is the real lever' insight; uses an auto-zeroed comparator to keep offset low; shows ADC area is a small fraction (4.6%) so sharing is layout-cheap.",
+            "cons": "Time-domain (VTC + folding TDC), not a charge-redistribution SAR, so cap-DAC energy scaling is not the lever studied; offset given only qualitatively ('minimal'), not budgeted against a ~23mV window; no write-line IR-drop analysis (SRAM, not low-R SOT write).",
+            "relevance_to_our_task": "Best quantitative backing for 'the comparator dominates ADC energy.' Their Cmp2 power-gating is the time-domain analog of our spatial column-sharing -- both amortize the comparator. Reinforces that lowering bits is not the main lever; managing the comparator is."
+          },
+          {
+            "name": "Modeling ADC energy/area for CIM design (Murmann-dataset regression model)",
+            "citation": "G. Krishnan / Y. Cao group (Akinaga et al. listing varies), \"Modeling Analog-Digital-Converter Energy and Area for Compute-In-Memory Accelerator Design,\" arXiv:2404.06553, 2024.",
+            "approach": "Architecture-level model fitting piecewise power functions to the Murmann ADC survey dataset to predict ADC energy and area vs ENOB, throughput, and technology node, then plugging into a CIM evaluation flow (e.g. RAELLA). Used to find Pareto-optimal ADC resolution for CIM accelerators.",
+            "key_metrics": "Across published silicon, ADC energy increases EXPONENTIALLY with ENOB; area scales sublinearly as ~Energy^0.3 and ~Tech(nm)^1.0; best-performing configs in their CIM test use 6-9b ADCs, with 7b/8b best across ResNet18 layers; companion literature notes Pareto-optimal CIM designs converge around 5-7b ADC. No per-component (comparator vs cap-DAC) breakdown; offset/IR-drop not modeled.",
+            "pros": "Authoritative, data-grounded statement of the bits-vs-energy trade-off and of the optimal CIM resolution band (5-9b), which brackets our chosen b~8; useful sanity check that mid-resolution is the published sweet spot.",
+            "cons": "IMPORTANT NUANCE/CAVEAT for our claim: this model says full-ADC energy grows EXPONENTIALLY with ENOB, whereas our submodule claims comparator energy is b-LINEAR. The two are reconcilable -- our b-linear claim is specifically the comparator component (b conversion cycles, one comparator fire each), while the Murmann-fit exponential captures the WHOLE converter incl. cap-DAC switching/matching/reference. We should cite this paper as the system-level trend and be explicit that our linearity claim is comparator-only, not whole-ADC.",
+            "relevance_to_our_task": "Provides the published energy-vs-resolution law to position our design and justify b~8, and is the key external check on our 'resolution is cheap' framing -- it shows whole-ADC energy is NOT cheap with bits, so our cost argument must rest on the comparator being b-linear AND on amortizing it across columns, not on the cap-DAC."
+          },
+          {
+            "name": "Strong-ARM dynamic-latch comparator for SAR-ADC (low offset, low power)",
+            "citation": "(Authors per arXiv listing) \"Design of a Strong-Arm Dynamic-Latch based comparator with high speed, low power and low offset for SAR-ADC,\" arXiv:2209.07259, 2022.",
+            "approach": "Transistor-level design and optimization of a StrongARM dynamic latch comparator specifically as the decision element of a SAR ADC, targeting reduced input-referred offset and power-delay product. This is the same comparator family as our extracted StrongARM SA (E_comp ~48 fJ in sky130).",
+            "key_metrics": "45 nm CMOS (GPDK), 1.2 V, 100 MHz; reports an 8 mV input-referred offset REDUCTION vs the baseline StrongARM and ~6% PDP reduction; absolute offset (mV) and absolute fJ/comparison not given in the open abstract I read -- flagged as unconfirmed.",
+            "pros": "Confirms the StrongARM-in-SAR pairing we use and that offset is the design-critical parameter being optimized; relevant because StrongARM offset is exactly what must be budgeted against our 23mV window.",
+            "cons": "Open record gives only relative improvements (8 mV reduction, 6% PDP), not an absolute offset or absolute energy, so it cannot be plugged directly into a 23mV budget; 45 nm, not 130 nm sky130; SAR generic, not column-shared/CIM.",
+            "relevance_to_our_task": "Component-level precedent for our comparator choice and for treating offset (not TMR margin) as the binding constraint. Note: published StrongARM offsets without calibration are often tens of mV (1-sigma), i.e. comparable to or larger than our 23mV window -- this paper's emphasis on offset reduction underlines why our SA needs an explicit offset/auto-zero budget."
+          },
+          {
+            "name": "Memristor fully-analog reservoir computing -- ADC at the readout boundary",
+            "citation": "Y. Zhong, J. Tang, ... H. Wu et al., \"A memristor-based analogue reservoir computing system for real-time and power-efficient signal processing,\" Nature Electronics 5, 672-681, 2022. DOI:10.1038/s41928-022-00838-3. (Full text paywalled; metrics below from abstract/open summaries -- flagged.)",
+            "approach": "Reservoir computing where dynamic memristors form the reservoir and non-volatile memristors form the readout weights; an ADC quantizes the memristor read currents to produce the digital reservoir/readout values. Motivation explicitly states that ADCs convert reservoir read currents and 'incur extra energy and latency,' which is the cost our column-shared SAR amortizes.",
+            "key_metrics": "Claims ~3 orders-of-magnitude lower power than digital hardware for spatiotemporal processing; 96.6% (arrhythmia) and 97.9% (gesture) task accuracy. ADC type/resolution and per-node-vs-shared breakdown NOT extractable from the open abstract -- flagged as unconfirmed. Offset/IR-drop not addressed.",
+            "pros": "Independent confirmation, in the SAME reservoir-computing context as our RC use-case, that the ADC sits at the analog/digital boundary and is a recognized energy/latency cost to be amortized; supports the orders-of-magnitude analog advantage our ~30-35x claim lives within.",
+            "cons": "Paywalled, so ADC architecture, resolution, and whether the ADC is per-node or shared could not be verified from the open record (flagged); memristor device, not sMTJ; no 23mV-window or write-line-IR analysis.",
+            "relevance_to_our_task": "Anchors the RC-readout half of our submodule: a leading RC hardware paper that names ADC conversion of node currents as the cost. Our contribution over it is making that ADC explicitly column-shared/time-muxed and budgeting the comparator energy, which this paper leaves as an unquantified system overhead."
+          },
+          {
+            "name": "Column-parallel two-step SAR / single-slope ADC (image-sensor lineage of column-shared converters)",
+            "citation": "M.-K. Kim, S.-K. Hong, O.-K. Kwon, \"A Fast Multiple Sampling Method for Low-Noise CMOS Image Sensors With Column-Parallel Two-Step SAR/Single-Slope ADCs\" / related ResearchGate pub. 322844082 \"Two-step column-parallel SAR/single-slope ADC for CMOS image sensors,\" ~2018. Exact venue/DOI not confirmed from the open record.",
+            "approach": "Column-parallel readout for image sensors: a coarse SAR stage resolves MSBs, a single-slope stage resolves LSBs, with the comparator and a global ramp shared to cut per-column power. This is the architectural ancestor of column-shared CIM converters and shows the per-column-pitch amortization discipline.",
+            "key_metrics": "12-bit class; literature notes such SAR/SS hybrids reduce unit-capacitor count and share analog circuits to cut power; one related multiple-ramp SS variant gives 3.3x speed at +16% power. Exact energy/op, offset, and node not confirmed from the open summary -- flagged.",
+            "pros": "Mature, well-characterized column-shared converter family (massively parallel columns, shared comparator + global ramp) that is the engineering template for amortizing readout across many columns -- exactly our deployment pattern; demonstrates two-step (coarse-fine) as a way to keep cap-DAC small.",
+            "cons": "Image-sensor domain, not CIM/RC; comparator offset is handled by per-column correlated double sampling (not directly portable to a 23mV Bernoulli window); detailed energy/offset numbers not confirmed from open record (flagged); no low-R write-line consideration.",
+            "relevance_to_our_task": "Provides the design-pattern provenance for column-shared/time-mux SAR readout and the coarse-fine trick to bound cap-DAC size. Useful as a 'this amortization style is proven at scale' reference, while making clear our offset constraint (fixed 23mV window, no CDS reset per Bernoulli read) is harder than the image-sensor case."
+          }
+        ]
+      },
+      "compare": {
+        "submodule": "Column-shared time-multiplexed SAR ADC for sMTJ reservoir/CIM readout (one StrongARM comparator + binary-weighted charge-redistribution cap-DAC, amortized across columns/nodes)",
+        "comparison_rows": [
+          {
+            "option": "OUR design: column-shared time-mux SAR (1 StrongARM SA + charge-redistribution cap-DAC, amortized across M nodes)",
+            "is_ours": true,
+            "metric_axis_1": {
+              "name": "Comparator/readout energy per conversion (sky130-extracted, b-linear comparator term)",
+              "unit": "fJ",
+              "value": 48
+            },
+            "metric_axis_2": {
+              "name": "Input-referred SA offset vs Bernoulli V_T window (plain SA, sky130 MC)",
+              "unit": "sigma_offset/V_T",
+              "value": 0.39
+            },
+            "qualitative": "Only design with an explicit comparator energy AND an offset budgeted against the 23 mV V_T window. Extracted E_comp=48 fJ dominates readout (88-99% of RC energy even at b=3); because that term is b-LINEAR not 2^b, b~8 is affordable and the lever is sharing the comparator across columns (col-shared M=N/4 -> ADC only ~6% of RC energy), giving ~30-35x over a digital ESN. Plain SA offset 0.39 V_T is Pareto-optimal at V_in>=0.5 V (accuracy drop within MNIST run-to-run noise); auto-zero (0.064 V_T) only earns its 1.7x energy in the low-V_in/wide-fan-in corner."
+          },
+          {
+            "option": "Column-parallel time-interleaved SAR/single-slope hybrid ADC for CIM, reconfig 2-8b (Liu/Zhang 2023)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Comparator/readout energy per conversion (Walden FoM at 8b)",
+              "unit": "fJ",
+              "value": 44.8
+            },
+            "metric_axis_2": {
+              "name": "Input-referred SA offset vs Bernoulli V_T window",
+              "unit": "sigma_offset/V_T",
+              "value": 0
+            },
+            "qualitative": "Closest published analog: shares one comparator + one cap-DAC across columns and a global ramp across all columns, reconfigurable 2-8b -- validates our sharing-is-the-lever and 'mid-resolution affordable' claims at thin column pitch. Differs by using a SAR/SS hybrid (extra global ramp block we avoid) and a pure FoM (44.8 fJ/conv-step is whole-converter, not a comparator-only b-linear term). 55 nm. No offset budget against a 23 mV window (axis-2 reported as 0 = not provided); SNDR 40.93 dB at 8b implies ~6.5 ENOB only."
+          },
+          {
+            "option": "PICO-RAM charge-domain CIM SRAM, time-domain ADC + comparator power-gating (Zhang 2024)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Comparator-amortization energy saving (local ADC, from gating expensive comparator)",
+              "unit": "% energy saved",
+              "value": 55.8
+            },
+            "metric_axis_2": {
+              "name": "Input-referred SA offset vs Bernoulli V_T window (auto-zeroed, 'minimal', not budgeted)",
+              "unit": "sigma_offset/V_T",
+              "value": 0
+            },
+            "qualitative": "Best quantitative backing for 'the comparator dominates ADC energy': a low-power Cmp2 power-gates the expensive Cmp1, cutting local-ADC energy 55.8% with no accuracy loss -- the time-domain analog of our spatial column sharing. 8.5-bit, 40.2 TOPS/W, ADC only 4.6% of macro area (sharing is layout-cheap). But it is a VTC+folding-TDC, not a charge-redistribution SAR, so cap-DAC scaling is not the lever; offset only qualitatively 'minimal' (axis-2=0, not budgeted vs 23 mV); SRAM, no low-R SOT write-line IR."
+          },
+          {
+            "option": "Murmann-dataset ADC energy/area regression model for CIM (Krishnan/Cao 2024)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Whole-ADC energy scaling with resolution (system-level law)",
+              "unit": "x energy per +1 ENOB (approx)",
+              "value": 2
+            },
+            "metric_axis_2": {
+              "name": "Input-referred SA offset vs Bernoulli V_T window",
+              "unit": "sigma_offset/V_T",
+              "value": 0
+            },
+            "qualitative": "Authoritative bits-vs-energy law across published silicon: whole-ADC energy grows EXPONENTIALLY with ENOB (~2x per bit), Pareto-optimal CIM resolution 5-9b -- brackets our b~8 and is the key external CHECK on our framing. Crucial caveat: our b-linear claim is the COMPARATOR component only; the whole-converter (incl. cap-DAC switching/matching/reference) is NOT cheap with bits, consistent with this model. So our cost argument must rest on comparator-b-linearity PLUS column amortization, not on the cap-DAC being free. No per-component split; no offset modeling (axis-2=0)."
+          },
+          {
+            "option": "StrongARM dynamic-latch comparator optimized for SAR-ADC, offset-focused (arXiv 2209.07259, 2022)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Comparator power-delay-product improvement (relative)",
+              "unit": "% PDP reduction",
+              "value": 6
+            },
+            "metric_axis_2": {
+              "name": "Input-referred offset REDUCTION vs baseline StrongARM (relative, not absolute vs V_T)",
+              "unit": "mV reduction",
+              "value": 8
+            },
+            "qualitative": "Component-level precedent for our exact comparator family (StrongARM-in-SAR) and confirms offset is the design-critical parameter being optimized -- 8 mV input-referred offset reduction, 6% PDP. Underlines that uncalibrated StrongARM offsets are tens of mV (1-sigma), i.e. comparable to or larger than our 23 mV window, which is why we budget offset against V_T explicitly. Only relative numbers in the open record (no absolute offset/fJ), 45 nm, generic SAR (not column-shared/CIM), so it cannot be plugged directly into a 23 mV budget."
+          },
+          {
+            "option": "Memristor fully-analog reservoir computing with ADC at readout boundary (Zhong/Wu, Nat. Electron. 2022)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "System power advantage vs digital hardware (RC task)",
+              "unit": "x lower power (orders of mag)",
+              "value": 1000
+            },
+            "metric_axis_2": {
+              "name": "Input-referred SA offset vs Bernoulli V_T window",
+              "unit": "sigma_offset/V_T",
+              "value": 0
+            },
+            "qualitative": "Independent confirmation in the SAME RC context that the ADC sits at the analog/digital boundary and is a recognized energy/latency cost to be amortized; ~3 orders-of-magnitude lower power than digital, 96.6%/97.9% task accuracy -- the analog advantage band our ~30-35x lives within. But paywalled: ADC type/resolution and per-node-vs-shared split not verifiable (axis-1 is the system, not the ADC); memristor not sMTJ; no 23 mV window or write-line IR. Our contribution over it is making the ADC explicitly column-shared/time-muxed and budgeting the comparator term it leaves as unquantified overhead."
+          },
+          {
+            "option": "Column-parallel two-step SAR/single-slope ADC, image-sensor lineage (Kim/Kwon ~2018)",
+            "is_ours": false,
+            "metric_axis_1": {
+              "name": "Resolution class (column-pitch converter, energy not confirmed)",
+              "unit": "bit",
+              "value": 12
+            },
+            "metric_axis_2": {
+              "name": "Input-referred SA offset vs Bernoulli V_T window (handled by per-column CDS, not portable)",
+              "unit": "sigma_offset/V_T",
+              "value": 0
+            },
+            "qualitative": "Architectural ancestor of column-shared CIM converters: massively parallel columns sharing one comparator + global ramp, two-step coarse/fine to bound cap-DAC size -- the proven amortization template at scale (12-bit class). But image-sensor domain; offset cancelled by per-column correlated double sampling, which is NOT portable to a fixed 23 mV Bernoulli window with no per-read reset (axis-2=0); exact energy/offset/node not confirmed; no low-R write-line consideration."
+          }
+        ],
+        "why_our_design": "本任务的读出电路面临两条文献普遍回避的硬约束:一是Bernoulli判决窗仅V_T~23mV,二是读出ADC在RC/CIM中主导能耗。我们用sky130提取的StrongARM比较器(E_comp=48fJ)直接量化了读出能量,并在Monte-Carlo中把其失调按V_T预算——而非按TMR裕度——证明plain SA的0.39 V_T在V_in>=0.5V时即为Pareto最优(精度损失落在MNIST单次运行噪声内),只有在低V_in/宽扇入角落才需要自调零(0.064 V_T,代价1.7倍能量)。关键洞见来自分项能量提取:比较器占读出能量88-99%(即使b=3),而该项随位数b呈线性而非2^b,这与Murmann回归模型\"整器能耗随ENOB指数增长\"并不矛盾——因为我们的线性论断仅针对比较器分量,cap-DAC在b=8时已与比较器相当(509 vs 384fJ)。因此真正的能量杠杆不是压低位数,而是把这个主导的比较器跨列/跨节点时分复用:列共享M=N/4使ADC仅占RC能量约6%,b~8这一中分辨率因而可负担,相对数字ESN保持~30-35倍优势(38倍在计入接地读出后仅降至此区间,因O(N^2)矩阵乘仍压倒读出)。相比最接近的Liu/Zhang列共享SAR/SS与PICO-RAM比较器门控,我们用纯电荷再分配cap-DAC省去全局斜坡块,且唯一给出针对23mV窗的显式失调预算;相比把ADC视为未量化系统开销的忆阻器RC,我们把\"共享比较器\"这一主导项明确建模并优化。该设计因此在两条对本任务真正紧要的轴上同时落位:已提取的比较器能量与对V_T预算的失调。",
+        "advantages": [
+          "Only surveyed design that pairs a sky130-EXTRACTED comparator energy (E_comp=48 fJ) with an offset budgeted against the actual 23 mV Bernoulli V_T window (plain SA = 0.39 V_T from N=120 Monte-Carlo), rather than against TMR margin or a generic SNDR/ENOB.",
+          "Identifies the correct energy lever via component-level extraction: the comparator is 88-99% of readout energy even at b=3 and scales b-LINEARLY (b=3->10 costs only ~38x for 3.66x MC), so resolution is cheap and SHARING the comparator across columns/nodes is the real lever -- reconciled honestly with the Murmann exponential whole-ADC law (linearity is comparator-only; cap-DAC ~= comparator at b=8).",
+          "Column-shared / time-mux (M=N/4) drops the ADC to ~6% of RC energy and preserves a ~30-35x advantage over a digital ESN that survives the grounded readout (38x -> 30-35x), an honesty-checked claim with E_comp extracted and E_capDAC/E_dev order-of-magnitude.",
+          "Pure binary-weighted charge-redistribution cap-DAC (C_u~1.5 fF) avoids the extra global ramp generator of the SAR/SS hybrids (Liu/Zhang, image-sensor lineage), with the sky130 cap-DAC energy bracketed between monotonic and conventional switching bounds so the assumption is shown defensible, not optimistic.",
+          "Spec-inverted, decision-useful design rule: budget offset against V_T and SKIP auto-zero unless the readout gain budget forces it (auto-zero earns its 1.7x energy only at V_in<=0.4 V / F=1024), turning 'auto-zero mandatory' into a quantified boundary.",
+          "Same extracted StrongARM SA serves both the PBNN XNOR-popcount CIM decision and the RC node digitization, so the readout is reused across both use-cases of the shared Device A without a second converter family.",
+          "Reproducible on the open SkyWater sky130 PDK and reported as ratios, so the conclusions transfer to commercial 22-28 nm MRAM CMOS where 130 nm is the conservative bound."
+        ],
+        "figure_data": "{\"x_label\": \"Input-referred SA offset relative to Bernoulli window  (sigma_offset / V_T;  lower = resolves 23 mV better;  0 = not reported)\", \"y_label\": \"Comparator / readout energy per conversion  (fJ, log-ish;  comparator-only b-linear term for ours)\", \"points\": [{\"label\": \"OURS: col-shared SAR, plain SA (b~8)\", \"x\": 0.39, \"y\": 48.0, \"is_ours\": true}, {\"label\": \"OURS w/ auto-zero (low-Vin corner)\", \"x\": 0.064, \"y\": 81.6, \"is_ours\": true}, {\"label\": \"Liu/Zhang col-parallel SAR/SS (8b FoM)\", \"x\": 0.0, \"y\": 44.8, \"is_ours\": false}, {\"label\": \"StrongARM-for-SAR (offset-opt, rel. only)\", \"x\": 0.0, \"y\": 48.0, \"is_ours\": false}, {\"label\": \"PICO-RAM TD-ADC (comparator gating)\", \"x\": 0.0, \"y\": 21.2, \"is_ours\": false}, {\"label\": \"Murmann CIM model (whole-ADC ~2x/bit)\", \"x\": 0.0, \"y\": 96.0, \"is_ours\": false}, {\"label\": \"Image-sensor 2-step SAR/SS (12b, CDS offset)\", \"x\": 0.0, \"y\": 120.0, \"is_ours\": false}, {\"label\": \"Memristor analog RC (ADC overhead unquantified)\", \"x\": 0.0, \"y\": 100.0, \"is_ours\": false}]}"
+      }
+    }
+  ]
+}
