@@ -53,9 +53,10 @@ def devstack(cx, cy):
         ln(cx + k*12, cy + 43, cx + k*12 - 5, cy + 51, STROKE, 1)
     ln(cx - 58, cy + 36, cx - 42, cy + 36, STROKE, 1.6); ln(cx + 42, cy + 36, cx + 58, cy + 36, STROKE, 1.6)
     tx(cx - 64, cy + 40, "T1", 11, SUB, a="end"); tx(cx + 64, cy + 40, "T2", 11, SUB, a="start")
-    # free layer (switchable, accent) adjacent to the track
+    # free layer (switchable, accent) adjacent to the track: bidirectional along the
+    # pinned axis (P<->AP stochastic switching), i.e. same axis as the pinned arrow
     S.append(f'<rect x="{cx-20}" y="{cy+6}" width="40" height="22" fill="{FREE}" stroke="{STROKE}" stroke-width="1.6"/>')
-    S.append(f'<line x1="{cx}" y1="{cy+10}" x2="{cx}" y2="{cy+24}" stroke="{ACC}" stroke-width="2" marker-start="url(#ar)" marker-end="url(#ar)"/>')
+    S.append(f'<line x1="{cx-12}" y1="{cy+17}" x2="{cx+12}" y2="{cy+17}" stroke="{ACC}" stroke-width="2" marker-start="url(#ar)" marker-end="url(#ar)"/>')
     tx(cx + 46, cy + 21, "free", 10, ACC, a="start")
     # tunnel barrier + pinned
     ln(cx - 20, cy + 4, cx + 20, cy + 4, STROKE, 2)
@@ -88,38 +89,40 @@ def main():
     tx(136, YT + 26, "SOT-MTJ device", 15, TITLE, "bold")
     tx(136, YT + 45, "(entropy + compute)", 11, SUB, it=1)
     devstack(136, 250)
-    tx(136, 408, "P_sw(V) = σ((V−V_th)/V_T)", 11, BODY)
+    # subscripted formulas use start-anchor: cairosvg mis-advances x after a
+    # baseline-shift subscript when the text is centre-anchored (garbles the formula)
+    tx(48, 408, "P_sw(V) = σ((V−V_th)/V_T)", 11, BODY, a="start")
     tx(136, 428, "thermal stochastic switching", 10, SUB, it=1)
 
     # ---- Tier 2: array ----
     rr(300, YT, 230, YB - YT)
     tx(415, YT + 26, "2T SOT-MTJ XNOR-CIM", 14, TITLE, "bold")
     tx(415, YT + 45, "array  (N rows × M cols)", 11, SUB, it=1)
-    cols = [360, 415, 470]; rows = [210, 285, 360]
+    cols = [340, 376, 412, 448, 484]; rows = [190, 246, 302, 358]   # denser 5x4 tile
     for cx in cols:
-        ln(cx, 185, cx, 388, STROKE, 1.1)
+        ln(cx, 174, cx, 372, STROKE, 1.0)
     for cy in rows:
-        ln(338, cy, 492, cy, STROKE, 1.1)
+        ln(330, cy, 494, cy, STROKE, 1.0)
     for cx in cols:
         for cy in rows:
             cellglyph(cx, cy)
-    tx(415, 415, "I_col ∝ Σ XNOR(x, w)", 12, BODY); tx(415, 433, "Kirchhoff popcount", 10, SUB, it=1)
+    tx(322, 415, "I_col ∝ Σ XNOR(x, w)", 12, BODY, a="start"); tx(322, 433, "Kirchhoff popcount", 10, SUB, a="start", it=1)
 
     # ---- Tier 3: CMOS periphery ----
     rr(594, YT, 380, YB - YT)
-    tx(784, YT + 24, "sky130 CMOS periphery", 15, TITLE, "bold")
-    rr(610, YT + 40, 348, 58, FILL2)
-    tx(784, YT + 62, "write path", 12, TITLE, "bold")
-    tx(784, YT + 82, "R-string DAC · IR pre-distortion · CMOS driver  → BL/SL", 11, BODY)
-    rr(610, YT + 106, 348, 70, FILL2)
-    tx(784, YT + 127, "read path", 12, TITLE, "bold")
-    tx(784, YT + 147, "TIA + StrongARM  → p-bit", 11, BODY)
-    tx(784, YT + 165, "| column-shared SAR  → reservoir   ← RBL", 11, BODY)
-    rr(610, YT + 184, 168, 56, FILL2)
-    tx(694, YT + 206, "row / col decode", 11, TITLE, "bold"); tx(694, YT + 224, "+ WL drivers", 10, BODY)
-    rr(790, YT + 184, 168, 56, FILL2)
-    tx(874, YT + 206, "mode & timing", 11, TITLE, "bold"); tx(874, YT + 224, "controller", 10, BODY)
-    tx(784, YB - 12, "couples to the array via BL/SL · WWL/RWL · RBL", 10, SUB, it=1)
+    tx(784, YT + 26, "sky130 CMOS periphery", 15, TITLE, "bold")
+    rr(610, YT + 46, 348, 70, FILL2)
+    tx(784, YT + 70, "write path", 12, TITLE, "bold")
+    tx(784, YT + 94, "R-string DAC · IR pre-distortion · CMOS driver  → BL/SL", 11, BODY)
+    rr(610, YT + 126, 348, 92, FILL2)
+    tx(784, YT + 150, "read path", 12, TITLE, "bold")
+    tx(784, YT + 174, "TIA + StrongARM  → p-bit", 11, BODY)
+    tx(784, YT + 196, "column-shared SAR  → reservoir   ← RBL", 11, BODY)
+    rr(610, YT + 228, 168, 88, FILL2)
+    tx(694, YT + 256, "row / col decode", 11, TITLE, "bold"); tx(694, YT + 278, "+ WL drivers", 10, BODY)
+    rr(790, YT + 228, 168, 88, FILL2)
+    tx(874, YT + 256, "mode & timing", 11, TITLE, "bold"); tx(874, YT + 278, "controller", 10, BODY)
+    tx(784, YB - 14, "couples to the array via BL/SL · WWL/RWL · RBL", 10, SUB, it=1)
 
     # ---- Tier 4: system / modes ----
     rr(1038, YT, 176, YB - YT)
@@ -141,7 +144,7 @@ def main():
 
     # ---- inter-tier arrows + closed loop ----
     arrow(236, MY, 300, MY); arrow(530, MY, 594, MY); arrow(974, MY, 1038, MY)
-    tx(268, MY - 8, "cell", 10, BODY); tx(562, MY - 8, "I_col", 10, BODY); tx(1006, MY - 8, "code", 10, BODY)
+    tx(268, MY - 8, "cell", 10, BODY); tx(548, MY - 8, "I_col", 10, BODY, a="start"); tx(1006, MY - 8, "code", 10, BODY)
     # closed-loop sampling feedback: routed along the bottom gap (not over the title)
     ln(1126, YB, 1126, 482, ARR, 1.6, dash=1); ln(1126, 482, 415, 482, ARR, 1.6, dash=1); arrow(415, 482, 415, YB, ARR, 2.2, dash=1)
     tx(770, 476, "closed-loop sampling  x(r+1)", 11, ACC, it=1)
