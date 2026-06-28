@@ -38,7 +38,7 @@ class TechParams:
 
     # ---- CMOS peripheral energies (28 nm order of magnitude) -------------#
     e_dac_step: float    = 5.0e-15     # one DAC code-set, per cell (28 nm placeholder; awaits sky130 DAC)
-    e_smtj_read: float   = 4.8e-14     # sky130 StrongARM SA decision (eda/ extraction, ~48 fJ central; range 23-74); replaces 28 nm 5 fJ placeholder (errata R1)
+    e_smtj_read: float   = 4.8e-14     # sky130 StrongARM SA decision, ~48 fJ (eda/ extraction; errata R1)
     e_count_inc: float   = 0.5e-15     # one counter increment (CMOS digital; 28 nm placeholder)
     e_sram_byte: float   = 5.0e-12     # one byte read from local SRAM
     e_dram_byte: float   = 6.4e-10     # one byte read from off-chip DRAM (Horowitz)
@@ -83,55 +83,16 @@ def default_28nm() -> TechParams:
     return TechParams()
 
 
-# ===========================================================================
-# Memory-cell library for the multi-architecture training-energy comparison
-# (Experiment 13).
-#
-# Each entry is a `MemoryParams` dataclass populated with bracketed numbers
-# from the CIM-memory literature.  These are 28-nm-class order-of-magnitude
-# defaults — sufficient for *relative* architecture comparisons but should
-# be replaced with vendor PDK data for absolute energy claims.
-#
-# Citations (per device technology):
-#
-#   STT-MRAM      : Apalkov et al. 2013, IEEE TMag 49(7) 4045-4051;
-#                   Kent & Worledge 2015, Nat Nanotechnol 10(3) 187-191;
-#                   reads 0.05-0.5 pJ/bit, writes 0.5-2 pJ/bit, 5-20 ns.
-#   ReRAM (HfO_x) : Wong et al. 2012, Proc IEEE 100(6) 1951-1970;
-#                   Sebastian et al. 2020, Nat Rev Mater 5 489-507;
-#                   reads 0.05-0.2 pJ/bit, writes 10-100 pJ/cell, 10-100 ns.
-#   PCRAM         : Burr et al. 2016, Adv Phys X 1 e1099875;
-#                   Sebastian et al. 2020 (above);
-#                   reads ~1 pJ/bit, writes 50-200 pJ/cell, 10-100 ns.
-#   FeRAM (HZO)   : Mikolajick et al. 2021, Adv Electron Mater 7 2000820;
-#                   Khan et al. 2020, Nat Electron 3 588-597;
-#                   reads 0.05-0.2 pJ/bit, writes 1-10 pJ/bit, 1-10 ns.
-#   SRAM-CIM      : Khwa et al. 2018, ISSCC 2018 496-498;
-#                   Yu 2018, Proc IEEE 106(2) 260-285;
-#                   reads ~0.05 fJ/bit, writes ~0.5 fJ/bit, 1 ns.
-#   sMTJ (PBNN)   : Garello et al. 2019, IEEE Symp VLSI Circuits;
-#                   Manchon et al. 2019, Rev Mod Phys 91 035004;
-#                   physics-grounded V^2/R * t = 0.78 pJ/sample at the
-#                   Chapter 2.3 operating point.
-#
-# Probabilistic-binary device references (used by `pbnn_stoch_step_energy`
-# in src/smtj_pbnn_sim/ppa/training_energy.py):
-#
-#   stoch-ReRAM PBNN   : Lin et al. 2018, IEEE EDL 39(7);
-#                         per-sample stochastic SET/RESET 50 pJ.
-#   CMOS p-bit ASIC    : Camsari et al. 2020, Proc IEEE 108(8) "p-Bits for
-#                         probabilistic spin logic" (doi:10.1109/JPROC.2020.2966869);
-#                         Borders et al. 2019, Nature 573 (sMTJ-augmented integer
-#                         factorizer); Sutton et al. 2020, Sci Adv 6, eabb2823
-#                         (autonomous probabilistic coprocessing);
-#                         5 pJ per p-bit update at 5 ns clock.
-#   CMOS-PRNG (LFSR)   : synthesizable lower bound — LFSR step + SRAM read +
-#                         comparator ≈ 3 fJ per Bernoulli draw, no NV device
-#                         (Hayashida 2020 Nat Electron 3 cites comparable
-#                         per-sample LFSR cost).  Useful as an *optimistic*
-#                         all-CMOS reference; the Camsari 2020 ASIC entry above
-#                         is the *measured-published* point.
-# ===========================================================================
+# Memory-cell library for the Experiment-13 architecture-energy comparison.
+# 28-nm-class order-of-magnitude defaults that bracket published CIM ranges
+# (relative comparison only, not absolute). Per-entry one-line refs live in the
+# `citation=` fields below; representative ranges: STT-MRAM read 0.05-0.5 /
+# write 0.5-2 pJ; ReRAM 0.05-0.2 / 10-100 pJ; PCRAM ~1 / 50-200 pJ; FeRAM
+# 0.05-0.2 / 1-10 pJ; SRAM-CIM ~0.05 / ~0.5 fJ; sMTJ physics-grounded
+# V^2/R*t = 0.78 pJ/sample. Probabilistic-device refs (used by
+# training_energy.pbnn_stoch_step_energy): stoch-ReRAM Lin 2018 IEEE EDL 39(7)
+# ~50 pJ; CMOS p-bit Camsari 2020 Proc IEEE 108(8) / Borders 2019 Nature 573 /
+# Sutton 2020 Sci Adv 6 ~5 pJ/update; CMOS-PRNG/LFSR optimistic ~3 fJ/draw.
 
 
 @dataclass
