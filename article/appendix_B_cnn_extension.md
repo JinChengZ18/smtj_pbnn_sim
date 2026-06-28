@@ -4,7 +4,7 @@
 
 ## B.1 网络拓扑与训练设置
 
-PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$3\times 3$$、pad 1，每两层接一次$$2\times 2$$最大池化，分辨率$$28\to 14\to 7$$) 加$$128\!\times\!7\!\times\!7\to 1024\to 10$$两层全连接；对CIFAR-10在前面增加一组卷积扩展为$$3\to 64\to 64\to 128\to 128\to 256\to 256$$六层卷积 (三次池化，$$32\to 16\to 8\to 4$$) 加$$256\!\times\!4\!\times\!4\to 1024\to 10$$。两套网络的卷积主干与全连接层均以PBNNConv2d/PBNNLinear实现、激活为sign-STE，与Courbariaux等人的BinaryNet配置同构[^binarynet]；遵循二值网络在RGB输入上的通行做法，CIFAR-10网络的**首层卷积保留全精度** (直接二值化三通道原始像素会摧毁过多输入信息，使精度塌缩至接近随机)，其余卷积与全连接全部二值。BNN-CNN与FP-CNN基线共用同一拓扑，分别把二值层替换为带sign-STE的`_BinConv2d`/DeterministicBinaryLinear与`nn.Conv2d`/`nn.Linear`，FP-CNN同时给出FP32与INT8两档QAT变体。Fashion-MNIST四种网络以Adam $$\mathrm{lr}=10^{-3}$$、batch 128、20轮训练；CIFAR-10的二值网络收敛显著更慢 (BinaryNet文献常需数百轮)，故统一采用60轮配余弦退火学习率 (正文4.5节末段已表明余弦/OneCycle调度对二值PBNN收益最大)。两数据集的训练曲线如图B.1、图B.2所示，最佳测试精度汇总于表B.1。
+PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$3\times 3$$、pad 1，每两层接一次$$2\times 2$$最大池化，分辨率$$28\to 14\to 7$$) 加$$128\!\times\!7\!\times\!7\to 1024\to 10$$两层全连接；对CIFAR-10在前面增加一组卷积扩展为$$3\to 64\to 64\to 128\to 128\to 256\to 256$$六层卷积 (三次池化，$$32\to 16\to 8\to 4$$) 加$$256\!\times\!4\!\times\!4\to 1024\to 10$$。两套网络的卷积主干与全连接层均以PBNNConv2d/PBNNLinear实现、激活为sign-STE，与Courbariaux等人的BinaryNet配置同构[^binarynet]；遵循二值网络在RGB输入上的通行做法，CIFAR-10网络的**首层卷积保留全精度** (直接二值化三通道原始像素会摧毁过多输入信息，使精度塌缩至接近随机)，其余卷积与全连接全部二值。BNN-CNN与FP-CNN基线共用同一拓扑，分别把二值层替换为带sign-STE的`_BinConv2d`/DeterministicBinaryLinear与`nn.Conv2d`/`nn.Linear`，FP-CNN同时给出FP32与INT8两档QAT变体。Fashion-MNIST四种网络以Adam $$\mathrm{lr}=10^{-3}$$、batch 128、20轮训练；CIFAR-10的二值网络收敛显著更慢 (BinaryNet文献常需数百轮)，故统一采用60轮配余弦退火学习率[^te_cifar] (正文4.5节末段已表明余弦/OneCycle调度对二值PBNN收益最大)。两数据集的训练曲线如图B.1、图B.2所示，最佳测试精度汇总于表B.1。
 
 ![图B.1 Fashion-MNIST上PBNN-CNN与基线的训练曲线](figs/AppendixB_01.png)
 
@@ -62,3 +62,5 @@ PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$
 [^xiao2017]: Xiao H, Rasul K, Vollgraf R. Fashion-MNIST: a novel image dataset for benchmarking machine learning algorithms. *arXiv preprint*, 2017. [arXiv:1708.07747](https://arxiv.org/abs/1708.07747)
 [^binarynet]: Courbariaux M, Hubara I, Soudry D, El-Yaniv R, Bengio Y. Binarized neural networks: training deep neural networks with weights and activations constrained to +1 or -1. *arXiv preprint*, 2016. [arXiv:1602.02830](https://arxiv.org/abs/1602.02830)
 [^cifar10]: Krizhevsky A. Learning multiple layers of features from tiny images. *Technical Report*, University of Toronto, 2009.
+
+[^te_cifar]: CIFAR-10二值网络的收敛是本扩展实验中的主要难点。沿用Fashion-MNIST的20轮固定学习率配置时，二值CNN在CIFAR-10上长时间停滞于约50%、远未收敛；改用60轮余弦退火后训练才稳定爬升至约67%，这也从训练动力学一侧印证了二值容量代价随任务难度急剧放大的规律。
