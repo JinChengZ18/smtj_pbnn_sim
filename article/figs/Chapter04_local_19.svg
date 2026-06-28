@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="862.9" height="504.95" viewBox="3.5 -0.707 862.9 504.95" version="1.1">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="804.4" height="458.71" viewBox="62 -0.707 804.4 458.71" version="1.1">
 <style type="text/css">
 .l0{
  fill: #ffffff;
@@ -157,15 +157,15 @@
 text {font-family: Sans-Serif;}
 </style>
 <rect class="l0" x="0" y="0" width="900" height="503"/>
-<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(282.994, 267.891)" >V_wdac</text>
+<text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(282.994, 267.891)" >V<tspan baseline-shift="sub" font-size="0.72em">wdac</tspan></text>
 <text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(552.487, 194.622)" >WRL</text>
-<text fill="#cc2222"  xml:space="preserve" font-size="11.3861" transform="translate(257.729, 29.4634)" >IR pre-distortion:  V_head(r) = V_target + I_wr·R_par(r)</text>
-<text fill="#000000"  xml:space="preserve" font-size="11.3861" transform="translate(249.307, 159.999)" >k:1 tap select</text>
-<text fill="#000000"  xml:space="preserve" font-size="13.1378" transform="translate(434.584, 45.3708)" >CMOS write driver</text>
-<text fill="#000000"  xml:space="preserve" font-size="10.5103" transform="translate(645.126, 298.162)" >write-line IR</text>
-<text fill="#000000"  xml:space="preserve" font-size="13.1378" transform="translate(666.18, 494.246)" >2T SOT-MTJ cell</text>
-<text fill="#000000"  xml:space="preserve" font-size="11.3861" transform="translate(13.5, 419.387)" >voltage-mode resistor-string</text>
-<text fill="#000000"  xml:space="preserve" font-size="11.3861" transform="translate(13.5, 436.231)" >write-DAC (N matched taps)</text>
+<text fill="#cc2222"  xml:space="preserve" font-size="11.3861" transform="translate(257.729, 29.4634)" >IR pre-distortion:  V<tspan baseline-shift="sub" font-size="0.72em">head</tspan>(r) = V<tspan baseline-shift="sub" font-size="0.72em">target</tspan> + I<tspan baseline-shift="sub" font-size="0.72em">wr</tspan>·R<tspan baseline-shift="sub" font-size="0.72em">par</tspan>(r)</text>
+
+
+
+
+
+
 <text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(121.929, 16.293)" >VREF</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(112.455, 380.788)" >VSS</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(508.274, 69.186)" >VDD</text>
@@ -178,13 +178,13 @@ text {font-family: Sans-Serif;}
 <text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(830.403, 412.112)" >SL</text>
 <text fill="#000000"  xml:space="preserve" font-size="9.6344" transform="translate(690.078, 327.895)" >RD</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(84.3481, 75.9702)" >R1</text>
-<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 77.6545)" >R_u</text>
+<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 77.6545)" >R<tspan baseline-shift="sub" font-size="0.72em">u</tspan></text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(84.3481, 151.765)" >R2</text>
-<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 153.45)" >R_u</text>
+<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 153.45)" >R<tspan baseline-shift="sub" font-size="0.72em">u</tspan></text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(84.3481, 227.56)" >R3</text>
-<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 229.245)" >R_u</text>
+<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 229.245)" >R<tspan baseline-shift="sub" font-size="0.72em">u</tspan></text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(84.3481, 303.356)" >R4</text>
-<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 305.04)" >R_u</text>
+<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(116.244, 305.04)" >R<tspan baseline-shift="sub" font-size="0.72em">u</tspan></text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(217.675, 195.511)" >MTn</text>
 <text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(254.36, 231.771)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(352.421, 195.511)" >MTp</text>
@@ -194,7 +194,7 @@ text {font-family: Sans-Serif;}
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(485.168, 224.987)" >MDn</text>
 <text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(523.854, 261.247)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(589.071, 248.615)" >Rline</text>
-<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(629.967, 250.299)" >R_line</text>
+<text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(629.967, 250.299)" >R<tspan baseline-shift="sub" font-size="0.72em">line</tspan></text>
 <text fill="#000000"  xml:space="preserve" font-size="8.75855" transform="translate(610.072, 317.626)" >MA</text>
 <text fill="#555555"  xml:space="preserve" font-size="7.88269" transform="translate(641.757, 353.886)" >0.15</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.88269" transform="translate(734.396, 372.413)" >X1</text>
@@ -435,9 +435,14 @@ text {font-family: Sans-Serif;}
 <circle class="l1" cx="451.427" cy="238.088" r="3.36867"/>
 <g id="module-groups">
 <rect x="72" y="66" width="80" height="254" rx="6" fill="none" stroke="#5E3F8C" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+<text x="75" y="63" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#5E3F8C" font-weight="bold">R-string write-DAC</text>
 <rect x="193" y="184" width="215" height="70" rx="6" fill="none" stroke="#1A6B5A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+<text x="196" y="181" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#1A6B5A" font-weight="bold">k:1 tap select</text>
 <rect x="468" y="118" width="82" height="158" rx="6" fill="none" stroke="#C77A0A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+<text x="471" y="115" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#C77A0A" font-weight="bold">CMOS write driver</text>
 <rect x="578" y="236" width="96" height="58" rx="6" fill="none" stroke="#2c5aa0" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+<text x="581" y="233" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#2c5aa0" font-weight="bold">write-line IR</text>
 <rect x="596" y="306" width="205" height="142" rx="6" fill="none" stroke="#A82038" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+<text x="599" y="303" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#A82038" font-weight="bold">2T SOT-MTJ cell</text>
 </g>
 </svg>

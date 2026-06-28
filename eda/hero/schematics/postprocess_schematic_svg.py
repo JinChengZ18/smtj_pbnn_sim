@@ -29,19 +29,28 @@ GROUPS = {
         (150, 290, 215, 72, "#1A6B5A", "input pair"),
         (205, 384, 95, 58, "#C77A0A", "clocked tail"),
     ]),
-    # figs 19 & 08 already carry text module labels -> boxes only (empty caption)
+    # captions sit at each box's top-left in the box colour (module name beside box)
     "writepath": ("Chapter04_local_19", [
-        (72, 66, 80, 254, "#5E3F8C", ""),     # R-string write-DAC (R1-R4)
-        (193, 184, 215, 70, "#1A6B5A", ""),   # k:1 tap select (MTn/MTp)
-        (468, 118, 82, 158, "#C77A0A", ""),   # CMOS write driver (MDp/MDn)
-        (578, 236, 96, 58, "#2c5aa0", ""),    # write-line IR (Rline)
-        (596, 306, 205, 142, "#A82038", ""),  # 2T SOT-MTJ cell (MA/X1)
+        (72, 66, 80, 254, "#5E3F8C", "R-string write-DAC"),
+        (193, 184, 215, 70, "#1A6B5A", "k:1 tap select"),
+        (468, 118, 82, 158, "#C77A0A", "CMOS write driver"),
+        (578, 236, 96, 58, "#2c5aa0", "write-line IR"),
+        (596, 306, 205, 142, "#A82038", "2T SOT-MTJ cell"),
     ]),
     "sar_readout": ("Chapter05_local_08", [
-        (88, 100, 190, 66, "#1A6B5A", ""),    # column-shared input mux (MS0/MS1)
-        (300, 198, 268, 236, "#5E3F8C", ""),  # charge-redistribution cap-DAC
-        (640, 176, 124, 88, "#C77A0A", ""),   # StrongARM comparator
+        (88, 100, 190, 66, "#1A6B5A", "column-shared input mux"),
+        (300, 168, 268, 266, "#5E3F8C", "charge-redistribution cap-DAC"),
+        (640, 176, 124, 88, "#C77A0A", "StrongARM comparator"),
     ]),
+}
+
+# original Xschem text labels to delete (now redrawn as coloured box captions)
+REMOVE_TEXTS = {
+    "writepath": ["voltage-mode resistor-string", "write-DAC (N matched taps)",
+                  "k:1 tap select", "CMOS write driver", "write-line IR", "2T SOT-MTJ cell"],
+    "sar_readout": ["column-shared", "input mux", "(time-mux)",
+                    "charge-redistribution cap-DAC (binary-weighted, b bits)",
+                    "StrongARM comparator"],
 }
 
 # ⑩ replace raw/vague in-figure formulas with the correct physical relation
@@ -51,6 +60,24 @@ TEXTREPL = {
 }
 
 NUM = r"-?\d+\.?\d*"
+# symbols whose ALL-CAPS form is a net/rail name, not a subscripted quantity
+_NETS = {"VDD", "VSS", "GND", "VREF", "WWL", "RWL", "WRL", "RBL", "BL", "SL", "CLK"}
+
+
+def subscriptize(svg: str) -> str:
+    """Render `X_y` inside <text> as proper math subscripts (baseline-shift),
+    so figures never show internal-variable underscores (publication norm)."""
+    sub_re = re.compile(r"([A-Za-z0-9\)])_(\{)?([A-Za-z0-9]+)(\})?")
+
+    def fix_text(m):
+        head, body, tail = m.group(1), m.group(2), m.group(3)
+        if "_" not in body or any(n in body for n in _NETS):
+            return m.group(0)
+        new = sub_re.sub(
+            r'\1<tspan baseline-shift="sub" font-size="0.72em">\3</tspan>', body)
+        return head + new + tail
+
+    return re.sub(r"(<text\b[^>]*>)([^<]*)(</text>)", fix_text, svg)
 
 
 def content_bbox(svg: str):
@@ -94,6 +121,11 @@ def main(base):
         if old not in raw:
             print(f"  WARN: text to replace not found: {old!r}")
         raw = raw.replace(old, new)
+    for t in REMOVE_TEXTS.get(base, []):  # delete labels now redrawn as box captions
+        raw, n = re.subn(r"<text\b[^>]*>" + re.escape(t) + r"</text>", "", raw)
+        if n == 0:
+            print(f"  WARN: remove-text not found: {t!r}")
+    raw = subscriptize(raw)            # X_y -> proper subscript (no "_" in figures)
 
     minx, miny, maxx, maxy = content_bbox(raw)
     # include the group captions/boxes in the bbox so they are not clipped
