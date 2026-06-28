@@ -9,6 +9,9 @@ bottom band mapping each tier to its abstraction layer and its sky130 grounding.
 (red) marks the stochastic free layer and the sky130-extracted periphery. Rasterised via cairosvg.
 """
 import os
+import re
+
+_SUB = re.compile(r"([A-Za-z0-9\)])_(\{)?([A-Za-z0-9]+)(\})?")
 
 FILL = "#ece9f6"; FILL2 = "#e0d8f1"; STROKE = "#6a4fa3"
 TITLE = "#3f2a7a"; SUB = "#6a4fa3"; BODY = "#2b2b2b"; ARR = "#5b3f96"; ACC = "#c0392b"
@@ -19,6 +22,7 @@ def rr(x, y, w, h, fill=FILL, stroke=STROKE, sw=2, rx=12):
     S.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
 def tx(x, y, s, size=15, color=BODY, w="normal", a="middle", it=0):
     s = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    s = _SUB.sub(r'\1<tspan baseline-shift="sub" font-size="0.72em">\3</tspan>', s)
     st = ' font-style="italic"' if it else ''
     S.append(f'<text x="{x}" y="{y}" font-family="Helvetica,Arial,sans-serif" font-size="{size}" fill="{color}" font-weight="{w}" text-anchor="{a}"{st}>{s}</text>')
 def ln(x1, y1, x2, y2, color=ARR, sw=1.6, dash=0):
@@ -29,10 +33,18 @@ def arrow(x1, y1, x2, y2, color=ARR, sw=3, dash=0):
     S.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="{sw}" marker-end="url(#ah)"{d}/>')
 
 def cellglyph(cx, cy):
-    S.append(f'<rect x="{cx-11}" y="{cy+6}" width="22" height="4" rx="2" fill="{HM}" stroke="{STROKE}" stroke-width="1"/>')
-    S.append(f'<rect x="{cx-5}" y="{cy-1}" width="10" height="6" fill="{FREE}" stroke="{STROKE}" stroke-width="1"/>')
-    S.append(f'<rect x="{cx-5}" y="{cy-9}" width="10" height="6" fill="{PIN}" stroke="{STROKE}" stroke-width="1"/>')
-    S.append(f'<line x1="{cx}" y1="{cy-1}" x2="{cx}" y2="{cy+4}" stroke="{ACC}" stroke-width="1.2"/>')
+    # small 3D-style MTJ pillar (pinned + accent free) seated on the SOT heavy-metal track
+    S.append(f'<rect x="{cx-13}" y="{cy+7}" width="26" height="5" rx="2" fill="{HM}" stroke="{STROKE}" stroke-width="0.9"/>')
+    S.append(f'<ellipse cx="{cx-9}" cy="{cy+9.5}" rx="1.4" ry="1.4" fill="{STROKE}"/>')
+    S.append(f'<ellipse cx="{cx+9}" cy="{cy+9.5}" rx="1.4" ry="1.4" fill="{STROKE}"/>')
+    # pinned reference layer (cylinder body + top cap)
+    S.append(f'<rect x="{cx-5.5}" y="{cy-1}" width="11" height="8" fill="{PIN}" stroke="{STROKE}" stroke-width="0.9"/>')
+    S.append(f'<ellipse cx="{cx}" cy="{cy-1}" rx="5.5" ry="1.7" fill="{FILL2}" stroke="{STROKE}" stroke-width="0.9"/>')
+    # tunnel barrier
+    S.append(f'<rect x="{cx-5.5}" y="{cy-3}" width="11" height="2" fill="#ffffff" stroke="{STROKE}" stroke-width="0.6"/>')
+    # free layer (switchable, accent) with cap
+    S.append(f'<rect x="{cx-5.5}" y="{cy-10}" width="11" height="7" fill="{ACC}" fill-opacity="0.5" stroke="{STROKE}" stroke-width="0.9"/>')
+    S.append(f'<ellipse cx="{cx}" cy="{cy-10}" rx="5.5" ry="1.7" fill="{ACC}" fill-opacity="0.75" stroke="{STROKE}" stroke-width="0.9"/>')
 
 def devstack(cx, cy):
     # heavy-metal SOT track
@@ -111,15 +123,21 @@ def main():
 
     # ---- Tier 4: system / modes ----
     rr(1038, YT, 176, YB - YT)
-    tx(1126, YT + 26, "operating modes", 14, TITLE, "bold")
-    tx(1126, YT + 45, "(time-multiplexed)", 11, SUB, it=1)
-    rr(1052, YT + 64, 148, 92, FILL2)
-    tx(1126, YT + 88, "p-bit inference", 12, TITLE, "bold")
-    tx(1126, YT + 110, "T Bernoulli", 11, BODY); tx(1126, YT + 128, "samples → E[s]", 11, BODY)
-    rr(1052, YT + 168, 148, 100, FILL2)
-    tx(1126, YT + 192, "reservoir", 12, TITLE, "bold")
-    tx(1126, YT + 214, "low-Δ free", 11, BODY); tx(1126, YT + 232, "evolution →", 11, BODY)
-    tx(1126, YT + 250, "shared read-out", 11, BODY)
+    tx(1126, YT + 24, "operating modes", 14, TITLE, "bold")
+    tx(1126, YT + 43, "(time-multiplexed)", 11, SUB, it=1)
+    rr(1052, YT + 62, 148, 126, FILL2)
+    tx(1126, YT + 86, "p-bit inference", 12, TITLE, "bold")
+    tx(1126, YT + 108, "T Bernoulli samples", 10.5, BODY)
+    tx(1126, YT + 126, "averaged → E[s]", 10.5, BODY)
+    tx(1126, YT + 152, "memoryless cell:", 10, SUB, it=1)
+    tx(1126, YT + 169, "write → read", 10, SUB, it=1)
+    rr(1052, YT + 202, 148, 156, FILL2)
+    tx(1126, YT + 226, "reservoir", 12, TITLE, "bold")
+    tx(1126, YT + 248, "low-Δ free evolution", 10.5, BODY)
+    tx(1126, YT + 266, "→ shared read-out", 10.5, BODY)
+    tx(1126, YT + 292, "stateful node:", 10, SUB, it=1)
+    tx(1126, YT + 309, "fading memory +", 10, SUB, it=1)
+    tx(1126, YT + 326, "tanh nonlinearity", 10, SUB, it=1)
 
     # ---- inter-tier arrows + closed loop ----
     arrow(236, MY, 300, MY); arrow(530, MY, 594, MY); arrow(974, MY, 1038, MY)
