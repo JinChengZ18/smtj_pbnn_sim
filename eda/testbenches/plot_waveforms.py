@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Plot the operating waveforms for the supplement (fig 11).
 
-(a) Write path  -- ngspice transient (_write_tran.spice): 0.75 ns write pulse delivered across the
-    776 ohm SOT branch, with the calibrated compact-model switching probability P_sw(t).
-(b) Read path   -- ngspice transient (_sa_tran.spice): StrongARM regenerative latch resolving a
+(a) Write path  -- ngspice transient (write_tran_tb.spice): 0.75 ns write pulse delivered across
+    the 776 ohm SOT branch, with the calibrated compact-model switching probability P_sw(t).
+(b) Read path   -- ngspice transient (sa_tran_tb.spice): StrongARM regenerative latch resolving a
     10 mV differential after the clock edge (outputs precharged high, then split to the rails).
 (c) Reservoir read-out -- behavioural SAR charge-redistribution conversion of a sampled column
     voltage (binary search; the cap-DAC reconstruction converges to the input over b bit-trials).

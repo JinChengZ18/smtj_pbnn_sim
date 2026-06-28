@@ -1,0 +1,25 @@
+* StrongARM transient: clk edge -> regenerative latch resolves a small differential input.
+* vinp/vinn = 0.9 V +/- 5 mV (10 mV diff); clk rises at 1 ns -> outp/outn diverge to the rails.
+.lib /opt/pdk/sky130A/libs.tech/ngspice/sky130.lib.spice tt
+Vdd vdd 0 1.8
+Vss vss 0 0
+Vinp vinp 0 0.905
+Vinn vinn 0 0.895
+Vclk clk 0 PULSE(0 1.8 1n 60p 60p 3n 8n)
+XMtail ntail clk vss   vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM1    da    vinp ntail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM2    db    vinn ntail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM3    outn  outp da   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM4    outp  outn db   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM5    outn  outp vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XM6    outp  outn vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp1   outp  clk  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp2   outn  clk  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp3   da    clk  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp4   db    clk  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+.control
+  tran 2p 6n
+  wrdata sa_tran.csv v(clk) v(outp) v(outn)
+  quit
+.endc
+.end
