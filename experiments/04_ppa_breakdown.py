@@ -59,7 +59,7 @@ def main() -> None:
         axes[0].text(c, v * 1.05, f"{v:.1f} fJ", ha="center", fontsize=11)
     axes[0].set_yscale("log")
     axes[0].set_ylabel("Energy per MAC (fJ)")
-    axes[0].set_title("Per-MAC energy breakdown (Chapter 2.3 SOT operating point)")
+    axes[0].set_title("Per-MAC energy breakdown (SOT operating point)")
     axes[0].grid(axis="y", alpha=0.3, which="both")
 
     # Area breakdown

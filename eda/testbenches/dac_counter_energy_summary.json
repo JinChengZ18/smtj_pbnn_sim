@@ -1,0 +1,21 @@
+{
+  "method": "ngspice (sky130 analog core) + analytical decode",
+  "sky130_constants": {
+    "VDD": 1.8,
+    "VSPAN": 0.2,
+    "NBITS": 7,
+    "Cox_fF_per_um2": 8.6,
+    "C_drv_gate_fF": 20.64,
+    "C_decode_switched_fF": 10.32
+  },
+  "e_dac_step": 3.4029971999999994e-14,
+  "e_dac_analog": 5.931720000000001e-16,
+  "e_dac_digital": 3.3436799999999996e-14,
+  "e_count_inc": 1.9440000000000003e-14,
+  "e_dff_toggle": 9.720000000000002e-15,
+  "ngspice_debug": {
+    "cl_fF": 24.64,
+    "q_stat": -1.4305e-15,
+    "q_acc": -2.96586e-15
+  }
+}

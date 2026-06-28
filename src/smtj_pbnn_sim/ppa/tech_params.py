@@ -6,9 +6,13 @@ wafer, beta-W channel of R_SOT = 776 ohm, 0.75 ns write pulse at V_wr ~
 grounded in a sky130 StrongARM sense-amplifier extraction (``eda/``,
 errata R1): ``e_smtj_read = 48 fJ`` replaces the former 28 nm 5 fJ
 placeholder, so the simulator reports a credible read fraction without an
-external override. The remaining CMOS peripherals (DAC, counter, areas)
-are still 28 nm order-of-magnitude and SHOULD be replaced with sky130 /
-NeuroSim floorplan output before reporting their absolute numbers.
+external override. The DAC code-set and counter-increment energies are now
+grounded in sky130 as well (``eda/testbenches/dac_counter_energy.py``: ngspice
+analog core + a sky130 stdcell-capacitance estimate for the digital decode /
+flip-flops, since the sky130_fd_sc_hd Liberty is not installed). Only the AREAS
+remain 28 nm order-of-magnitude and SHOULD be replaced with sky130 layout
+extraction before reporting their absolute numbers (see
+``.agents/eda/PPA_grounding_plan.md``).
 
 NOTE (see ``.agents/errata.md``, item E1): NeuroSim does NOT model the sMTJ
 stochastic SOT write -- that energy is physically grounded here via
@@ -37,9 +41,9 @@ class TechParams:
     t_write: float       = 0.75e-9     # write pulse width [s]
 
     # ---- CMOS peripheral energies (28 nm order of magnitude) -------------#
-    e_dac_step: float    = 5.0e-15     # one DAC code-set, per cell (28 nm placeholder; awaits sky130 DAC)
+    e_dac_step: float    = 3.4e-14     # sky130 R-string write-DAC code-set: ngspice analog core ~0.6 fJ + decode ~33 fJ (eda/testbenches/dac_counter_energy.py; ~2x uncertainty pending stdcell extraction)
     e_smtj_read: float   = 4.8e-14     # sky130 StrongARM SA decision, ~48 fJ (eda/ extraction; errata R1)
-    e_count_inc: float   = 0.5e-15     # one counter increment (CMOS digital; 28 nm placeholder)
+    e_count_inc: float   = 1.9e-14     # sky130 popcount-counter increment: ~2 DFF toggles x ~10 fJ at 1.8 V (eda/testbenches/dac_counter_energy.py; ~2x uncertainty pending Liberty)
     e_sram_byte: float   = 5.0e-12     # one byte read from local SRAM
     e_dram_byte: float   = 6.4e-10     # one byte read from off-chip DRAM (Horowitz)
 
@@ -68,9 +72,9 @@ class TechParams:
 
     # ---- Identifying meta -----------------------------------------------#
     name: str = "sky130-read-sot-default"
-    note: str = ("Chapter-2.3-grounded SOT-MTJ write + sky130-extracted "
-                 "StrongARM read (e_smtj_read=48 fJ); DAC/counter/areas "
-                 "remain 28 nm order-of-magnitude pending sky130 floorplan.")
+    note: str = ("Chapter-2.3-grounded SOT-MTJ write + sky130-grounded read "
+                 "(48 fJ), DAC code-set (~34 fJ) and counter (~19 fJ); only "
+                 "areas remain 28 nm order-of-magnitude pending sky130 layout.")
 
     @property
     def e_smtj_write(self) -> float:
