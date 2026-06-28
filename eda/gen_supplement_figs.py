@@ -33,7 +33,7 @@ plt.rcParams.update({"font.size": 11, "axes.grid": True, "grid.alpha": 0.3,
 
 
 def jload(p):
-    return json.loads(Path(p).read_text())
+    return json.loads(Path(p).read_text(encoding="utf-8"))
 
 
 # ---------- Fig S1: device-model validation (LLG vs behavioral sigmoid) ----------
@@ -178,7 +178,7 @@ def fig5():
     rpar = 2.0 * rs * (r * pitch / W)
     v_nopd = Vt - Iw * rpar
     psw = lambda v: 1.0 / (1.0 + np.exp(-(v - VTH) / VT))
-    fig, ax = plt.subplots(1, 2, figsize=(11.5, 4.6))
+    fig, ax = plt.subplots(1, 3, figsize=(16.6, 4.6))
     ax[0].plot(r, v_nopd, "-", color=RED, lw=2, label="no compensation (base-driven)")
     ax[0].axhline(Vt, color=PURPLE, lw=2, ls="--", label="IR-aware pre-distortion")
     ax[0].set_xlabel("cell row in column"); ax[0].set_ylabel("write voltage at cell (V)")
@@ -190,6 +190,27 @@ def fig5():
     ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel("write probability $P_{sw}$")
     ax[1].set_title("(b) Write probability flattened to target at every row")
     ax[1].legend(fontsize=9)
+    # (c) write-path design space vs surveyed literature (multi-agent arxiv/OA survey)
+    sv = jload(REPO / "eda" / "design_survey" / "submodule_survey.json")
+    wd = next(s for s in sv["submodules"] if s["key"] == "write_dac_ir")
+    fd = json.loads(wd["compare"]["figure_data"])
+    def _short(lbl, ours):
+        if ours:
+            return "ours"
+        w = lbl.replace(",", " ").split()
+        return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
+    for pt in fd["points"]:
+        ours = bool(pt.get("is_ours"))
+        ax[2].scatter(pt["x"], pt["y"], s=170 if ours else 70, marker="*" if ours else "o",
+                      c=RED if ours else PURPLE, edgecolor="black",
+                      zorder=4 if ours else 3, alpha=0.95 if ours else 0.8)
+        ax[2].annotate(_short(pt["label"], ours), (pt["x"], pt["y"]),
+                       textcoords="offset points", xytext=(6, 5), fontsize=7.5,
+                       color=RED if ours else "0.3", fontweight="bold" if ours else "normal")
+    ax[2].set_xlabel("residual remote-row write error on N=256 (mV)")
+    ax[2].set_ylabel("circuit-layer completeness (0–5)")
+    ax[2].set_title("(c) Write-path design space vs literature")
+    ax[2].margins(0.18)
     fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
