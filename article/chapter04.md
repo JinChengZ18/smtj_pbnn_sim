@@ -218,7 +218,15 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 ## 4.6 外围电路的器件—电路协同设计与开源验证
 
-前述各节在器件与阵列的行为级抽象上评估了精度、鲁棒性与能效，其中外围电路的能量与非理想性以工艺数量级常数代入。本节把这一层落到晶体管级：在全开源工艺设计套件 (SkyWater sky130) 上，让器件物理的定量结论去驱动读出与写入外围的电路设计，并以ngspice晶体管级仿真与版图寄生提取加以验证，使4.3节中以占位常数表示的外围项获得可信替代。器件侧并行保留两套模型，一套是对实测数据回归的代数紧凑模型，承担全部电路与系统迭代，另一套是宏自旋Landau–Lifshitz–Gilbert随机动力学求解器，物理上更完整、计算量更大，专用于交叉验证；在0.75 ns自旋轨道矩写脉冲下两模型的判决阈值相差约0.2 mV，约为判决窗$$V_T=23.4\,\mathrm{mV}$$的百分之一，足以支持以代数模型驱动整条设计流程。
+前述各节在器件与阵列的行为级抽象上评估了精度、鲁棒性与能效，其中外围电路的能量与非理想性以工艺数量级常数代入。本节把这一层落到晶体管级：在全开源工艺设计套件 (SkyWater sky130) 上，让器件物理的定量结论去驱动读出与写入外围的电路设计，并以ngspice晶体管级仿真与版图寄生提取加以验证，使4.3节中以占位常数表示的外围项获得可信替代。器件侧并行保留两套模型，一套是对实测数据回归的代数紧凑模型，承担全部电路与系统迭代，另一套是宏自旋Landau–Lifshitz–Gilbert随机动力学求解器，物理上更完整、计算量更大，专用于交叉验证；在0.75 ns自旋轨道矩写脉冲下两模型的判决阈值相差约0.2 mV，约为判决窗$$V_T=23.4\,\mathrm{mV}$$的百分之一 (图4.22)，足以支持以代数模型驱动整条设计流程。由这些器件级数驱动的外围在片上层面的耦合关系见图4.23：2T SOT-MTJ阵列经位线、源线、字线与读线，与写通路、读通路、行列译码及模式与时序控制器相连，本节其余部分依次给出读出与写入两条通路的器件级设计。
+
+![图4.22 器件双模型一致性](figs/Chapter04_local_22.png)
+
+**图4.22** 紫线为对实测数据回归的开关概率Sigmoid，红点为宏自旋LLG随机求解器 (每点200次蒙特卡洛，误差棒为Wilson 95%区间)，竖虚线为标定阈值；两模型阈值吻合到$$0.01\,V_T$$，高压端偏离对应大过驱下的进动回切。
+
+![图4.23 由器件到系统的整体架构层次（sky130）](figs/Chapter04_local_23.png)
+
+**图4.23** sMTJ概率位／储备池计算系统架构 (器件 → XNOR存内计算阵列 → sky130 CMOS外围 → 系统)。各外围模块经BL/SL、WWL/RWL、RBL与阵列耦合，顶部虚线为闭环采样反馈，底栏标出各层的抽象级别与其sky130落地来源 (外围层为提取数)。
 
 概率位判决正确与否的尺度，是器件开关概率Sigmoid的斜率所定义的伯努利判决窗$$V_T$$，而非确定性隧穿磁阻读出余量。这一规格替换是读出设计的出发点：读出灵敏放大器的输入折合失调应按$$V_T$$预算。这与既有概率位存内计算的读出处理不同，后者或以隧穿磁阻余量保证读出裕度而把比较器当作理想[^pbnn_cim]，或在训练侧补偿器件Sigmoid的斜率与位移却仍假设理想比较器[^pbit_var]，均未把比较器失调规格与器件Sigmoid斜率联系起来。在sky130上实现StrongARM锁存比较器[^strongarm]，对输入对与锁存管阈值失配做120次蒙特卡洛 (Pelgrom面积反比律[^pelgrom]，失配系数取该工艺量级)，得到输入折合失调$$\sigma_\mathrm{off}=9.21\,\mathrm{mV}=0.39\,V_T$$。即未经失调消除的平凡比较器，其失调已与判决窗同量级，会以每输出列一个系统性阈值偏移的形式注入误差，恰是4.5节判定为致命的那一类误差。
 
@@ -258,6 +266,8 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 **图4.21** 工作模式流水线。(a) 概率位推断：每样本为写、弛豫、读相位循环，$$T$$次平均得期望，置信度早退缩短$$T$$。(b) 储备池处理 (第五章)：写入输入、低势垒自由演化、列共享逐次逼近转换器分时扫描各列。两模式分时复用同一阵列、在时间上互斥。
 
+本节的电路级结论须按其方法学口径理解。随机性保留在数值采样环中、紧凑模型保持代数形式以适配开源编译器，含噪后仿的随机共仿尚未实现；sky130为130 nm/1.8 V节点，故所有电路级结论以比值 (失调比判决窗、能量占比、写线IR占器件比) 报告而非绝对值；Magic的电阻型寄生与IR压降为粗集总、仅给量级且未建模串扰，故写线IR仅为量级估计；磁隧道结在版图中以抽象黑盒单元表示并附不可制造声明，因无开源工艺提供可用的SOT-MTJ单元，CMOS工艺只承担外围；写数模转换器与计数器的能量、面积仍为数量级占位，待对应sky130单元提取后替换。这一晶体管级协同设计与近期在130 nm商用CMOS上以电压控制磁隧道结作熵源实测的概率计算芯片[^pbit_asic]互为补充：后者给出实测硅，本节则以晶圆标定的紧凑模型为可信锚、在开源工艺上做可复现的器件—电路协同设计。
+
 ## 4.7 本章小结
 
 本章把全文主线下同一硬件单元在机器学习推断任务上的可达性能与边界这一问题，落到一条端到端硬件仿真流水线之上。其关键设计是让软件基线、硬件感知与全栈评估三档模式共享同一份潜参数检查点：三档既共用$\boldsymbol{\Theta}$张量，也借助硬二值STE技巧复用BN滑动统计，使训练所得检查点无需重新训练即可切换到真实硬件语义下加以评估。这一安排避免了硬件感知训练中常见的训练与推理语义不一致带来的偏差，使同一仿真器能够同时服务于训练循环、PPA估算与鲁棒性扫描。配套的CLT高斯化前向把训练阶段的$T$次显式Bernoulli抽样压缩为一次解析近似，使每步训练复杂度回到与确定性矩阵乘法相近的量级——这是PBNN由算法可行但训练昂贵推进到训练代价与确定性BNN持平的关键。
@@ -290,6 +300,8 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 [^autozero]: Dong Q, et al. A 1 Mb 28 nm STT-MRAM with 2.8 ns read using a single-cap offset-cancelled sense amplifier. *IEEE International Solid-State Circuits Conference (ISSCC)*, 2018（失调标准差降逾60%、较双容自调零省约15%面积、自调零相位隐藏于译码无时序代价；按约2×隧穿磁阻余量预算、自调零始终开启）。
 
 [^tgate]: CMOS传输门由并联的NMOS与PMOS构成，对轨到轨范围内的模拟电压提供低且较对称的导通电阻；相较单管开关 (近电源轨时损失约一个阈值电压、导通电阻随电平强烈变化)，它能近乎无失真地把所选电阻串抽头电压传给写驱动，是模拟选择开关的常规做法。
+
+[^pbit_asic]: An integrated-circuit-based probabilistic computer that uses voltage-controlled magnetic tunnel junctions as its entropy source. *Nature Electronics*, 2025, s41928-025-01439-6（实测130 nm CMOS）。
 [^cim_neurosim_validation]: Lu A, Peng X, Li W, Jiang H, Yu S. NeuroSim simulator for compute-in-memory hardware accelerator: validation and benchmark. *Frontiers in Artificial Intelligence*, 2021, 4: 659060. [doi:10.3389/frai.2021.659060](https://doi.org/10.3389/frai.2021.659060)
 [^cim_dnn_neurosim_v2]: Peng X, Huang S, Jiang H, Lu A, Yu S. DNN+NeuroSim V2.0: an end-to-end benchmarking framework for compute-in-memory accelerators for on-chip training. *IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems*, 2021, 40(11): 2306–2319. [doi:10.1109/TCAD.2020.3043731](https://doi.org/10.1109/TCAD.2020.3043731)
 [^cim_neurosim_v15]: Read J, Lee M-Y, Huang W-H, Luo Y-C, Lu A, Yu S. NeuroSim V1.5: improved software backbone for benchmarking compute-in-memory accelerators with device and circuit-level non-idealities. *arXiv preprint*, 2025. [arXiv:2505.02314](https://arxiv.org/abs/2505.02314)

@@ -29,5 +29,5 @@ Windows/GPU 上调用 `smtj_pbnn_sim`。
   在环提取 $$\sigma_\mathrm{pc}\approx2.5$$ 个 popcount，落在精度曲线膝点之下 → 该扇入下平凡比较器即足够。
 - 失调-面积协同：增大输入对面积按 $$1/\sqrt{\text{area}}$$ 降低失调；低压宽扇入区才需自调零。
 
-电路设计的器件级原理图与说明见 `schematics/`；其在论文中的定位与对比见
-[`../../article/supplement_eda_codesign.md`](../../article/supplement_eda_codesign.md)。
+电路设计的器件级原理图与说明见 `schematics/`；其在论文中的定位与对比见正文第四章 4.6 节
+（外围电路的器件—电路协同设计与开源验证）与第五章 5.5 节（储备池读出）。

@@ -27,7 +27,7 @@
 | **B7/B8** 三位一体/自适应-T | 受限可行性包络 / ~50% 少写 | ✅（B7 仅可行性） |
 
 - **错误/论断修正**：E1/E2 已修；**R1–R7 全部已处理**（R2/R4/R6/R7 收口为设计边界，R1/R3/R5 有真实提取数）。
-- **📄 学术增补交付稿**：[`../article/supplement_eda_codesign.md`](../article/supplement_eda_codesign.md)（独立增补，含图 S.1–S.4，遵循 article 图风格 `figs/Supplement_local_0N.png`；图由 `eda/gen_supplement_figs.py` 可复现）。
+- **📄 论文整合**：EDA 协同设计内容已整合进正文——第四章 4.6 节（读出/写通路协同设计、操作波形，图 4.15–4.21）与第五章 5.5/5.6 节（储备池读出协同、双模架构，图 5.8）。原独立增补稿已并入章节并移除。
 - **目标期刊**（经 [`research/2026-06-27_plan_validation.md`](research/2026-06-27_plan_validation.md) 复核修正）：**JxCDC（最佳，物理建模/仿真+超越CMOS器件电路）> TVLSI（实测"鼓励非必须"）> TED（紧凑模型+SPICE）> IOP NCE（神经形态/RC）> TCAS-I**（蓝本把 TCAS-I 排太前——它对纯仿真最苛刻）。不投 Nat.Electron./ISSCC（需实测硅）。框架：以晶圆标定模型为可信锚，开源 PDK 作可复现性卖点。
 - **仍待（均为门控/收尾，非主干）**：版图布线→全 LVS→版后 PEX（**指令①：所有设计冻结后再做**）；Xschem 原理图导出（需装 Xschem + GUI/批渲染）；版图 GDS 渲染图（需 KLayout GUI/xvfb）。
 

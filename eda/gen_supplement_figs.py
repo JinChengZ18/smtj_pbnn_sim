@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the EDA co-design supplement figures (article/figs/Supplement_local_0N.png).
+"""Regenerate the EDA co-design analysis figures embedded in Chapters 4-5 (article/figs/).
 
 Reproduces the article figure style (palette + grid/log conventions of experiments/16_*.py) from the
-committed result JSONs, so the supplement's figures regenerate deterministically. Headless matplotlib
-(no GUI). Figures that DO need a GUI (sky130 GDS layout render, Xschem schematic) are NOT produced
-here and are listed in the supplement text.
+committed result JSONs, so the chapter figures regenerate deterministically. Headless matplotlib
+(no GUI). Outputs: Chapter04_local_22 (device dual-model consistency), Chapter04_local_16 (read-out
+offset pareto), Chapter04_local_17 (write energy/supply), Chapter05_local_09 (reservoir energy front),
+Chapter04_local_18 (IR pre-distortion). The circuit schematics live under eda/hero/schematics/.
 
 Run: python eda/gen_supplement_figs.py
 """
@@ -58,7 +59,7 @@ def fig1():
                  r"(threshold match %.2f mV = %.3f$\,V_T$, $R^2$=%.2f)"
                  % (d["threshold_diff_mV"], diff_vt, d["r2"]))
     ax.legend(fontsize=9, loc="upper left")
-    fig.tight_layout(); fig.savefig(OUT / "Supplement_local_01.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_22.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -95,7 +96,7 @@ def fig2():
     ax[1].set_xlabel(r"residual offset / $V_T$"); ax[1].set_ylabel("accuracy drop vs baseline (pp)")
     ax[1].set_title("(b) Pareto @ V_in=0.5 V, F=1024 (marker size $\\propto$ area$\\times$energy)")
     ax[1].legend(fontsize=8.5)
-    fig.tight_layout(); fig.savefig(OUT / "Supplement_local_02.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_16.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -129,7 +130,7 @@ def fig3():
     ax2.set_yscale("log")
     ax[1].set_title("(b) 1.8 V CMOS driver into 776 $\\Omega$: divider vs overdrive")
     ax[1].legend(handles=[l1, l2], fontsize=9, loc="center right")
-    fig.tight_layout(); fig.savefig(OUT / "Supplement_local_03.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_17.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -162,7 +163,7 @@ def fig4():
     ax[1].set_ylabel(r"energy advantage vs digital ESN ($\times$)")
     ax[1].set_title("(b) Reservoir energy advantage with a physical ADC readout")
     ax[1].legend(fontsize=9)
-    fig.tight_layout(); fig.savefig(OUT / "Supplement_local_04.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout(); fig.savefig(OUT / "Chapter05_local_09.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -189,11 +190,11 @@ def fig5():
     ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel("write probability $P_{sw}$")
     ax[1].set_title("(b) Write probability flattened to target at every row")
     ax[1].legend(fontsize=9)
-    fig.tight_layout(); fig.savefig(OUT / "Supplement_local_05.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
 if __name__ == "__main__":
     for f in (fig1, fig2, fig3, fig4, fig5):
         f(); print("wrote", f.__name__)
-    print("supplement figures -> article/figs/Supplement_local_01..05.png")
+    print("EDA analysis figures -> article/figs/Chapter04_local_{16,17,18,22}.png + Chapter05_local_09.png")
