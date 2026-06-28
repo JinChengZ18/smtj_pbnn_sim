@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="503" version="1.1">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="897.22" height="444.18" viewBox="3.5 60.3478 897.22 444.18" version="1.1">
 <style type="text/css">
 .l0{
  fill: #ffffff;
@@ -355,4 +355,9 @@ text {font-family: Sans-Serif;}
 <circle class="l1" cx="529.877" cy="194.924" r="3.22736"/>
 <circle class="l1" cx="433.056" cy="194.924" r="3.22736"/>
 <circle class="l1" cx="336.236" cy="194.924" r="3.22736"/>
+<g id="module-groups">
+<rect x="88" y="100" width="190" height="66" rx="6" fill="none" stroke="#1A6B5A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+<rect x="300" y="198" width="268" height="236" rx="6" fill="none" stroke="#5E3F8C" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+<rect x="640" y="176" width="124" height="88" rx="6" fill="none" stroke="#C77A0A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
+</g>
 </svg>
