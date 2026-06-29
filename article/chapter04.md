@@ -324,7 +324,7 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 [^ir_linescaling]: Zhu X, Li Z, Liu H, Li Q, Liu S, Li N, Xu H. Solution to alleviate the impact of line resistance on the crossbar array. *IET Circuits, Devices & Systems*, 2020, 14(4): 498–504. [doi:10.1049/iet-cds.2019.0313](https://doi.org/10.1049/iet-cds.2019.0313)（远端压降随选中线长度近似平方增长，位置电压抬升在SPICE中恢复交付电压）。
 
-[^smtj_pbit_driver]: Yoon J, Cacoilo N, Madhavan A, McClelland J J, Kanai S, Ohno H, Fukami S, Borders W A. CMOS-integrated superparamagnetic tunnel junction-based p-bit. arXiv:2604.14446, 2026（130 nm CMOS + 低势垒sMTJ，栅压模拟调概率、可变阈值反相器0.7–1.1 V/100 mV步进；单器件、无阵列写线IR）。
+[^smtj_pbit_driver]: Yoon J, Caçoilo N, Madhavan A, McClelland J J, Kanai S, Ohno H, Fukami S, Borders W A. CMOS-integrated superparamagnetic tunnel junction-based p-bit. arXiv:2604.14446, 2026（130 nm CMOS + 低势垒sMTJ，栅压模拟调概率、可变阈值反相器0.7–1.1 V/100 mV步进；单器件、无阵列写线IR）。
 
 [^cim_neurosim_validation]: Lu A, Peng X, Li W, Jiang H, Yu S. NeuroSim simulator for compute-in-memory hardware accelerator: validation and benchmark. *Frontiers in Artificial Intelligence*, 2021, 4: 659060. [doi:10.3389/frai.2021.659060](https://doi.org/10.3389/frai.2021.659060)
 [^cim_dnn_neurosim_v2]: Peng X, Huang S, Jiang H, Lu A, Yu S. DNN+NeuroSim V2.0: an end-to-end benchmarking framework for compute-in-memory accelerators for on-chip training. *IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems*, 2021, 40(11): 2306–2319. [doi:10.1109/TCAD.2020.3043731](https://doi.org/10.1109/TCAD.2020.3043731)
