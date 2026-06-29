@@ -54,13 +54,21 @@ sMTJ器件级仿真器关注随机翻转事件的统计性质而不直接接入�
 
 **图4.2** 分层硬件仿真器的模块组织。物理基底的器件层向上依次为阵列电路、网络、采样、PPA与实验层；左侧标注每层的主要输入 (器件实测$$P_\mathrm{sw}(V,t_\mathrm{p})$$曲线、MNIST/UCI数据集等)，右侧标注每层主要输出 (校准后的器件配置、CIM面积与每MAC能耗、训练后的检查点、$$T$$步推理精度曲线、PPA前/反/写细分、运行结果图与日志) ；底部时域展开模块以Bernoulli采样、unfold与$$\beta/T$$调度贯穿各层，把单次写概率提升为网络层期望。该组织把时域展开的算法语义与各层的物理模型严格分离，使采样次数、精度与能效在固定网络与阵列条件下能够独立扫描。
 
-器件层以一组紧凑函数把sMTJ的物理行为封装为可微的概率算子，包括Sigmoid响应$$P_\mathrm{sw}(V,t_\mathrm{p})$$、Néel-Brown临界电压函数$$V_\mathrm{th}(t_\mathrm{p},\Delta)$$及其解析斜率，并以非线性最小二乘对第二章的实测$$P_\mathrm{sw}(V,t_\mathrm{p})$$散点拟合得到$$(V_\mathrm{th},V_T)$$。在Device A、$$P\to\mathrm{AP}$$、$$t_\mathrm{p}=0.75\,\mathrm{ns}$$参考点上，拟合给出$$V_\mathrm{th}=895.8\,\mathrm{mV}$$、$$\beta_s=42.7\,\mathrm{V}^{-1}$$、$$R^2=0.992$$，与第二章的标定值$$894\,\mathrm{mV}$$、$$44.6\,\mathrm{V}^{-1}$$、$$0.993$$分别相差$$1.8\,\mathrm{mV}$$、$$1.9\,\mathrm{V}^{-1}$$与$$0.001$$，处于46点测量数据集的拟合噪声范围之内，这一一致性是后续所有上层结果的基础。变异模块接受由实测数据估计的$$(V_\mathrm{th},V_T)$$方差与协方差，对每个物理位置抽取一组保持不变的偏移量。变异来源既可以是直接对Sigmoid操作点的相对扰动 (直接Sigmoid模式)，也可以是先对势垒$$\Delta$$采样、再经NB-to-Sigmoid桥式公式$$\beta_\mathrm{NB}=2\ln 2\cdot\Delta/V_\mathrm{c0}$$传播至Sigmoid斜率 (NB桥式模式)。后者更贴近物理，因为第二章指出主导D2D通道是无量纲的热稳定因子$$\Delta$$，其变异系数 (Coefficient of Variation，CV) 在300mm晶圆上约为7.7%，经Brinkman分解归因为66%来自MTJ柱直径、27%来自界面各向异性、7%来自饱和磁化。桥式公式的解析-数值偏差在CV$$(\Delta)$$的0%至60%范围内均不超过0.2%。这里需说明NB桥式模式的一处关键设计：直接由势垒采样得到的$$V_\mathrm{th}$$中心值约为$$0.843\,\mathrm{V}$$，而Sigmoid直接拟合得到、写驱动据以下发写电压的名义中心为$$V_\mathrm{th,nom}=0.894\,\mathrm{V}$$，两者相差约$$50\,\mathrm{mV}$$ (折合$$2.26\,V_T$$)；若以裸NB中心作为每个单元的判决阈值，会在全部权重上叠加这一系统偏差并显著拉低全栈精度[^te_anchor]。为从根本上消除它，变异模块仅以势垒$$\Delta$$的离散去驱动$$(V_\mathrm{th},V_T)$$的单元间**离散**，而把场的**均值**锚定到写驱动实际使用的标定工作点：$$V_\mathrm{th}=V_\mathrm{th,nom}+(V_\mathrm{th}^\mathrm{NB}-\overline{V_\mathrm{th}^\mathrm{NB}})$$、$$V_T=V_{T,\mathrm{nom}}\cdot(\Delta_\mathrm{nom}/\Delta)$$。如此晶圆平均的$$(V_\mathrm{th},V_T)$$按构造等于标定值 (两万样本Monte Carlo校验给出平均$$\beta_s=1/V_T=42.7\,\mathrm{V}^{-1}$$，与器件层标定一致)，斜率离散则保持$$\mathrm{CV}(V_T)\approx\mathrm{CV}(\Delta)=7.7\%$$；推理脚本对预训练检查点默认禁用变异，作为额外的安全约定。隧穿磁阻 (Tunnel Magnetoresistance，TMR) 模块把P与AP两阻态的电导比$$G_P/G_\mathrm{AP}$$转化为位线电流贡献的实际幅值；自旋轨道矩 (Spin-Orbit Torque，SOT) 通道的写能耗按Ohmic耗散公式$$E_\mathrm{write}=V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$$给出，在第二章参考点$$V_\mathrm{wr}=0.90\,\mathrm{V}$$、$$R_\mathrm{SOT}=776\,\Omega$$、$$t_\mathrm{w}=0.75\,\mathrm{ns}$$下计算得$$0.78\,\mathrm{pJ}$$，这是PPA层中唯一物理量地标定的能量数。器件层另保留一份基于s-LLGS方程的宏自旋参考实现，仅在校准阶段使用，不参与神经网络前向。
+器件层以一组紧凑函数把sMTJ的物理行为封装为可微的概率算子，包括Sigmoid响应$$P_\mathrm{sw}(V,t_\mathrm{p})$$、Néel-Brown临界电压函数$$V_\mathrm{th}(t_\mathrm{p},\Delta)$$及其解析斜率，并以非线性最小二乘对第二章的实测$$P_\mathrm{sw}(V,t_\mathrm{p})$$散点拟合得到$$(V_\mathrm{th},V_T)$$。在Device A、$$P\to\mathrm{AP}$$、$$t_\mathrm{p}=0.75\,\mathrm{ns}$$参考点上，拟合给出$$V_\mathrm{th}=895.8\,\mathrm{mV}$$、$$\beta_s=42.7\,\mathrm{V}^{-1}$$、$$R^2=0.992$$，与第二章的标定值$$894\,\mathrm{mV}$$、$$44.6\,\mathrm{V}^{-1}$$、$$0.993$$分别相差$$1.8\,\mathrm{mV}$$、$$1.9\,\mathrm{V}^{-1}$$与$$0.001$$，处于46点测量数据集的拟合噪声范围之内，这一一致性是后续所有上层结果的基础。变异模块接受由实测数据估计的$$(V_\mathrm{th},V_T)$$方差与协方差，对每个物理位置抽取一组保持不变的偏移量。变异来源既可以是直接对Sigmoid操作点的相对扰动 (直接Sigmoid模式)，也可以是先对势垒$$\Delta$$采样、再经NB-to-Sigmoid桥式公式$$\beta_\mathrm{NB}=2\ln 2\cdot\Delta/V_\mathrm{c0}$$传播至Sigmoid斜率 (NB桥式模式)。后者更贴近物理，因为第二章指出主导D2D通道是无量纲的热稳定因子$$\Delta$$，其变异系数 (Coefficient of Variation，CV) 在300mm晶圆上约为7.7%，经Brinkman分解归因为66%来自MTJ柱直径、27%来自界面各向异性、7%来自饱和磁化。桥式公式的解析-数值偏差在CV$$(\Delta)$$的0%至60%范围内均不超过0.2%。这里需说明NB桥式模式的一处关键设计：直接由势垒采样得到的$$V_\mathrm{th}$$中心值约为$$0.843\,\mathrm{V}$$，而Sigmoid直接拟合得到、写驱动据以下发写电压的名义中心为$$V_\mathrm{th,nom}=0.894\,\mathrm{V}$$，两者相差约$$50\,\mathrm{mV}$$ (折合$$2.26\,V_T$$)；若以裸NB中心作为每个单元的判决阈值，会在全部权重上叠加这一系统偏差并显著拉低全栈精度[^te_anchor]。为从根本上消除它，变异模块仅以势垒$$\Delta$$的离散去驱动$$(V_\mathrm{th},V_T)$$的单元间**离散**，而把场的**均值**锚定到写驱动实际使用的标定工作点：$$V_\mathrm{th}=V_\mathrm{th,nom}+(V_\mathrm{th}^\mathrm{NB}-\overline{V_\mathrm{th}^\mathrm{NB}})$$、$$V_T=V_{T,\mathrm{nom}}\cdot(\Delta_\mathrm{nom}/\Delta)$$。如此晶圆平均的$$(V_\mathrm{th},V_T)$$按构造等于标定值[^mc_verify]，斜率离散则保持$$\mathrm{CV}(V_T)\approx\mathrm{CV}(\Delta)=7.7\%$$；推理脚本对预训练检查点默认禁用变异，作为额外的安全约定。隧穿磁阻 (Tunnel Magnetoresistance，TMR) 模块把P与AP两阻态的电导比$$G_P/G_\mathrm{AP}$$转化为位线电流贡献的实际幅值；自旋轨道矩 (Spin-Orbit Torque，SOT) 通道的写能耗按Ohmic耗散公式$$E_\mathrm{write}=V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$$给出，在第二章参考点$$V_\mathrm{wr}=0.90\,\mathrm{V}$$、$$R_\mathrm{SOT}=776\,\Omega$$、$$t_\mathrm{w}=0.75\,\mathrm{ns}$$下计算得$$0.78\,\mathrm{pJ}$$，这是PPA层中唯一物理量地标定的能量数。器件层另保留一份基于s-LLGS方程的宏自旋参考实现，仅在校准阶段使用，不参与神经网络前向。
+
+[^te_anchor]: 这是开发过程中的一处典型订正。最初实现直接以势垒采样的裸$$V_\mathrm{th}$$中心 (约0.843 V) 作为各单元判决阈值，在硬件感知训练下相当于在全部权重上叠加约50 mV ($$2.26\,V_T$$) 的系统性偏置，使全栈测试精度明显低于锚定后的水平；定位到该偏置源于势垒采样中心与写驱动名义工作点不一致后，改为仅以$$\Delta$$的离散驱动单元间方差、而把场均值锚定到标定工作点，精度方恢复至预期。
+
+[^mc_verify]: 两万样本Monte Carlo校验给出平均$$\beta_s=1/V_T=42.7\,\mathrm{V}^{-1}$$，与器件层标定一致。
 
 阵列电路层把器件层的Bernoulli样本组织为$$M\times N$$的子阵列，实现差分双端XNOR-popcount算子；外围电路以4到6比特DAC把潜参数$$\theta_{ij}$$转换为写电压并下发到行驱动，计数器以有限位整数累计$$T$$步的结果。可选的IR-drop模块以阻性梯子近似金属线压降，在$$256\times 256$$以下子阵列、典型工艺线宽下其对单比特读出的影响可被外围数字阈值吸收，仅以扫描方式评估而非默认开启。tile抽象封装一次完整的子阵列调用，作为网络层算子的最小硬件单元。网络层在PyTorch中实现PBNN全连接层与PBNN卷积层两种基本层。PBNN全连接层持有可训练张量$$\boldsymbol{\Theta}\in\mathbb{R}^{M\times N}$$，前向时按运行模式路由出三档行为。软件档使用理想的$$p_{ij}=\sigma(\theta_{ij})$$，不引入任何器件信息，主要用于复现已发表PBNN工作的基线；硬件感知档使用名义校准写电压$$V_\mathrm{wr}=V_\mathrm{th,nom}+V_T\cdot\theta_{ij}$$，把潜参数视为以名义器件为基准的逻辑标度，实际开关概率由每个单元的物理参数$$(V_{\mathrm{th},ij},V_{T,ij})$$决定，这是默认训练模式，在无变异时退化为$$\sigma(\theta_{ij})$$，在有变异时让梯度感知到设备失配引起的概率梯度变化；全栈档显式调用阵列层$$T$$次，由计数器累计估计期望，是评估模式，匹配真实硬件的推理行为。三档对应同一份$$\boldsymbol{\Theta}$$检查点，无需重新训练。为使批归一化 (Batch Normalization，BN) 的滑动统计在三档之间保持一致，仿真器采用硬二值STE技巧：前向输出$$p_\mathrm{hard}=\mathbb{1}[\theta\ge 0]$$对应$$w=\mathrm{sign}(\theta)\in\{-1,+1\}$$，反向梯度通过$$p_\mathrm{soft}=\sigma(\theta)$$回传，保留$$\partial p/\partial\theta=p_\mathrm{soft}(1-p_\mathrm{soft})$$的平滑性，使三档共用相同的硬二值前向、BN running stats可跨档复用。CLT高斯化前向在训练阶段把矩阵向量积$$\boldsymbol{w}\boldsymbol{x}$$近似为$$\mathcal{N}(\mu,\sigma^2)$$，其中$$\mu=(2\sigma(\boldsymbol{\Theta})-1)\boldsymbol{x}$$、$$\sigma^2=4\sigma(\boldsymbol{\Theta})(1-\sigma(\boldsymbol{\Theta}))\boldsymbol{x}^{\odot 2}$$，以单次解析计算代替$$T$$次显式抽样，使训练阶段的每步计算复杂度与一次确定性矩阵乘法相同，而不是$$T$$倍。PBNN卷积层通过PyTorch的unfold操作把卷积展开为等效Toeplitz矩阵以复用同一逻辑；针对二值激活的离散尺度，BatchNorm 1D/2D对归一化项做了参数化微调以避免标准BN在低位宽下的尺度漂移；损失模块在标准交叉熵之外提供互信息正则与权重二值化正则两个可选项。
 
-采样层接受$$(\theta_{ij},V_{\mathrm{th},ij},V_{T,ij})$$返回单次$$\pm 1$$样本，沿真实Bernoulli路径而非Gumbel等连续松弛实现，以保证与硬件一致；时域unfold在迭代中维护$$T$$步累加器并在末端归一化为期望估计；调度模块持有$$\beta(t)$$与按层深递增的$$T$$调度，便于扫描采样次数与精度的折线。PPA层采用与NeuroSim系列同级 (40nm/28nm工艺) 的电路级数量级常数 (SRAM读写、ADC与DAC单位能量、H-tree互连能量、单元面积) 作为系数库，其中sMTJ的SOT写能量并不取自该系数库、而由欧姆耗散$$V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$$物理标定 (0.78 pJ，全PPA层唯一物理量地标定的能量数)，位线读出与计数累加则暂以28nm数字默认值占位：单次$$T$$步前向的能量被分解为DAC驱动、行写入、位线读出与计数累加四项，延迟被分解为DAC建立、sMTJ翻转脉冲、电流积分与计数四段，面积按子阵列规模、外围电路份额与片上互连给出估计。需要强调，除SOT写能量外，上述外围常数初始为数量级取值，彼时PPA层仅作能量随$$T$$相对标度的标尺；本章4.6节已在开源sky130上把读出能量提取落地、并把写数模转换器与计数器的能量及各部件面积按提取的标准单元尺寸与设计规则作一阶估算落地 (详见4.6节)，故其绝对数值已可在"一阶估算、非版图提取"的口径下谨慎引用。最上层把上述各层组合为可执行实验：训练循环接受任意网络、运行模式与优化器组合，由YAML配置完整描述；推理流程提供单次采样、$$T$$步集成与不确定性量化三种调用方式；基线对比脚本封装与数字BNN、aihwkit基线在同一数据集与网络拓扑下的精度-能效对照。运行时统一创建带时间戳的输出目录，按轮记录损失、精度与时间至CSV，并在运行结束时落盘JSON摘要，确保任何实验都可以原样回放。
+采样层接受$$(\theta_{ij},V_{\mathrm{th},ij},V_{T,ij})$$返回单次$$\pm 1$$样本，沿真实Bernoulli路径而非Gumbel等连续松弛实现，以保证与硬件一致；时域unfold在迭代中维护$$T$$步累加器并在末端归一化为期望估计；调度模块持有$$\beta(t)$$与按层深递增的$$T$$调度，便于扫描采样次数与精度的折线。PPA层采用与NeuroSim系列同级 (40nm/28nm工艺) 的电路级数量级常数[^coeff_lib]作为系数库，其中sMTJ的SOT写能量并不取自该系数库、而由欧姆耗散$$V_\mathrm{wr}^2 t_\mathrm{w}/R_\mathrm{SOT}$$物理标定 (0.78 pJ，全PPA层唯一物理量地标定的能量数)，位线读出与计数累加则暂以28nm数字默认值占位：单次$$T$$步前向的能量被分解为DAC驱动、行写入、位线读出与计数累加四项，延迟被分解为DAC建立、sMTJ翻转脉冲、电流积分与计数四段，面积按子阵列规模、外围电路份额与片上互连给出估计。需要强调，除SOT写能量外，上述外围常数初始为数量级取值，彼时PPA层仅作能量随$$T$$相对标度的标尺；本章4.6节已在开源sky130上把读出能量提取落地、并把写数模转换器与计数器的能量及各部件面积按提取的标准单元尺寸与设计规则作一阶估算落地 (详见4.6节)，故其绝对数值已可在"一阶估算、非版图提取"的口径下谨慎引用。最上层把上述各层组合为可执行实验：训练循环接受任意网络、运行模式与优化器组合，由YAML配置完整描述；推理流程提供单次采样、$$T$$步集成与不确定性量化三种调用方式；基线对比脚本封装与数字BNN、aihwkit基线在同一数据集与网络拓扑下的精度-能效对照。运行时统一创建带时间戳的输出目录，按轮记录损失、精度与时间至CSV，并在运行结束时落盘JSON摘要，确保任何实验都可以原样回放。
 
-仿真器各层的可信度由三类相互独立的证据支撑。器件层的Sigmoid响应与方差结构由第二章的实测散点直接拟合得到，且其参数化形式由Arrhenius律的过渡区Taylor展开自然导出；算子层的CLT近似由合成线性问题上与显式蒙特卡洛的相对熵收敛行为验证；PPA层的外围工艺常数参照NeuroSim系列 (其RRAM-CIM macro经post-layout硅验证) 的同级数量级取值，仅作能量随$$T$$相对标度之用，绝对数值待电路级提取后替换。三类证据各自独立，避免循环论证。
+[^coeff_lib]: 该系数库包含SRAM读写、ADC与DAC单位能量、H-tree互连能量与单元面积。
+
+仿真器各层的可信度由三类相互独立的证据支撑。器件层的Sigmoid响应与方差结构由第二章的实测散点直接拟合得到，且其参数化形式由Arrhenius律的过渡区Taylor展开自然导出；算子层的CLT近似由合成线性问题上与显式蒙特卡洛的相对熵收敛行为验证；PPA层的外围工艺常数参照NeuroSim系列[^neurosim_si]的同级数量级取值，仅作能量随$$T$$相对标度之用，绝对数值待电路级提取后替换。三类证据各自独立，避免循环论证。
+
+[^neurosim_si]: NeuroSim系列的RRAM-CIM macro经post-layout硅验证。
 
 时域展开的收敛性由MNIST PBNN多层感知机 (Multi-Layer Perceptron，MLP，拓扑$$784\to 1024\to 1024\to 10$$) 在不同$$T$$下的全栈测试精度直接给出，结果汇总于表4.1。
 
@@ -80,7 +88,9 @@ $$T=4$$时测试精度即达到97.51%，与$$T=64$$的渐近上限97.68%相差�
 
 ## 4.4 训练流水线与基础精度
 
-训练以YAML配置完整描述实验：数据集、网络拓扑、运行模式、优化器、学习率调度器、采样次数与变异配置。训练默认使用硬件感知档，该档的硬二值前向使损失函数的梯度面与软件档几乎一致，但在反向传播时让梯度感知到变异引起的Sigmoid斜率变化。训练结束后，将潜参数$$\theta$$统一乘以100作为部署预处理，这一步不改变$$\mathrm{sign}(\theta)$$因而不影响硬件感知档的精度，但可使全栈档的Bernoulli样本几乎确定性，从而让$$T=4$$就能匹配$$T=64$$的精度。MNIST基线使用拓扑$$784\to 1024\to 1024\to 10$$、batch 128、Adam学习率$$10^{-3}$$、20轮，三档下的测试精度依次为96.98% (硬件感知)、97.51% (全栈$$T=4$$) 与97.68% (全栈$$T=64$$)。为分别评估二值随机权重相对高位宽确定性权重以及相对**确定性二值**权重的代价，同时训练了两类基线：相同拓扑的全精度MLP在四档比特宽度下的量化感知训练 (Quantization-Aware Training，QAT) 变体，使用对称INT-N量化加STE反向传播；以及相同拓扑的确定性二值BNN-MLP (DeterministicBinaryLinear+BatchNorm+sign-STE，不引入sMTJ随机翻转)，该基线在数学上等价于PBNN在单点采样且无器件随机性下的退化情形，可定量分离采样统计性与二值权重容量这两个变量各自的代价。MNIST PBNN-MLP的前向流图、训练曲线与$$T$$扫描如图4.3所示，最佳测试精度汇总于表4.2。
+训练以YAML配置完整描述实验：数据集、网络拓扑、运行模式、优化器、学习率调度器、采样次数与变异配置。训练默认使用硬件感知档，该档的硬二值前向使损失函数的梯度面与软件档几乎一致，但在反向传播时让梯度感知到变异引起的Sigmoid斜率变化。训练结束后，将潜参数$$\theta$$统一乘以100作为部署预处理，这一步不改变$$\mathrm{sign}(\theta)$$因而不影响硬件感知档的精度，但可使全栈档的Bernoulli样本几乎确定性，从而让$$T=4$$就能匹配$$T=64$$的精度。MNIST基线使用拓扑$$784\to 1024\to 1024\to 10$$、batch 128、Adam学习率$$10^{-3}$$、20轮，三档下的测试精度依次为96.98% (硬件感知)、97.51% (全栈$$T=4$$) 与97.68% (全栈$$T=64$$)。为分别评估二值随机权重相对高位宽确定性权重以及相对**确定性二值**权重的代价，同时训练了两类基线：相同拓扑的全精度MLP在四档比特宽度下的量化感知训练 (Quantization-Aware Training，QAT) 变体，使用对称INT-N量化加STE反向传播；以及相同拓扑的确定性二值BNN-MLP[^bnn_baseline]，该基线在数学上等价于PBNN在单点采样且无器件随机性下的退化情形，可定量分离采样统计性与二值权重容量这两个变量各自的代价。MNIST PBNN-MLP的前向流图、训练曲线与$$T$$扫描如图4.3所示，最佳测试精度汇总于表4.2。
+
+[^bnn_baseline]: 该确定性二值基线由DeterministicBinaryLinear、BatchNorm与sign-STE构成，不引入sMTJ随机翻转。
 
 ![图4.3 MNIST上PBNN-MLP的端到端验证](figs/Chapter04_local_03.png)
 
@@ -116,7 +126,9 @@ $$T=4$$时测试精度即达到97.51%，与$$T=64$$的渐近上限97.68%相差�
 
 这组迁移印证了一条一般规律：二值权重的容量损失在特征充足的任务上被网络冗余补偿 (WDBC上PBNN与FP持平且超文献基线)，而在小样本、高类别条件 (Iris、Yeast) 下代价显著，并随训练样本规模扩大而单调收窄。
 
-优化器与学习率调度以固定拓扑、固定epoch预算扫描八种优化器 (带动量SGD、Adam、AdamW、NAdam、RAdam、Adamax、RMSprop与Lion[^lion]) 与五种调度 (常数、StepLR、CosineAnnealingLR[^cosine]、OneCycleLR[^onecycle]、ExponentialLR)，结果见图4.5。两点可供部署参考：自适应优化器彼此相差不足1个百分点、仅带动量SGD明显落后 (二值权重经硬二值STE的梯度方差较大、依赖自适应per-parameter标度)；学习率调度的影响显著大于优化器选择，以OneCycleLR配Adam最佳。本仿真器据此推荐OneCycleLR配Adam ($$\mathrm{max\_lr}=5\times 10^{-3}$$、$$\mathrm{pct\_start}=0.3$$)。
+优化器与学习率调度以固定拓扑、固定epoch预算扫描八种优化器 (带动量SGD、Adam、AdamW、NAdam、RAdam、Adamax、RMSprop与Lion[^lion]) 与五种调度 (常数、StepLR、CosineAnnealingLR[^cosine]、OneCycleLR[^onecycle]、ExponentialLR)，结果见图4.5。两点可供部署参考：自适应优化器彼此相差不足1个百分点、仅带动量SGD明显落后[^sgd_lag]；学习率调度的影响显著大于优化器选择，以OneCycleLR配Adam最佳。本仿真器据此推荐OneCycleLR配Adam ($$\mathrm{max\_lr}=5\times 10^{-3}$$、$$\mathrm{pct\_start}=0.3$$)。
+
+[^sgd_lag]: 带动量SGD落后于自适应族，是因为二值权重经硬二值STE后梯度方差较大，依赖自适应的per-parameter标度。
 
 ![图4.5 优化器与学习率调度的对比](figs/Chapter04_local_05.png)
 
@@ -188,7 +200,9 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 图4.12把硬件设计的优先级清晰地指向DAC校准精度：$$V_T$$的slope抖动会被BN自动吸收，C2C噪声会被$$T$$步平均消除，真正决定网络精度的是$$V_\mathrm{th}$$的绝对位置稳定性。在此之上，给出sMTJ对单次MAC的能量分解。外围三项 (读出、DAC、计数器) 起初以28 nm数字默认值占位，后均由4.6节的sky130提取与估算落地：DAC编程约34 fJ、sMTJ SOT写$$0.78\,\mathrm{pJ}$$ (物理量地)、sMTJ读约48 fJ、计数器累加约19 fJ，累计约884 fJ每MAC，sMTJ写占约89%[^te_read]。写仍主导能量，故任何缩短脉冲宽度、降低写电压或增大$$R_\mathrm{SOT}$$的器件改进都会按$$V^2 t/R$$线性回报到全网能耗；但外围三项落地后合占约11%、已非可忽略，读出电路的能量—精度协同因而进入优化视野 (详见4.6节)。
 
-把PBNN sMTJ与多种有竞争性的CIM架构置于同一训练任务上做能耗对比。任务是20轮的MNIST PBNN-MLP训练 (batch 128，共9380个mini-batch)，每个mini-batch包含三次MAC pass：前向、反向输入梯度 ($$W^\top\partial L/\partial y$$) 与反向权重梯度 ($$\partial L/\partial y\cdot x^\top$$)。仿真器内置五种主流CIM存储器 (STT-MRAM[^stt_apalkov]、ReRAM[^reram_wong]、PCRAM[^pcram_burr]、铁电随机存储器 (Ferroelectric RAM，FeRAM) [^feram_mikolajick]、SRAM-CIM[^sram_khwa]) 与三种概率二值存储模式 (sMTJ自身、基于Lin等人模拟ReRAM非理想性研究构造的ReRAM采样对照[^stoch_reram_lin]、Camsari等人2020综述中的CMOS p-bit ASIC[^cmos_pbit_camsari]) 的参数表。每个条目以per-bit读能、per-cell写能、写延迟与每权重比特数四个参数描述，并附文献出处。CMOS p-bit ASIC的per-update能量为5pJ，已包含加权和、阈值与Bernoulli发生三段操作，5ns完成；Borders与Sutton等人的实测原型机给出该数据的边界。将此5pJ作为CMOS p-bit ASIC的per-sample能量，与sMTJ的0.78pJ每样本 (物理量地标定的Ohmic值) 直接比较。20轮训练总能耗的横向对比汇总于表4.6与图4.13，按总能耗升序排列。
+[^te_read]: 外围能量经历了一次由占位到提取的订正。读出、数模转换器与计数器最初沿用28 nm数字默认值 (读出与数模转换器各约5 fJ、计数器约0.5 fJ)，据此曾得出外围仅约1%、优化意义不大的判断；经4.6节的sky130 StrongARM版图提取 (读出约48 fJ) 以及电阻串数模转换器与计数器的器件电容估算 (约34 fJ与约19 fJ) 订正后，外围占比升至约11%，优化重心相应从单纯的器件改进扩展到读出与写驱动电路的协同。
+
+把PBNN sMTJ与多种有竞争性的CIM架构置于同一训练任务上做能耗对比。任务是20轮的MNIST PBNN-MLP训练 (batch 128，共9380个mini-batch)，每个mini-batch包含三次MAC pass：前向、反向输入梯度 ($$W^\top\partial L/\partial y$$) 与反向权重梯度 ($$\partial L/\partial y\cdot x^\top$$)。仿真器内置五种主流CIM存储器 (STT-MRAM[^stt_apalkov]、ReRAM[^reram_wong]、PCRAM[^pcram_burr]、铁电随机存储器 (Ferroelectric RAM，FeRAM) [^feram_mikolajick]、SRAM-CIM[^sram_khwa]) 与三种概率二值存储模式 (sMTJ自身、基于Lin等人模拟ReRAM非理想性研究构造的ReRAM采样对照[^stoch_reram_lin]、Camsari等人2019综述中的CMOS p-bit ASIC[^cmos_pbit_camsari]) 的参数表。每个条目以per-bit读能、per-cell写能、写延迟与每权重比特数四个参数描述，并附文献出处。CMOS p-bit ASIC的per-update能量为5pJ，已包含加权和、阈值与Bernoulli发生三段操作，5ns完成；Borders与Sutton等人的实测原型机给出该数据的边界。将此5pJ作为CMOS p-bit ASIC的per-sample能量，与sMTJ的0.78pJ每样本 (物理量地标定的Ohmic值) 直接比较。20轮训练总能耗的横向对比汇总于表4.6与图4.13，按总能耗升序排列。
 
 **表4.6** 20轮MNIST PBNN-MLP训练任务下九种存储器/p-bit架构的能耗分解。
 
@@ -208,13 +222,21 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 **图4.13** 九种存储器/p-bit架构在20轮MNIST PBNN-MLP训练下的总能耗对比。横轴为对数刻度的总能耗 (J)，每架构按前向、反向、写或$$\theta$$更新三段堆叠；上方四行为概率二值架构、下方五行为确定性INT8架构。PBNN sMTJ以11.91J排在所有非易失架构第二，仅比STT-MRAM高14%、低于ReRAM与PCRAM；CMOS p-bit以49.52J为sMTJ的4.2倍，反映sMTJ对CMOS Bernoulli发生器的物理优势；随机ReRAM因per-cell写能高达50–100pJ达到452.80J，在训练阶段不可承受。
 
-该排名给出两点核心结论。其一，PBNN sMTJ以11.91 J在非易失架构中排第二 (STT-MRAM的1.14倍，低于ReRAM、PCRAM，与FeRAM持平)，与4.5节的鲁棒性合起来构成明确取舍：为换取5%–10%比特翻转率下精度仍保97%以上 (FP-NN同条件仅52.32%)，14%的训练能耗溢价是合理的。其二，把随机源由sMTJ换为CMOS p-bit ASIC，总能耗升至4.2倍 (49.52 J)，这一倍数即磁性器件相对CMOS的物理优势：sMTJ的Ohmic写能$$V^2 t/R$$在第二章工作点为$$0.78\,\mathrm{pJ}$$，而同等噪声裕度的CMOS Bernoulli发生器约需$$5\,\mathrm{pJ}$$。易失SRAM-CIM虽最低 (6.71 J) 但需外部刷新、不计入非易失对比；PCRAM-FP (56.44 J) 与随机ReRAM-PBNN (452.80 J) 则因per-cell写能达50–100 pJ在训练阶段不可承受。
+该排名给出两点核心结论。其一，PBNN sMTJ以11.91 J在非易失架构中排第二[^nv_ranking]，与4.5节的鲁棒性合起来构成明确取舍：为换取5%–10%比特翻转率下精度仍保97%以上 (FP-NN同条件仅52.32%)，14%的训练能耗溢价是合理的。其二，把随机源由sMTJ换为CMOS p-bit ASIC，总能耗升至4.2倍 (49.52 J)，这一倍数即磁性器件相对CMOS的物理优势：sMTJ的Ohmic写能$$V^2 t/R$$在第二章工作点为$$0.78\,\mathrm{pJ}$$，而同等噪声裕度的CMOS Bernoulli发生器约需$$5\,\mathrm{pJ}$$。易失SRAM-CIM虽最低 (6.71 J) 但需外部刷新、不计入非易失对比；PCRAM-FP (56.44 J) 与随机ReRAM-PBNN (452.80 J) 则因per-cell写能达50–100 pJ在训练阶段不可承受。
+
+[^nv_ranking]: 该能耗为STT-MRAM的1.14倍，低于ReRAM、PCRAM，与FeRAM持平。
 
 ## 4.6 外围电路的器件—电路协同设计与开源验证
 
 前述各节在器件与阵列的行为级抽象上评估了精度、鲁棒性与能效，其中外围电路的能量与非理想性以工艺数量级常数代入。本节把这一层落到晶体管级：在全开源工艺设计套件 (SkyWater sky130) 上，让器件物理的定量结论去驱动读出与写入外围的电路设计，并以ngspice晶体管级仿真与版图寄生提取加以验证，使4.3节中以占位常数表示的外围项获得可信替代。
 
-所用工艺节点与提取方式需在此明确。外围CMOS在开源的SkyWater sky130 (130 nm/1.8 V) 工艺设计套件上实现，选用该节点是因为它是目前唯一同时提供器件模型与完整开源EDA工具链 (ngspice、Magic、KLayout、Netgen) 的工艺套件，先进节点尚无可复现的开源套件；各项数值的提取按结果而定：灵敏放大器的输入折合失调由ngspice对器件阈值失配作蒙特卡洛得到，其判决能量由Magic提取的器件电容结合ngspice瞬态积分得到，写线寄生电阻与IR压降由Magic电阻提取 (extresist；自校验多晶硅48.0对工艺值48.2 Ω/□) 标定各层方块电阻后按列几何标度得到，器件本身由OpenVAF编译的Verilog-A紧凑模型在ngspice中调用。需要强调的是，磁隧道结是后段 (BEOL) 集成的器件，其临界尺寸 (约100 nm)、隧穿磁阻、写电流与写能量由第二章晶圆标定给出，与CMOS逻辑节点无关：这与近期实测的无沟道SOT-MRAM工艺[^hikstor] (约100 nm磁隧道结、115% TMR、5 ns下写能约1.18 pJ/bit、2 ns下约0.54 pJ/bit、临界电流约660 µA) 在量级上一致，本仿真的器件级写能0.78 pJ (0.9 V、0.75 ns、776 Ω) 正落在其2至5 ns工作点之间；区别仅在于本文的概率位与储备池应用采用低势垒 (Δ≈4.9) 的超顺磁变体，而非该存储器的高保持 (Δ=50–55) 调校。事实上，近期基于电压控磁隧道结的概率计算集成电路即在130 nm CMOS上实测[^pbit_asic]，可见该节点对此类器件是已被验证的工程选择；而商用磁存储器的外围CMOS通常在22至28 nm节点，故sky130的130 nm外围在能量、面积与速度上是保守上界。本节因此在绝对值之外一律以比值 (失调比判决窗、能量占比、写线IR占器件比) 报告结论。
+所用工艺节点与提取方式需在此明确。外围CMOS在开源的SkyWater sky130 (130 nm/1.8 V) 工艺设计套件上实现，选用该节点是因为它是目前唯一同时提供器件模型与完整开源EDA工具链 (ngspice、Magic、KLayout、Netgen) 的工艺套件，先进节点尚无可复现的开源套件；各项数值的提取按结果而定：灵敏放大器的输入折合失调由ngspice对器件阈值失配作蒙特卡洛得到，其判决能量由Magic提取的器件电容结合ngspice瞬态积分得到，写线寄生电阻与IR压降由Magic电阻提取[^extresist]标定各层方块电阻后按列几何标度得到，器件本身由OpenVAF编译的Verilog-A紧凑模型在ngspice中调用。需要强调的是，磁隧道结是后段 (BEOL) 集成的器件，其临界尺寸 (约100 nm)、隧穿磁阻、写电流与写能量由第二章晶圆标定给出，与CMOS逻辑节点无关：这与近期实测的无沟道SOT-MRAM工艺[^hikstor][^hikstor_data]在量级上一致，本仿真的器件级写能0.78 pJ (0.9 V、0.75 ns、776 Ω) 正落在其2至5 ns工作点之间；区别仅在于本文的概率位与储备池应用采用低势垒 (Δ≈4.9) 的超顺磁变体，而非该存储器的高保持 (Δ=50–55) 调校。事实上，近期基于电压控磁隧道结的概率计算集成电路即在130 nm CMOS上实测[^pbit_asic]，可见该节点对此类器件是已被验证的工程选择；而商用磁存储器的外围CMOS通常在22至28 nm节点，故sky130的130 nm外围在能量、面积与速度上是保守上界。本节因此在绝对值之外一律以比值[^ratio_metrics]报告结论。
+
+[^extresist]: Magic的电阻提取(extresist)经自校验给出多晶硅48.0 Ω/□，与工艺值48.2 Ω/□相差0.5%。
+
+[^hikstor_data]: 该工艺为浙江驰拓科技在300 mm晶圆上实测的无沟道SOT-MRAM，关键指标为约100 nm临界尺寸、115% TMR、2 ns翻转，5 ns下写能约1.18 pJ/bit、2 ns下约0.54 pJ/bit、临界电流约660 µA，写错误率<$$10^{-6}$$、耐久>$$10^{12}$$，较常规SOT器件临界电流低16.5%、写功耗低39.2%。
+
+[^ratio_metrics]: 此处的比值指失调比判决窗、能量占比与写线IR占器件比三项。
 
 器件侧并行保留两套模型，一套是对实测数据回归的代数紧凑模型，承担全部电路与系统迭代，另一套是宏自旋Landau–Lifshitz–Gilbert随机动力学求解器，物理上更完整、计算量更大，专用于交叉验证；在0.75 ns自旋轨道矩写脉冲下两模型的判决阈值相差约0.2 mV，约为判决窗$$V_T=23.4\,\mathrm{mV}$$的百分之一 (图4.21)，足以支持以代数模型驱动整条设计流程。由这些器件级数驱动的外围在片上层面经位线、源线、字线与读线，与写通路、读通路、行列译码及模式与时序控制器相连 (整体架构层次见第五章图5.10)，本节其余部分依次给出读出与写入两条通路的器件级设计。
 
@@ -222,9 +244,15 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 **图4.21** 紫线为对实测数据回归的开关概率Sigmoid，红点为宏自旋LLG随机求解器 (每点200次蒙特卡洛，误差棒为Wilson 95%区间)，竖虚线为标定阈值；两模型阈值吻合到$$0.01\,V_T$$，高压端偏离对应大过驱下的进动回切。
 
-概率位判决正确与否的尺度，是器件开关概率Sigmoid的斜率所定义的伯努利判决窗$$V_T$$，而非确定性隧穿磁阻读出余量。这一规格替换是读出设计的出发点：读出灵敏放大器的输入折合失调应按$$V_T$$预算。这与既有概率位存内计算的读出处理不同，后者或以隧穿磁阻余量保证读出裕度而把比较器当作理想[^pbnn_cim]，或在训练侧补偿器件Sigmoid的斜率与位移却仍假设理想比较器[^pbit_var]，均未把比较器失调规格与器件Sigmoid斜率联系起来。在sky130上实现StrongARM锁存比较器[^strongarm]，对输入对与锁存管阈值失配做120次蒙特卡洛 (Pelgrom面积反比律[^pelgrom]，失配系数取该工艺量级)，得到输入折合失调$$\sigma_\mathrm{off}=9.21\,\mathrm{mV}=0.39\,V_T$$。即未经失调消除的平凡比较器，其失调已与判决窗同量级，会以每输出列一个系统性阈值偏移的形式注入误差，恰是4.5节判定为致命的那一类误差。
+概率位判决正确与否的尺度，是器件开关概率Sigmoid的斜率所定义的伯努利判决窗$$V_T$$，而非确定性隧穿磁阻读出余量。这一规格替换是读出设计的出发点：读出灵敏放大器的输入折合失调应按$$V_T$$预算。这与既有概率位存内计算的读出处理不同，后者或以隧穿磁阻余量保证读出裕度而把比较器当作理想[^pbnn_cim]，或在训练侧补偿器件Sigmoid的斜率与位移却仍假设理想比较器[^pbit_var]，均未把比较器失调规格与器件Sigmoid斜率联系起来。在sky130上实现StrongARM锁存比较器[^strongarm][^sa_def]，对输入对与锁存管阈值失配做120次蒙特卡洛 (Pelgrom面积反比律[^pelgrom][^pelgrom_law]，失配系数取该工艺量级)，得到输入折合失调$$\sigma_\mathrm{off}=9.21\,\mathrm{mV}=0.39\,V_T$$。即未经失调消除的平凡比较器，其失调已与判决窗同量级，会以每输出列一个系统性阈值偏移的形式注入误差，恰是4.5节判定为致命的那一类误差。
 
-关键在于这一失调能否被读出链路吸收。以电流灵敏读出的跨阻$$R_\mathrm{TI}$$为桥，把毫伏失调折算到popcount域，有$$\sigma_\mathrm{pc}=\sigma_\mathrm{off}\cdot 2\,\mathrm{PC_{FS}}/V_\mathrm{in}$$，其中$$\mathrm{PC_{FS}}\approx 3\sqrt F$$为扇入$$F$$决定的满量程popcount，$$V_\mathrm{in}$$为比较器差分输入范围，跨阻取动态范围允许的最大增益。这给出一条协同设计准则：跨阻增益由扇入设定，并据此判定何时平凡比较器即足够。取扇入1024、$$V_\mathrm{in}=0.6\,\mathrm V$$，准则给出$$R_\mathrm{TI}=613\,\Omega$$；在sky130上以popcount正比的差分电流驱动该前端并扫描，提取失调在整条链路中映射到约2.5个popcount，落在精度曲线膝点之下，从晶体管级确认了在该扇入与输入范围下平凡比较器即足够 (图4.15)。因此对常见扇入与$$V_\mathrm{in}\ge0.5\,\mathrm V$$，平凡比较器即为帕累托最优；仅在低压、宽扇入、增益欠预算的列才需启用失调消除，可只在越过膝点的列触发单容自调零 (隐藏于地址译码、较双容方案省约15%面积、无时序代价[^autozero])，其余列直接用裸比较器，从而把磁存储读出中始终开启的失调消除[^autozero]改为按扇入与斜率条件触发；更高分辨的双StrongARM锁存可把基线失调再降约30%[^dsa]，属可选拓扑替换。读出端省下的校准由写端补上：每列残余的系统性阈值偏移折叠进写数模转换器的逐列3至4位静态微调，其附加开关能量不足单次写能量的1%。把这一读出置于近期设计空间中可见取舍之异：面向低隧穿磁阻存储的单容自调零灵敏放大器把失调降逾六成以保住约二倍阻比的小读窗[^sa_singlecap]，电荷舵双尾比较器以约$$0.3\,V_T$$的更低失调应对宽共模输入[^sa_doubletail]，二者均把失调视作须先验消除的负担；存内计算宏则多以列共享ADC摊销数字化、把比较器失调并入量化非理想[^cim_xnor_sram]。本文与之不同：先以斜率匹配把失调折算到$$V_T$$判决窗、再仅对越过膝点的列条件触发消除，于是名义工况下省去其面积与能量，并独立处理本任务特有的低阻写线IR。
+[^sa_def]: StrongARM锁存为时钟触发的动态再生锁存比较器，判决稳定后无直流通路、静态功耗为零，是存储器与存内计算灵敏放大的主流拓扑。
+
+[^pelgrom_law]: Pelgrom面积反比律指失配标准差与器件面积的平方根成反比，即$$\sigma_{\Delta V_\mathrm{th}}=A_{V_T}/\sqrt{WL}$$。
+
+关键在于这一失调能否被读出链路吸收。以电流灵敏读出的跨阻$$R_\mathrm{TI}$$为桥，把毫伏失调折算到popcount域，有$$\sigma_\mathrm{pc}=\sigma_\mathrm{off}\cdot 2\,\mathrm{PC_{FS}}/V_\mathrm{in}$$，其中$$\mathrm{PC_{FS}}\approx 3\sqrt F$$为扇入$$F$$决定的满量程popcount，$$V_\mathrm{in}$$为比较器差分输入范围，跨阻取动态范围允许的最大增益。这给出一条协同设计准则：跨阻增益由扇入设定，并据此判定何时平凡比较器即足够。取扇入1024、$$V_\mathrm{in}=0.6\,\mathrm V$$，准则给出$$R_\mathrm{TI}=613\,\Omega$$；在sky130上以popcount正比的差分电流驱动该前端并扫描，提取失调在整条链路中映射到约2.5个popcount，落在精度曲线膝点之下，从晶体管级确认了在该扇入与输入范围下平凡比较器即足够 (图4.15)。因此对常见扇入与$$V_\mathrm{in}\ge0.5\,\mathrm V$$，平凡比较器即为帕累托最优；仅在低压、宽扇入、增益欠预算的列才需启用失调消除，可只在越过膝点的列触发单容自调零 (隐藏于地址译码、较双容方案省约15%面积、无时序代价[^sa_singlecap])，其余列直接用裸比较器，从而把磁存储读出中始终开启的失调消除[^sa_singlecap]改为按扇入与斜率条件触发；更高分辨的双StrongARM锁存可把基线失调再降约30%[^dsa][^dsa_meas]，属可选拓扑替换。读出端省下的校准由写端补上：每列残余的系统性阈值偏移折叠进写数模转换器的逐列3至4位静态微调，其附加开关能量不足单次写能量的1%。把这一读出置于近期设计空间中可见取舍之异：面向低隧穿磁阻存储的单容自调零灵敏放大器把失调降逾六成以保住约二倍阻比的小读窗[^sa_singlecap]，电荷舵双尾比较器以约$$0.3\,V_T$$的更低失调应对宽共模输入[^sa_doubletail]，二者均把失调视作须先验消除的负担；存内计算宏则多以列共享ADC摊销数字化、把比较器失调并入量化非理想[^cim_xnor_sram]。本文与之不同：先以斜率匹配把失调折算到$$V_T$$判决窗、再仅对越过膝点的列条件触发消除，于是名义工况下省去其面积与能量，并独立处理本任务特有的低阻写线IR。
+
+[^dsa_meas]: 该双StrongARM锁存在28 nm FDSOI上实测输入折合失调约8.5 mV。
 
 ![图4.14 StrongARM灵敏放大器电路（sky130，由Xschem导出）](figs/Chapter04_local_14.png)
 
@@ -234,9 +262,19 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 **图4.15** (a) sky130 StrongARM输入折合失调 ($$0.39\,V_T$$) 与判决窗$$V_T$$的相对关系，按$$V_T$$而非磁阻余量预算失调。(b) 扇入1024、$$V_\mathrm{in}=0.5\,\mathrm V$$下四种失调消除方案的精度跌幅对剩余失调，除最低压宽扇入区外跌幅均在统计涨落内，平凡比较器位于帕累托前沿。(c) 读出灵敏放大器与近期文献多方案的能力矩阵：逐项标注各设计是否覆盖本任务关键能力 (按$$V_T$$窗预算失调、XNOR-popcount、共享ADC、电阻式MTJ读出、SOT写线IR、硅验证)，本文为唯一同时覆盖全部sMTJ专有约束者 (定性对照，不含外推数值；各方案引文见submodule_survey数据集)。
 
-写通路的电路级评估同样把器件级数与外围开销分列。器件沟道的纯欧姆写能量为0.78 pJ；以sky130标准1.8 V CMOS反相器驱动776 Ω写支路并扫描上拉管宽度，要把约0.9 V写电压交付到器件需约7 µm上拉管，此时器件吸收0.785 pJ而电源取出约1.6 pJ，端到端约为器件级的两倍，开销来自驱动导通电阻与776 Ω的分压；缩小驱动会欠驱使远端写失败，放大驱动会过驱使器件能量随平方升高，故高效的写需要一条受控的约0.9 V写电压轨，应并列报告器件级0.78 pJ与端到端约1.6 pJ两个数 (图4.16)。供电完整性方面，用Magic电阻提取在sky130上标定各层方块电阻 (提取得多晶硅48.0 Ω/□对工艺值48.2，相差0.5%)，按真实列写线长度标度：列高$$N\le64$$时金属写线往返寄生电阻不足776 Ω的5%，$$N=256$$时在met2、1 µm线宽下达约128 Ω即16.5%[^te_ir]，误用局部互连层则达千欧量级；设计指导为写线走met2及以上、加宽或对高列分段。
+写通路的电路级评估同样把器件级数与外围开销分列。器件沟道的纯欧姆写能量为0.78 pJ；以sky130标准1.8 V CMOS反相器驱动776 Ω写支路并扫描上拉管宽度，要把约0.9 V写电压交付到器件需约7 µm上拉管，此时器件吸收0.785 pJ而电源取出约1.6 pJ，端到端约为器件级的两倍，开销来自驱动导通电阻与776 Ω的分压；缩小驱动会欠驱使远端写失败，放大驱动会过驱使器件能量随平方升高，故高效的写需要一条受控的约0.9 V写电压轨，应并列报告器件级0.78 pJ与端到端约1.6 pJ两个数 (图4.16)。供电完整性方面，用Magic电阻提取在sky130上标定各层方块电阻，按真实列写线长度标度：列高$$N\le64$$时金属写线往返寄生电阻不足776 Ω的5%，$$N=256$$时在met2、1 µm线宽下达约128 Ω即16.5%[^te_ir]，误用局部互连层则达千欧量级；设计指导为写线走met2及以上、加宽或对高列分段。
 
-这一供电发现进一步倒逼出一个写通路设计。在一条高列上若仅向列首施加写电压，行$$r$$处单元实际所见电压为$$V_\mathrm{target}-I_\mathrm{wr}R_\mathrm{par}(r)$$，远端因IR压降而跌破写点：在$$N=256$$、目标写概率0.90时，远端单元写概率塌陷至约0.016，几乎不被写入。据此提出IR感知逐行写预畸变，寻址行$$r$$时驱动$$V_\mathrm{target}+I_\mathrm{wr}R_\mathrm{par}(r)$$，其中$$R_\mathrm{par}(r)$$由提取的方块电阻与列几何算出，使每行单元都看到$$V_\mathrm{target}$$ (图4.17)；该预畸变是一张由几何决定的静态逐行查找表，码值跨0至148 mV (约5个写数模转换器位)，与逐列阈值微调合并即得一个位置与器件双重感知的写数模转换器，控制开销近零。承载这些码的写数模转换器拓扑由仿真选定：在sky130上把二进制加权电流舵数模转换器接入776 Ω低阻写负载时，随输出电压上升各电流源失去漏源裕度、电流下垂，二进制权重不再线性叠加而非单调 (积分非线性约1.7个最低有效位) 且量程偏窄，简单共源共栅又因堆叠裕度不足而电流枯竭；因此写数模转换器取电压型电阻串结构 (按构造单调、最低有效位等于参考量程除以$$2^b$$)，其抽头经CMOS传输门[^tgate]与写驱动缓冲接入写线，在200 mV参考量程下6至7位电阻串给出1.6至3.1 mV的最低有效位，足以覆盖148 mV的逐行IR预畸变与逐列微调 (图4.18)。逐行IR预畸变的思路在交叉阵列文献中已有雏形——对寄生压降先建模再预畸变写值，可在高线阻下保住识别率[^ir_predistort]，且远端压降随阵列尺寸近似按平方增长[^ir_linescaling]——但既有工作多停在算法或SPICE模型层，未给出驱动、数模转换器与电源轨的电路实现，且面向模拟电导而非二值开关概率；与同在130 nm CMOS上集成超顺磁磁隧道结p比特、验证毫伏级偏置可调与可变阈值微调的近期工作[^smtj_pbit_driver]相比，后者是无阵列的单器件、不涉及写线IR。本文把这两半在电路层合一：电压型电阻串写数模转换器同时承载逐行IR预畸变与逐列微调，并配一条稳压约0.9 V写轨 (取代1.8 V核心电源以免约一半能量损于驱动分压)，给出二值SOT写概率的位置—器件双重感知补偿；图4.17(c) 以能力矩阵逐项对照本设计与上述文献方案对各关键能力 (逐行IR预畸变、DAC拓扑＋稳压轨、写能量账、二值SOT $$P_\mathrm{sw}$$、逐列微调、sMTJ落地) 的覆盖。
+[^te_ir]: 写线IR压降的严重性是经版图提取才显现的。阵列层最初按可忽略处理写线寄生 (仅保留行为级接口)，相应地正文4.3节亦只把读出受IR的影响视为可被数字阈值吸收；经Magic电阻提取与ngspice直流扫描后发现，低阻SOT写线 (776 Ω) 与金属互连在$$N=256$$时往返寄生达器件电阻的约16.5%，使远端写点跌破阈值，这一发现直接催生了本节随后的IR感知逐行写预畸变方案。
+
+这一供电发现进一步倒逼出一个写通路设计。在一条高列上若仅向列首施加写电压，行$$r$$处单元实际所见电压为$$V_\mathrm{target}-I_\mathrm{wr}R_\mathrm{par}(r)$$，远端因IR压降而跌破写点：在$$N=256$$、目标写概率0.90时，远端单元写概率塌陷至约0.016，几乎不被写入。据此提出IR感知逐行写预畸变，寻址行$$r$$时驱动$$V_\mathrm{target}+I_\mathrm{wr}R_\mathrm{par}(r)$$，其中$$R_\mathrm{par}(r)$$由提取的方块电阻与列几何算出，使每行单元都看到$$V_\mathrm{target}$$ (图4.17)；该预畸变是一张由几何决定的静态逐行查找表，码值跨0至148 mV (约5个写数模转换器位)，与逐列阈值微调合并即得一个位置与器件双重感知的写数模转换器，控制开销近零。承载这些码的写数模转换器拓扑由仿真选定：在sky130上把二进制加权电流舵数模转换器接入776 Ω低阻写负载时，随输出电压上升各电流源失去漏源裕度、电流下垂，二进制权重不再线性叠加而非单调 (积分非线性约1.7个最低有效位) 且量程偏窄，简单共源共栅又因堆叠裕度不足而电流枯竭；因此写数模转换器取电压型电阻串结构 (按构造单调、最低有效位等于参考量程除以$$2^b$$)，其抽头经CMOS传输门[^tgate]与写驱动缓冲接入写线，在200 mV参考量程下6至7位电阻串给出1.6至3.1 mV的最低有效位，足以覆盖148 mV的逐行IR预畸变与逐列微调 (图4.18)。逐行IR预畸变的思路在交叉阵列文献中已有雏形——对寄生压降先建模再预畸变写值，可在高线阻下保住识别率[^ir_predistort][^ir_pre_meas]，且远端压降随阵列尺寸近似按平方增长[^ir_linescaling]——但既有工作多停在算法或SPICE模型层，未给出驱动、数模转换器与电源轨的电路实现，且面向模拟电导而非二值开关概率；与同在130 nm CMOS上集成超顺磁磁隧道结p比特、验证毫伏级偏置可调与可变阈值微调的近期工作[^smtj_pbit_driver][^pbit_spec]相比，后者是无阵列的单器件、不涉及写线IR。本文把这两半在电路层合一：电压型电阻串写数模转换器同时承载逐行IR预畸变与逐列微调，并配一条稳压约0.9 V写轨[^write_rail]，给出二值SOT写概率的位置—器件双重感知补偿；图4.17(c) 以能力矩阵逐项对照本设计与上述文献方案对各关键能力 (逐行IR预畸变、DAC拓扑＋稳压轨、写能量账、二值SOT $$P_\mathrm{sw}$$、逐列微调、sMTJ落地) 的覆盖。
+
+[^ir_pre_meas]: 该方案中线阻模型对SPICE的电压偏差小于2.9%，在3 Ω线阻下把识别率由65%恢复至约100%。
+
+[^pbit_spec]: 该工作以栅压模拟调节翻转概率，可变阈值反相器在0.7–1.1 V间以100 mV步进。
+
+[^tgate]: CMOS传输门由并联的NMOS与PMOS构成，对轨到轨范围内的模拟电压提供低且较对称的导通电阻；相较单管开关 (近电源轨时损失约一个阈值电压、导通电阻随电平强烈变化)，它能近乎无失真地把所选电阻串抽头电压传给写驱动，是模拟选择开关的常规做法。
+
+[^write_rail]: 该0.9 V写轨取代1.8 V核心电源，以免约一半能量损耗于驱动分压。
 
 ![图4.16 写通路能量与供电完整性](figs/Chapter04_local_16.png)
 
@@ -260,7 +298,9 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 **图4.20** 工作模式流水线。(a) 概率位推断：每样本为写、弛豫、读相位循环，$$T$$次平均得期望，置信度早退缩短$$T$$。(b) 储备池处理 (第五章)：写入输入、低势垒自由演化、列共享逐次逼近转换器分时扫描各列。两模式分时复用同一阵列、在时间上互斥。
 
-本节的电路级结论须按其方法学口径理解。随机性保留在数值采样环中、紧凑模型保持代数形式以适配开源编译器，含噪后仿的随机共仿尚未实现；sky130为130 nm/1.8 V节点，故所有电路级结论以比值 (失调比判决窗、能量占比、写线IR占器件比) 报告而非绝对值；Magic的电阻型寄生与IR压降为粗集总、仅给量级且未建模串扰，故写线IR仅为量级估计；磁隧道结在版图中以抽象黑盒单元表示并附不可制造声明，因无开源工艺提供可用的SOT-MTJ单元，CMOS工艺只承担外围；写数模转换器与计数器的能量已按sky130器件电容估算落地 (电阻串数模转换器码设置约34 fJ、计数器自增约19 fJ)；外围与存储单元的面积亦已按提取的sky130标准单元尺寸 (触发器/全加器约20 µm²、行高2.72 µm) 与设计规则作一阶估算——2T存储单元约4.6 µm² (其写访问管为通过约1.16 mA写电流需约2.2 µm宽所主导)、电阻串数模转换器约800 µm²、列累加计数器约630 µm²，合得256×256片块面积约0.67 mm²，外围面积与阵列同量级而非可忽略——但此为单元计数级估算而非DRC洁净的版图提取，绝对面积仍俟版图细化。这一晶体管级协同设计与近期在130 nm商用CMOS上以电压控制磁隧道结作熵源实测的概率计算芯片[^pbit_asic]互为补充：后者给出实测硅，本节则以晶圆标定的紧凑模型为可信锚、在开源工艺上做可复现的器件—电路协同设计。
+本节的电路级结论须按其方法学口径理解。随机性保留在数值采样环中、紧凑模型保持代数形式以适配开源编译器，含噪后仿的随机共仿尚未实现；sky130为130 nm/1.8 V节点，故所有电路级结论以比值报告而非绝对值；Magic的电阻型寄生与IR压降为粗集总、仅给量级且未建模串扰，故写线IR仅为量级估计；磁隧道结在版图中以抽象黑盒单元表示并附不可制造声明，因无开源工艺提供可用的SOT-MTJ单元，CMOS工艺只承担外围；写数模转换器与计数器的能量已按sky130器件电容估算落地 (电阻串数模转换器码设置约34 fJ、计数器自增约19 fJ)；外围与存储单元的面积亦已按提取的sky130标准单元尺寸 (触发器/全加器约20 µm²、行高2.72 µm) 与设计规则作一阶估算——2T存储单元约4.6 µm²[^cell_area]、电阻串数模转换器约800 µm²、列累加计数器约630 µm²，合得256×256片块面积约0.67 mm²，外围面积与阵列同量级而非可忽略——但此为单元计数级估算而非DRC洁净的版图提取，绝对面积仍俟版图细化。这一晶体管级协同设计与近期在130 nm商用CMOS上以电压控制磁隧道结作熵源实测的概率计算芯片[^pbit_asic]互为补充：后者给出实测硅，本节则以晶圆标定的紧凑模型为可信锚、在开源工艺上做可复现的器件—电路协同设计。
+
+[^cell_area]: 2T存储单元的面积由写访问管主导：通过约1.16 mA写电流需约2.2 µm管宽。
 
 ## 4.7 本章小结
 
@@ -274,83 +314,100 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 从主线层面看，本章工作的根本意义在于与第三章构成对偶：第三章在伊辛求解任务上验证了同一物理阵列能够以可机理归因的优势承担组合优化，本章则在PBNN推断任务上验证了同一物理阵列能够以同量级能效与结构性鲁棒性承担机器学习。两类任务之间在器件层、阵列层与仿真后端层均无硬件分歧，区别只在于外围调度——这正是第一章所设想的、由同一阵列在不同时间窗口分别承担两类传统分离任务在工程层面的可证明形态。综合两章结果，全自旋三位一体架构与时域展开范式在跨任务、跨架构、跨非理想性三个维度上均得到了可复现的定量支持，下一章将在此基础上对全文工作作出总结并讨论后续研究方向。
 
-## 脚注
-
-以下为说明性脚注 (随文排为脚注；与作为尾注的参考文献分列)。
-
-[^te_anchor]: 这是开发过程中的一处典型订正。最初实现直接以势垒采样的裸$$V_\mathrm{th}$$中心 (约0.843 V) 作为各单元判决阈值，在硬件感知训练下相当于在全部权重上叠加约50 mV ($$2.26\,V_T$$) 的系统性偏置，使全栈测试精度明显低于锚定后的水平；定位到该偏置源于势垒采样中心与写驱动名义工作点不一致后，改为仅以$$\Delta$$的离散驱动单元间方差、而把场均值锚定到标定工作点，精度方恢复至预期。
-
-[^te_read]: 外围能量经历了一次由占位到提取的订正。读出、数模转换器与计数器最初沿用28 nm数字默认值 (读出与数模转换器各约5 fJ、计数器约0.5 fJ)，据此曾得出外围仅约1%、优化意义不大的判断；经4.6节的sky130 StrongARM版图提取 (读出约48 fJ) 以及电阻串数模转换器与计数器的器件电容估算 (约34 fJ与约19 fJ) 订正后，外围占比升至约11%，优化重心相应从单纯的器件改进扩展到读出与写驱动电路的协同。
-
-[^te_ir]: 写线IR压降的严重性是经版图提取才显现的。阵列层最初按可忽略处理写线寄生 (仅保留行为级接口)，相应地正文4.3节亦只把读出受IR的影响视为可被数字阈值吸收；经Magic电阻提取与ngspice直流扫描后发现，低阻SOT写线 (776 Ω) 与金属互连在$$N=256$$时往返寄生达器件电阻的约16.5%，使远端写点跌破阈值，这一发现直接催生了本节随后的IR感知逐行写预畸变方案。
-
-[^tgate]: CMOS传输门由并联的NMOS与PMOS构成，对轨到轨范围内的模拟电压提供低且较对称的导通电阻；相较单管开关 (近电源轨时损失约一个阈值电压、导通电阻随电平强烈变化)，它能近乎无失真地把所选电阻串抽头电压传给写驱动，是模拟选择开关的常规做法。
-
 ## 参考文献
 
 [^neel1949]: Néel L. Théorie du traînage magnétique des ferromagnétiques en grains fins avec application aux terres cuites. *Annales de Géophysique*, 1949, 5: 99–136.
 
 [^brown1963]: Brown W F. Thermal fluctuations of a single-domain particle. *Physical Review*, 1963, 130(5): 1677–1686. [doi:10.1103/PhysRev.130.1677](https://doi.org/10.1103/PhysRev.130.1677)
+
 [^krizakova2022]: Krizakova V, Perumkunnil M, Couet S, Gambardella P, Garello K. Spin-orbit torque switching of magnetic tunnel junctions for memory applications. *Journal of Magnetism and Magnetic Materials*, 2022, 562: 169692. [doi:10.1016/j.jmmm.2022.169692](https://doi.org/10.1016/j.jmmm.2022.169692)
 
-[^pbnn_cim]: Gu Y, et al. A probabilistic binary neural network based on SOT-MRAM compute-in-memory. arXiv:2403.19374, 2024（以隧穿磁阻余量保证读出、比较器理想化）。
+[^pbnn_cim]: Gu Y, Huang P, Chen T, Fu C, Chen A, Peng S, Zhang X, Kou X. A noise-tolerant, resource-saving probabilistic binary neural network implemented by the SOT-MRAM compute-in-memory system. *arXiv preprint*, 2024. [arXiv:2403.19374](https://arxiv.org/abs/2403.19374)
 
-[^pbit_var]: Automatic extraction and compensation of p-bit device variations in large Boltzmann-machine arrays. arXiv:2410.16915, 2024（在训练侧补偿Sigmoid斜率与位移，假设理想比较器）。
+[^pbit_var]: Zhang B, Liu Y, Gao T, Yin J, Guan Z, Zhang D, Zeng L. Automatic extraction and compensation of P-bit device variations in large array utilizing Boltzmann machine training. *Micromachines*, 2025, 16(2): 133. [doi:10.3390/mi16020133](https://doi.org/10.3390/mi16020133)
 
-[^strongarm]: Razavi B. The StrongARM latch [A circuit for all seasons]. *IEEE Solid-State Circuits Magazine*, 2015, 7(2): 12–17. [doi:10.1109/MSSC.2015.2418155](https://doi.org/10.1109/MSSC.2015.2418155). StrongARM锁存是时钟触发的动态再生锁存比较器，判决稳定后无直流通路、静态功耗为零，是存储器与存内计算灵敏放大的主流拓扑，失调主要来自输入对与锁存管的阈值失配。
+[^strongarm]: Razavi B. The StrongARM latch [A circuit for all seasons]. *IEEE Solid-State Circuits Magazine*, 2015, 7(2): 12–17. [doi:10.1109/MSSC.2015.2418155](https://doi.org/10.1109/MSSC.2015.2418155)
 
-[^pelgrom]: Pelgrom M J M, Duinmaijer A C J, Welbers A P G. Matching properties of MOS transistors. *IEEE Journal of Solid-State Circuits*, 1989, 24(5): 1433–1439. [doi:10.1109/JSSC.1989.572629](https://doi.org/10.1109/JSSC.1989.572629). 失配标准差与器件面积平方根成反比，$$\sigma_{\Delta V_\mathrm{th}}=A_{V_T}/\sqrt{WL}$$。
+[^pelgrom]: Pelgrom M J M, Duinmaijer A C J, Welbers A P G. Matching properties of MOS transistors. *IEEE Journal of Solid-State Circuits*, 1989, 24(5): 1433–1439. [doi:10.1109/JSSC.1989.572629](https://doi.org/10.1109/JSSC.1989.572629)
 
-[^dsa]: A low-voltage low-offset dual strong-arm latch comparator. *IEEE Asian Solid-State Circuits Conference (A-SSCC)*, 2017（28 nm FDSOI，实测输入失调约8.5 mV，较常规StrongARM低约30%）。
+[^dsa]: Papadopoulou A, Milovanović V M, Nikolić B. A low-voltage low-offset dual strong-arm latch comparator. *IEEE Asian Solid-State Circuits Conference (A-SSCC)*, 2017: 281–284. [doi:10.1109/ASSCC.2017.8240271](https://doi.org/10.1109/ASSCC.2017.8240271)
 
-[^autozero]: Dong Q, et al. A 1 Mb 28 nm STT-MRAM with 2.8 ns read using a single-cap offset-cancelled sense amplifier. *IEEE International Solid-State Circuits Conference (ISSCC)*, 2018（失调标准差降逾60%、较双容自调零省约15%面积、自调零相位隐藏于译码无时序代价；按约2×隧穿磁阻余量预算、自调零始终开启）。
+[^pbit_asic]: Duffee C, Athas J, Shao Y, Davila Melendez N, Raimondo E, Katine J A, Camsari K Y, Finocchio G, Khalili Amiri P. An integrated-circuit-based probabilistic computer that uses voltage-controlled magnetic tunnel junctions as its entropy source. *Nature Electronics*, 2025, 8(9): 784–793. [doi:10.1038/s41928-025-01439-6](https://doi.org/10.1038/s41928-025-01439-6)
 
-[^pbit_asic]: An integrated-circuit-based probabilistic computer that uses voltage-controlled magnetic tunnel junctions as its entropy source. *Nature Electronics*, 2025, s41928-025-01439-6（实测130 nm CMOS）。
+[^hikstor]: Liu E, Yang W, Zhou K, et al. A novel channel-less SOT-MRAM with 115% TMR, 2 ns switching, and high bit yield (>99.9%). *2024 IEEE International Electron Devices Meeting (IEDM)*, 2024.
 
-[^hikstor]: Liu E, Yang W, Zhou K, et al. A novel channel-less SOT-MRAM with 115% TMR, 2 ns switching, and high bit yield (>99.9%). *2024 IEEE International Electron Devices Meeting (IEDM)*, 2024（浙江驰拓科技实测：磁隧道结柱直接置于分离底电极上、自对准钨基自旋轨道矩层、约100 nm临界尺寸、300 mm晶圆、115% TMR、2 ns翻转、写错误率<$$10^{-6}$$、耐久>$$10^{12}$$、较常规SOT器件临界电流低16.5%、写功耗低39.2%；保持势垒$$\Delta\approx50$$–$$55$$属非易失存储器调校，与本文超顺磁概率位的低势垒变体不同）。
-[^sa_singlecap]: Dong Q, Yang K, Fick L, Fick D, Blaauw D, Sylvester D, et al. A 1 Mb 28 nm STT-MRAM with 2.8 ns read access time at 1.2 V VDD using single-cap offset-cancelled sense amplifier and in-situ self-write-termination. *IEEE International Solid-State Circuits Conference (ISSCC)*, 2018, 30.2（约二倍阻比小读窗、单容自调零把失调降逾60%、抵消相位隐于译码无时序代价）。
+[^sa_singlecap]: Dong Q, Yang K, Fick L, Fick D, Blaauw D, Sylvester D, et al. A 1 Mb 28 nm STT-MRAM with 2.8 ns read access time at 1.2 V VDD using single-cap offset-cancelled sense amplifier and in-situ self-write-termination. *IEEE International Solid-State Circuits Conference (ISSCC)*, 2018, 30.2.
 
-[^sa_doubletail]: Design of low-power high-speed double-tail dynamic comparator based on charge-steering concept. *Journal of Physics: Conference Series*, 2022, 2405(1): 012014（28 nm、0.9 V，仿真输入折合失调约6.9 mV，指出StrongARM受共模/输入裕度限制）。
+[^sa_doubletail]: Zhang Z, Lei Q Q, Zhao E H, Yang Y F, Feng S. Design of low-power high-speed double-tail dynamic comparator based on charge-steering concept. *Journal of Physics: Conference Series*, 2022, 2405(1): 012014. [doi:10.1088/1742-6596/2405/1/012014](https://doi.org/10.1088/1742-6596/2405/1/012014)
 
-[^cim_xnor_sram]: Agrawal A, Jaiswal A, Roy D, Han B, Srinivasan G, Ankit A, Roy K. Xcel-RAM: accelerating binary neural networks in high-throughput SRAM compute arrays. arXiv:1807.00343, 2018（IEEE TCAS-I 2019；XNOR-popcount + 双级ADC，分区使转换器跨并行卷积摊销）。
+[^cim_xnor_sram]: Agrawal A, Jaiswal A, Roy D, Han B, Srinivasan G, Ankit A, Roy K. Xcel-RAM: accelerating binary neural networks in high-throughput SRAM compute arrays. *IEEE Transactions on Circuits and Systems I: Regular Papers*, 2019, 66(8): 3064–3076. [doi:10.1109/TCSI.2019.2907488](https://doi.org/10.1109/TCSI.2019.2907488)
 
-[^ir_predistort]: Truong S N. A parasitic resistance-adapted programming scheme for memristor crossbar-based neuromorphic computing systems. *Materials*, 2019, 12(24): 4097. [doi:10.3390/ma12244097](https://doi.org/10.3390/ma12244097)（先建线阻模型再预畸变写值；模型对SPICE电压差<2.9%，3 Ω线阻下识别率由65%回到约100%）。
+[^ir_predistort]: Truong S N. A parasitic resistance-adapted programming scheme for memristor crossbar-based neuromorphic computing systems. *Materials*, 2019, 12(24): 4097. [doi:10.3390/ma12244097](https://doi.org/10.3390/ma12244097)
 
-[^ir_linescaling]: Zhu X, Li Z, Liu H, Li Q, Liu S, Li N, Xu H. Solution to alleviate the impact of line resistance on the crossbar array. *IET Circuits, Devices & Systems*, 2020, 14(4): 498–504. [doi:10.1049/iet-cds.2019.0313](https://doi.org/10.1049/iet-cds.2019.0313)（远端压降随选中线长度近似平方增长，位置电压抬升在SPICE中恢复交付电压）。
+[^ir_linescaling]: Zhu X, Li Z, Liu H, Li Q, Liu S, Li N, Xu H. Solution to alleviate the impact of line resistance on the crossbar array. *IET Circuits, Devices & Systems*, 2020, 14(4): 498–504. [doi:10.1049/iet-cds.2019.0313](https://doi.org/10.1049/iet-cds.2019.0313)
 
-[^smtj_pbit_driver]: Yoon J, Caçoilo N, Madhavan A, McClelland J J, Kanai S, Ohno H, Fukami S, Borders W A. CMOS-integrated superparamagnetic tunnel junction-based p-bit. arXiv:2604.14446, 2026（130 nm CMOS + 低势垒sMTJ，栅压模拟调概率、可变阈值反相器0.7–1.1 V/100 mV步进；单器件、无阵列写线IR）。
+[^smtj_pbit_driver]: Yoon J, Caçoilo N, Madhavan A, McClelland J J, Kanai S, Ohno H, Fukami S, Borders W A. 130-nm CMOS-integrated superparamagnetic tunnel junction-based p-bit. *IEEE Electron Device Letters*, 2026. [doi:10.1109/LED.2026.3696800](https://doi.org/10.1109/LED.2026.3696800)
 
 [^cim_neurosim_validation]: Lu A, Peng X, Li W, Jiang H, Yu S. NeuroSim simulator for compute-in-memory hardware accelerator: validation and benchmark. *Frontiers in Artificial Intelligence*, 2021, 4: 659060. [doi:10.3389/frai.2021.659060](https://doi.org/10.3389/frai.2021.659060)
+
 [^cim_dnn_neurosim_v2]: Peng X, Huang S, Jiang H, Lu A, Yu S. DNN+NeuroSim V2.0: an end-to-end benchmarking framework for compute-in-memory accelerators for on-chip training. *IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems*, 2021, 40(11): 2306–2319. [doi:10.1109/TCAD.2020.3043731](https://doi.org/10.1109/TCAD.2020.3043731)
+
 [^cim_neurosim_v15]: Read J, Lee M-Y, Huang W-H, Luo Y-C, Lu A, Yu S. NeuroSim V1.5: improved software backbone for benchmarking compute-in-memory accelerators with device and circuit-level non-idealities. *arXiv preprint*, 2025. [arXiv:2505.02314](https://arxiv.org/abs/2505.02314)
+
 [^cim_mnsim2]: Zhu Z, Sun H, Qiu K, Xia L, Krishnan G, Dai G, Niu D, Chen X, Hu X S, Cao Y, Xie Y, Wang Y, Yang H. MNSIM 2.0: a behavior-level modeling tool for memristor-based neuromorphic computing systems. *Proc. ACM Great Lakes Symposium on VLSI*, 2020: 83–88. [doi:10.1145/3386263.3407647](https://doi.org/10.1145/3386263.3407647)
+
 [^cim_micsim]: Wang C, Chen Z, Huang S. MICSim: a modular simulator for mixed-signal compute-in-memory based AI accelerator. *arXiv preprint*, 2024. [arXiv:2409.14838](https://arxiv.org/abs/2409.14838)
+
 [^cim_aihwkit]: Rasch M J, Moreda D, Gokmen T, Le Gallo M, Carta F, Goldberg C, El Maghraoui K, Sebastian A, Narayanan V. A flexible and fast PyTorch toolkit for simulating training and inference on analog crossbar arrays. *Proc. IEEE International Conference on Artificial Intelligence Circuits and Systems*, 2021: 1–4. [doi:10.1109/AICAS51828.2021.9458494](https://doi.org/10.1109/AICAS51828.2021.9458494)
+
 [^cim_aihwkit_apl]: Le Gallo M, Lammie C, Buechel J, Carta F, Fagbohungbe O, Mackin C, Tsai H, Narayanan V, Sebastian A, El Maghraoui K, Rasch M J. Using the IBM analog in-memory hardware acceleration kit for neural network training and inference. *APL Machine Learning*, 2023, 1(4): 041102. [doi:10.1063/5.0168089](https://doi.org/10.1063/5.0168089)
+
 [^smtj_arm_compact]: Garcia-Redondo F, Lopez-Vallejo M, Stanley-Marbell P. A compact model for scalable MTJ simulation. *Proc. International Conference on Synthesis, Modeling, Analysis and Simulation Methods and Applications to Circuit Design*, 2021: 1–4. [doi:10.1109/SMACD52803.2021.9636229](https://doi.org/10.1109/SMACD52803.2021.9636229)
+
 [^smtj_ngspice]: Rajpoot J, Paul R, Verma S. Novel STT/SHE MTJ compact model compatible with NGSPICE. *arXiv preprint*, 2022. [arXiv:2208.14055](https://arxiv.org/abs/2208.14055)
+
 [^psl_gpu_sa]: Onizawa N, Sasaki R, Hanyu T. GPU-accelerated simulated annealing based on p-bits with real-world device-variability modeling. *Scientific Reports*, 2025, 15: 6614. [doi:10.1038/s41598-025-90520-3](https://doi.org/10.1038/s41598-025-90520-3)
-[^cmos_pbit_camsari]: Camsari K Y, Sutton B M, Datta S. p-Bits for probabilistic spin logic. *Proceedings of the IEEE*, 2020, 108(8): 1335–1340. [doi:10.1109/JPROC.2020.2966869](https://doi.org/10.1109/JPROC.2020.2966869)
+
+[^cmos_pbit_camsari]: Camsari K Y, Sutton B M, Datta S. p-bits for probabilistic spin logic. *Applied Physics Reviews*, 2019, 6(1): 011305. [doi:10.1063/1.5055860](https://doi.org/10.1063/1.5055860)
+
 [^borders_factor]: Borders W A, Pervaiz A Z, Fukami S, Camsari K Y, Ohno H, Datta S. Integer factorization using stochastic magnetic tunnel junctions. *Nature*, 2019, 573: 390–393. [doi:10.1038/s41586-019-1557-9](https://doi.org/10.1038/s41586-019-1557-9)
+
 [^sutton_pbit]: Sutton B M, Faria R, Ghantasala L A, Jaiswal R, Camsari K Y, Datta S. Autonomous probabilistic coprocessing with petaflops-equivalent capacity. *Science Advances*, 2020, 6(20): eabb2823. [doi:10.1126/sciadv.abb2823](https://doi.org/10.1126/sciadv.abb2823)
+
 [^kaiser_insitu_bm]: Kaiser J, Borders W A, Camsari K Y, Fukami S, Ohno H, Datta S. Hardware-aware in situ learning based on stochastic magnetic tunnel junctions. *Physical Review Applied*, 2022, 17: 014016. [doi:10.1103/PhysRevApplied.17.014016](https://doi.org/10.1103/PhysRevApplied.17.014016)
+
 [^pbnn_peters]: Peters J W T, Welling M. Probabilistic binary neural networks. *arXiv preprint*, 2018. [arXiv:1809.03368](https://arxiv.org/abs/1809.03368)
+
 [^bnn_bayescnn]: Shridhar K, Laumann F, Liwicki M. A comprehensive guide to Bayesian convolutional neural network with variational inference. *arXiv preprint*, 2019. [arXiv:1901.02731](https://arxiv.org/abs/1901.02731)
 
 [^bnn_tyxe]: Ritter H, Karaletsos T. TyXe: pyro-based Bayesian neural nets for PyTorch. *arXiv preprint*, 2021. [arXiv:2110.00276](https://arxiv.org/abs/2110.00276)
+
 [^ste]: Bengio Y, Léonard N, Courville A. Estimating or propagating gradients through stochastic neurons for conditional computation. *arXiv preprint*, 2013. [arXiv:1308.3432](https://arxiv.org/abs/1308.3432)
+
 [^stt_apalkov]: Apalkov D, Khvalkovskiy A, Watts S, Nikitin V, Tang X, Lottis D, Moon K, Luo X, Chen E, Ong A, Driskill-Smith A, Krounbi M. Spin-transfer torque magnetic random access memory (STT-MRAM). *ACM Journal on Emerging Technologies in Computing Systems*, 2013, 9(2): 13. [doi:10.1145/2463585.2463589](https://doi.org/10.1145/2463585.2463589)
+
 [^reram_wong]: Wong H-S P, Lee H-Y, Yu S, Chen Y-S, Wu Y, Chen P-S, Lee B, Chen F T, Tsai M-J. Metal-oxide RRAM. *Proceedings of the IEEE*, 2012, 100(6): 1951–1970. [doi:10.1109/JPROC.2012.2190369](https://doi.org/10.1109/JPROC.2012.2190369)
+
 [^pcram_burr]: Burr G W, Brightsky M J, Sebastian A, Cheng H-Y, Wu J-Y, Kim S, Sosa N E, Papandreou N, Lung H-L, Pozidis H, Eleftheriou E, Lam C H. Recent progress in phase-change memory technology. *IEEE Journal on Emerging and Selected Topics in Circuits and Systems*, 2016, 6(2): 146–162. [doi:10.1109/JETCAS.2016.2547718](https://doi.org/10.1109/JETCAS.2016.2547718)
+
 [^feram_mikolajick]: Mikolajick T, Schroeder U, Slesazeck S. The past, the present, and the future of ferroelectric memories. *IEEE Transactions on Electron Devices*, 2020, 67(4): 1434–1443. [doi:10.1109/TED.2020.2976148](https://doi.org/10.1109/TED.2020.2976148)
+
 [^sram_khwa]: Khwa W-S, Chen J-J, Li J-F, Si X, Yang E-Y, Sun X, Liu R, Chen P-Y, Li Q, Yu S, Chang M-F. A 65nm 4Kb algorithm-dependent computing-in-memory SRAM unit-macro with 2.3ns and 55.8TOPS/W fully parallel product-sum operation for binary DNN edge processors. *IEEE International Solid-State Circuits Conference*, 2018: 496–498. [doi:10.1109/ISSCC.2018.8310401](https://doi.org/10.1109/ISSCC.2018.8310401)
+
 [^stoch_reram_lin]: Lin Y-H, Wang C-H, Lee M-H, Lee D-Y, Lin Y-Y, Lee F-M, Lung H-L, Wang K-Y, Tseng T-Y, Lu C-Y. Performance impacts of analog ReRAM non-ideality on neuromorphic computing. *IEEE Transactions on Electron Devices*, 2019, 66(3): 1289–1295. [doi:10.1109/TED.2019.2894273](https://doi.org/10.1109/TED.2019.2894273)
+
 [^uci_iris]: Fisher R A. The use of multiple measurements in taxonomic problems. *Annals of Eugenics*, 1936, 7(2): 179–188. [doi:10.1111/j.1469-1809.1936.tb02137.x](https://doi.org/10.1111/j.1469-1809.1936.tb02137.x)
+
 [^uci_wdbc]: Wolberg W H, Mangasarian O L. Multisurface method of pattern separation for medical diagnosis applied to breast cytology. *Proceedings of the National Academy of Sciences USA*, 1990, 87(23): 9193–9196. [doi:10.1073/pnas.87.23.9193](https://doi.org/10.1073/pnas.87.23.9193)
+
 [^uci_yeast]: Horton P, Nakai K. A probabilistic classification system for predicting the cellular localization sites of proteins. *Proc. International Conference on Intelligent Systems for Molecular Biology*, 1996, 4: 109–115.
 
 [^uci_statlog]: King R D, Feng C, Sutherland A. Statlog: comparison of classification algorithms on large real-world problems. *Applied Artificial Intelligence*, 1995, 9(3): 289–333. [doi:10.1080/08839519508945477](https://doi.org/10.1080/08839519508945477)
+
 [^uci_spambase]: Cranor L F, LaMacchia B A. Spam!. *Communications of the ACM*, 1998, 41(8): 74–83. [doi:10.1145/280324.280336](https://doi.org/10.1145/280324.280336)
+
 [^lion]: Chen X, Liang C, Huang D, Real E, Wang K, Liu Y, Pham H, Dong X, Luong T, Hsieh C-J, Lu Y, Le Q V. Symbolic discovery of optimization algorithms. *Advances in Neural Information Processing Systems*, 2023, 36. [arXiv:2302.06675](https://arxiv.org/abs/2302.06675)
+
 [^cosine]: Loshchilov I, Hutter F. SGDR: stochastic gradient descent with warm restarts. *International Conference on Learning Representations*, 2017. [arXiv:1608.03983](https://arxiv.org/abs/1608.03983)
+
 [^onecycle]: Smith L N. A disciplined approach to neural network hyper-parameters: part 1—learning rate, batch size, momentum, and weight decay. *arXiv preprint*, 2018. [arXiv:1803.09820](https://arxiv.org/abs/1803.09820)

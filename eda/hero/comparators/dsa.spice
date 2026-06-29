@@ -1,0 +1,36 @@
+* Double StrongARM latch (two-stage, A-SSCC 2017 lineage), sky130.
+* First StrongARM stage resolves rail-to-rail (s1n/s1p); the second StrongARM
+* latch re-samples that already-resolved differential on the SAME clk edge, so
+* the second-stage mismatch is suppressed and total input-referred offset is set
+* by the first-stage input pair plus the gain-divided first-stage latch.
+* Shared interface (harness preamble): nodes vdd vss clk vinp vinn -> outp outn.
+* META n_off=4 meas_t=2.9n win_default=4.0 wl=win*0.15,win*0.15,0.30,0.30 desc=double-StrongARM-2stage
+* offset-injection: 1st-stage input pair (g1,g2) + 1st-stage latch NMOS (g3,g4)
+Vo1 g1 vinp DC {os0:.6f}
+Vo2 g2 vinn DC {os1:.6f}
+Vo3 g3 s1p DC {os2:.6f}
+Vo4 g4 s1n DC {os3:.6f}
+* ---- First StrongARM stage: input pair sized {win} um for gain ----
+XS1tail s1tail clk   vss    vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XS1in1  s1da   g1    s1tail vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XS1in2  s1db   g2    s1tail vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XS1n1   s1n    g3    s1da   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XS1n2   s1p    g4    s1db   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XS1p1   s1n    s1p   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS1p2   s1p    s1n   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS1pr1  s1n    clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS1pr2  s1p    clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS1prd1 s1da   clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS1prd2 s1db   clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+* ---- Second StrongARM stage: input pair driven by 1st-stage outputs s1n/s1p ----
+XS2tail s2tail clk   vss    vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XS2in1  s2da   s1p   s2tail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XS2in2  s2db   s1n   s2tail vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XS2n1   outn   outp  s2da   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XS2n2   outp   outn  s2db   vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XS2p1   outn   outp  vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS2p2   outp   outn  vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS2pr1  outn   clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS2pr2  outp   clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS2prd1 s2da   clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XS2prd2 s2db   clk   vdd    vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15

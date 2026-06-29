@@ -1,0 +1,20 @@
+{
+  "design": "dsa",
+  "desc": "double StrongARM 2stage",
+  "N": 120,
+  "scale": 1.0,
+  "Win_um": 4.0,
+  "AVT_N_mV_um": 5.0,
+  "sigma_Vth_mV": [
+    6.454972243679028,
+    6.454972243679028,
+    9.12870929175277,
+    9.12870929175277
+  ],
+  "offset_mean_mV": -0.6257939310285106,
+  "offset_sigma_mV": 9.04142933543862,
+  "VT_mV": 23.414,
+  "sigma_offset_over_VT": 0.38615483622783886,
+  "three_sigma_over_VT": 1.1584645086835168,
+  "note": "AVT is a sky130-class assumption (not PDK mismatch model); 130nm/1.8V -> ratio sigma_offset/V_T transfers, not absolute mV. Same-flow reproduction comparison: all designs share this harness."
+}

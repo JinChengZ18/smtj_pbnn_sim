@@ -65,10 +65,10 @@ def _panel_pbnn(ax, T: int = 8) -> None:
                 color="white" if s == 1 else "black")
         sign = "+" if s == 1 else r"-"
         ax.text(x + cell_w / 2.0, 0.85, fr"${sign}1/T$",
-                ha="center", va="bottom", fontsize=15, color=PURPLE_DARK,
+                ha="center", va="bottom", fontsize=14, color=PURPLE_DARK,
                 fontweight="bold")
         ax.text(x + cell_w / 2.0, -0.85, fr"$s_{{{i + 1}}}$",
-                ha="center", va="top", fontsize=15)
+                ha="center", va="top", fontsize=14)
 
     # Reconstruction equation
     ax.text(0.0, -2.05,
@@ -78,12 +78,12 @@ def _panel_pbnn(ax, T: int = 8) -> None:
 
     # Headline
     ax.text(0.0, 1.85,
-            f"PBNN with T={T} stochastic cells per weight",
+            f"(a)  PBNN with T={T} stochastic cells per weight",
             ha="center", va="bottom", fontsize=16, fontweight="bold",
-            color="black")
+            color=PURPLE_DARK)
     ax.text(0.0, 1.50,
             r"every cell contributes the same magnitude $1/T$",
-            ha="center", va="bottom", fontsize=14, style="italic",
+            ha="center", va="bottom", fontsize=13, style="italic",
             color="#333")
 
     pad = 0.4
@@ -134,17 +134,17 @@ def _panel_mram(ax, n_bits: int = 8) -> None:
                     fontweight="bold")
         else:
             ax.text(bx + w / 2.0, 0.85, fr"$2^{{{pos}}}$",
-                    ha="center", va="bottom", fontsize=13, color=GRAY_DARK)
+                    ha="center", va="bottom", fontsize=10, color=GRAY_DARK)
         # Cell index below
         ax.text(bx + w / 2.0, -0.85, fr"$b_{{{pos}}}$",
-                ha="center", va="top", fontsize=15)
+                ha="center", va="top", fontsize=14)
 
     # MSB callout
     ax.annotate(
         r"MSB carries  $2^{N-1}\!/(2^{N}\!-\!1) \approx 50\%$",
         xy=(cells_x[0] + widths[0] / 2.0, 0.55),
         xytext=(cells_x[0] - 0.15, 1.85),
-        fontsize=14, color=ORANGE, fontweight="bold",
+        fontsize=12, color=ORANGE, fontweight="bold",
         ha="left",
         arrowprops=dict(arrowstyle="->", color=ORANGE, lw=1.4))
 
@@ -156,12 +156,12 @@ def _panel_mram(ax, n_bits: int = 8) -> None:
 
     # Headline
     ax.text(0.0, 2.55,
-            f"Digital MRAM with N={n_bits} positional bits per weight",
+            f"(b)  Digital MRAM with N={n_bits} positional bits per weight",
             ha="center", va="bottom", fontsize=16, fontweight="bold",
-            color="black")
+            color=GRAY_DARK)
     ax.text(0.0, 2.20,
             r"each cell contributes $2^{i}$ — geometrically unequal",
-            ha="center", va="bottom", fontsize=14, style="italic",
+            ha="center", va="bottom", fontsize=13, style="italic",
             color="#333")
 
     pad = 0.4
@@ -198,25 +198,25 @@ def _panel_contribution(ax, T: int = 8, n_bits: int = 8) -> None:
         f"MSB: {mram_pct[msb_idx]:.1f} %\nsingle point of failure",
         xy=(x_mram[msb_idx], mram_pct[msb_idx]),
         xytext=(x_mram[msb_idx] - 1.3, mram_pct[msb_idx] * 1.7),
-        ha="right", fontsize=14, color=ORANGE, fontweight="bold",
+        ha="right", fontsize=12.5, color=ORANGE, fontweight="bold",
         arrowprops=dict(arrowstyle="->", color=ORANGE, lw=1.4))
 
     ax.text(np.mean(x_pbnn), 100.0 / T * 1.6, "all equal",
-            ha="center", fontsize=15, color=PURPLE_DARK, fontweight="bold")
+            ha="center", fontsize=13, color=PURPLE_DARK, fontweight="bold")
 
     ax.set_yscale("log")
-    ax.set_ylabel("contribution to dynamic range (%)", fontsize=15)
+    ax.set_ylabel("contribution to dynamic range (%)", fontsize=14)
     ax.set_xticks(np.concatenate([x_pbnn, x_mram]))
     ax.set_xticklabels(
         [fr"$s_{{{i + 1}}}$" for i in range(T)]
         + [fr"$b_{{{i}}}$" for i in range(n_bits)],
         fontsize=12)
-    ax.set_title("Per-cell contribution to the dynamic range",
-                  fontsize=17, pad=14, fontweight="bold", color="black")
+    ax.set_title("(c)  Per-cell contribution to the dynamic range",
+                  fontsize=15, pad=12, fontweight="bold")
     ax.set_ylim(0.2, 240)
     ax.grid(axis="y", which="both", alpha=0.3, linestyle=":")
-    ax.legend(loc="upper left", fontsize=14, framealpha=0.95)
-    ax.tick_params(axis="y", labelsize=13)
+    ax.legend(loc="upper left", fontsize=12.5, framealpha=0.95)
+    ax.tick_params(axis="y", labelsize=11)
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
 
@@ -265,13 +265,13 @@ def _panel_bitflip_impact(ax, T: int = 8, n_bits: int = 8,
     ax.set_xlabel(
         r"normalised weight error $|\Delta w| / w_{\max}$  "
         "after one random cell flip",
-        fontsize=15)
-    ax.set_ylabel("share of single-flip events (%)", fontsize=15)
+        fontsize=14)
+    ax.set_ylabel("share of single-flip events (%)", fontsize=14)
     ax.set_xlim(-0.02, 1.10)
-    ax.set_title("Effective weight error from one random cell flip",
-                  fontsize=17, pad=14, fontweight="bold", color="black")
-    ax.legend(loc="upper center", fontsize=14, framealpha=0.95)
-    ax.tick_params(axis="both", labelsize=13)
+    ax.set_title("(d)  Effective weight error from one random cell flip",
+                  fontsize=15, pad=12, fontweight="bold")
+    ax.legend(loc="upper center", fontsize=12.5, framealpha=0.95)
+    ax.tick_params(axis="both", labelsize=11)
     ax.grid(axis="y", alpha=0.3, linestyle=":")
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
@@ -293,7 +293,7 @@ def main() -> None:
     plt.rcParams.update({
         "font.family": "sans-serif",
         "font.sans-serif": ["Arial", "DejaVu Sans"],
-        "font.size": 15,
+        "font.size": 13,
     })
 
     fig = plt.figure(figsize=(17, 11), facecolor=PAPER_BG)
@@ -301,7 +301,7 @@ def main() -> None:
         2, 2,
         height_ratios=[0.95, 1.05],
         hspace=0.32, wspace=0.20,
-        top=0.925, bottom=0.095,
+        top=0.93, bottom=0.085,
         left=0.05, right=0.97,
     )
 
@@ -321,15 +321,19 @@ def main() -> None:
         fontsize=18, y=0.985, fontweight="bold")
 
     caption = (
-        r"Uniform PBNN cells bound one-cell error by $2/T$; "
-        r"positional MRAM remains MSB-dominated."
+        "PBNN's per-cell weight equality removes the MSB-dominance failure "
+        "mode of conventional digital CIM: any single cell flip shifts the "
+        r"stored weight by at most $2/T$, regardless of which cell flipped, "
+        "while a positional N-bit cell can shift the weight by up to a "
+        "full sign flip when the MSB is hit. This is the structural reason "
+        "PBNN survives the bit-flip stress sweep in Experiment 09."
     )
-    fig.text(0.5, 0.002, caption, ha="center", va="bottom",
-              fontsize=15, style="italic", color="black",
-              bbox=dict(boxstyle="round,pad=0.35", facecolor="#FFF8E5",
+    fig.text(0.5, 0.020, caption, ha="center", va="bottom",
+              fontsize=12, style="italic",
+              bbox=dict(boxstyle="round,pad=0.5", facecolor="#FFF8E5",
                         edgecolor="#E0C870", linewidth=1.0))
 
-    out_path = out_dir / "04_encoding_comparison_fixed.png"
+    out_path = out_dir / "04_encoding_comparison.png"
     fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor=PAPER_BG)
     print(f"  Saved: {out_path.relative_to(REPO)}")
     print(f"  Size:  {out_path.stat().st_size / 1024:.0f} KB")

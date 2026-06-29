@@ -68,6 +68,10 @@ python experiments/19_rc_temperature.py          # temperature as a tau knob
 python experiments/20_write_ir_drop.py           # write-line IR drop + IR-aware pre-distortion
 
 # Principle demos (figures):
+python demo/01_simulator_framework.py
+python demo/02_pbnn_mlp_architecture.py
+python demo/03_mnist_noise_grid.py
+python demo/04_encoding_comparison.py
 python demo/05_reservoir_computing_principle.py
 ```
 
