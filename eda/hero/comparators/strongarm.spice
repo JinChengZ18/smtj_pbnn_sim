@@ -1,0 +1,24 @@
+* StrongARM latch sense amplifier (ours / baseline), sky130.
+* Reproduction-comparison netlist for run_offset_mc.py's netlist factory.
+* Shared interface (provided by the harness preamble): nodes vdd vss clk vinp vinn,
+* outputs outp outn. This file provides the gate offset-injection sources (Vo*) +
+* the transistor core. The harness substitutes win = input-pair width (um) and
+* os0..osN = per-device Vth mismatch offsets (V) drawn by the Monte-Carlo loop.
+* META n_off=4 meas_t=2.9n win_default=4.0 wl=win*0.15,win*0.15,0.30,0.30 desc=StrongARM-latch-SA-ours
+* offset-injection: input pair (g1,g2) + latch NMOS (g3,g4)
+Vo1 g1 vinp DC {os0:.6f}
+Vo2 g2 vinn DC {os1:.6f}
+Vo3 g3 outp DC {os2:.6f}
+Vo4 g4 outn DC {os3:.6f}
+* StrongARM core (11 devices)
+XMtail ntail clk   vss   vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM1    da    g1    ntail vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XM2    db    g2    ntail vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XM3    outn  g3    da    vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM4    outp  g4    db    vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM5    outn  outp  vdd   vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XM6    outp  outn  vdd   vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp1   outp  clk   vdd   vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp2   outn  clk   vdd   vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp3   da    clk   vdd   vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp4   db    clk   vdd   vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
