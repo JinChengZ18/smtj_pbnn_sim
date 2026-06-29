@@ -25,7 +25,7 @@ Energies are now all grounded; **the four AREA constants remain placeholders**.
 
 ## Remaining work — area grounding (priority order)
 
-1. **`a_smtj_cell` + `a_sot_track`** (highest leverage — sets the array area, the only block whose area is intrinsic to the device). Artifact: a 1T-1MTJ bit-cell layout (FEOL select FET + BEOL MTJ pillar + SOT channel track) in sky130 (Magic/KLayout), DRC-clean, area read from the GDS bbox; the StrongARM cell layout under `eda/hero/layout/` is a template for the flow. Effort: medium (GUI layout); tool: Magic + sky130A.
+1. **`a_smtj_cell` + `a_sot_track`** (highest leverage — sets the array area, the only block whose area is intrinsic to the device). Artifact: a **2T SOT-MTJ** bit-cell layout — TWO FEOL access FETs (write `MW`/WWL + read `MR`/RWL, per `gen_system_sch.py`) + BEOL MTJ pillar + 3-terminal SOT channel track — in sky130 (Magic/KLayout), DRC-clean, area read from the GDS bbox; the StrongARM cell layout under `eda/hero/layout/` is a template for the flow. Effort: medium (GUI layout); tool: Magic + sky130A. NB: it is a 2T cell (write + read access), not a 1T-1MTJ STT cell — area is two FETs + routing pitch, the MTJ being BEOL.
 2. **`a_dac`** — resistor-string DAC bank floorplan (the chosen 6–7 bit string + tap MUX + driver), area per column. Tool: KLayout/OpenROAD; effort: medium.
 3. **`a_counter`** — popcount-counter column pitch. Cheapest once a stdcell flow (yosys + OpenROAD + sky130_fd_sc_hd) is set up; effort: low–medium.
 
@@ -36,5 +36,5 @@ Each grounded value should be written back to `eda/extraction/peripheral_energy.
 A full-filesystem search of the `Ubuntu-24.04-EDA` WSL image found **no `sky130_fd_sc_hd` lef/lib** — the image carries the sky130A *analog* primitives (the `nmos18`/`pmos18`/resistor PCells used for the StrongARM SA and the resistor-string DAC) but **not the digital standard-cell library**. `PDK_ROOT` is also unset in a non-login shell. Consequences for grounding:
 - **Counter** area (and a tighter counter/DAC *energy*) need the standard cells → first `open_pdks`-install `sky130_fd_sc_hd` (lef for area, Liberty for energy), then count gates × cell area.
 - **Resistor-string DAC** area can instead be laid out from sky130A analog PCells the same way `eda/hero/layout/gen_sa_layout.py` builds the StrongARM (KLayout `pya`, headless) — no stdcell lib required.
-- **1T-1MTJ bitcell** (`a_smtj_cell`, `a_sot_track`) stays a **design-rule estimate** regardless — sky130 has no MTJ device (see chapter04 §4.6 black-box note).
+- **2T SOT-MTJ bitcell** (`a_smtj_cell`, `a_sot_track`) stays a **design-rule estimate** regardless — sky130 has no MTJ device (see chapter04 §4.6 black-box note). Area basis = two access FETs (write + read) sized from our currents + sky130 rules; the MTJ pillar (~100 nm, Hikstor) is BEOL on top.
 Next session: `source` the PDK env / install `sky130_fd_sc_hd`, then ground counter+DAC from real cell/PCell areas and design-rule the bitcell. Until then the four area constants stay honest 28 nm placeholders rather than fabricated estimates.

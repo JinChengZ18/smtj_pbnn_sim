@@ -65,8 +65,8 @@ class TechParams:
     t_count_inc: float   = 0.5e-9
 
     # ---- Areas (um^2) ----------------------------------------------------#
-    a_smtj_cell: float   = 0.05        # 1T-1MTJ unit cell (read path)
-    a_sot_track: float   = 0.04        # extra area for the SOT channel
+    a_smtj_cell: float   = 0.05        # 2T SOT-MTJ cell: write (WWL) + read (RWL) access FETs
+    a_sot_track: float   = 0.04        # extra area for the 3-terminal SOT channel under the MTJ
     a_dac: float         = 200.0
     a_counter: float     = 50.0
 
