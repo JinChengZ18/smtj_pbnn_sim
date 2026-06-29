@@ -42,3 +42,19 @@
 - 2026-06-26: **dual-model device policy (directive ②) implemented + validated.** Keep BOTH: behavioral (`eda/models/smtj_sot.va` + `gen_golden.py`) as the MAIN iteration model (cheap), and the LLG macrospin solver (`eda/vendor/vgsot-sim`, submodule, importable via `PYTHONPATH=eda/vendor/vgsot-sim/src`) as the compute-heavy VALIDATION. Bridge = `eda/testbenches/llg_validate.py`: drives vgsot-sim MC case `ser_sot_no_vcma_thermal` (**must pass `enable_self_heating=True`** = the calibration point; self-heating OFF sits ~120µA/100mV higher), maps V=|I_SOT|·R_SOT (R_SOT=776). **Result: LLG threshold 0.8960V vs behavioral V_th 0.8958V = 0.2mV (0.01·V_T) match; rising-region R²=0.92, RMSE=0.067≈MC noise.** Honest caveat: above ~0.92V the LLG P_sw plateaus below the behavioral sigmoid (over-drive precessional back-switching — real LLG feature) → behavioral model validated in the operating region near threshold. vgsot-sim's `i_sot_list` for AP→P is NEGATIVE. Verilog-A transcription of vgsot-sim is a noted optional future path (heavy), not the main line.
 
 - 2026-06-29: **figure production norms locked + analysis figs unified into the chapter decks.** Binding rules now live in [`eda/research/2026-06-28_figure_conventions.md`](eda/research/2026-06-28_figure_conventions.md) §"Project production norms": generators bake NO `(a)(b)(c)`/figure numbers (the deck adds letters, the markdown caption carries the number); NO hard-coded "Chapter…"/"图X.Y"/filename strings RENDERED into an image (docstring / `savefig(...)` paths are fine); NO Chinese in any deliverable figure; comparison plots label points DIRECTLY (no legend, de-collide overlaps, disambiguate two "ours" → "ours" vs "ours (auto-zero)"); in-figure math uses real subscripts (`$V_\mathrm{th}$` / `<tspan baseline-shift="sub">`), never "V_th". **Pipeline:** `eda/gen_supplement_figs.py` → letter-free panels in `figures/panels/`; `eda/build_ppt_figs.py` appends them to the hand-built `article/ppt/Chapter0{4,5}_local.pptx` (one deck per chapter — the separate `autofigs_*` decks were removed as fragmentation) and exports each appended slide **clipped to the panel row** → `article/figs/`. Hand-built slides untouched (deck backed up `.pptx.bak`, only own slides re-appended via a notes tag). Circuit schematics keep their vector `.svg/.pdf` (NOT deck-routed → no raster downgrade). Superseded standalone `gen_design_comparison_figs.py` + `figures/design_cmp_*.png` deleted (the comparison is now panel (c) of figs 16/18/5.9).
+- 2026-06-29: Sibling project path migrated.
+  - Project: `02MRAMSim`
+  - Old root: `D:\Documents\毕业设计-2026年5月10日\02MRAM仿真`
+  - New root: `D:\Documents\Graduation Project-2026\02MRAMSim`
+  - Git repository root: `D:\Documents\Graduation Project-2026\02MRAMSim\vgsot-sim`
+  - Maintenance agents should use the new English path only.
+- 2026-06-29: Sibling project path migrated.
+  - Project: `03ISim`
+  - Old root: `D:\Documents\毕业设计-2026年5月10日\03伊辛模型`
+  - New root: `D:\Documents\Graduation Project-2026\03ISim`
+  - Git repository root: `D:\Documents\Graduation Project-2026\03ISim\isim_framework`
+  - Maintenance agents should use the new English path only.
+- 2026-06-29: Post-migration stale-cwd compatibility fixed.
+  - This Codex thread still opened with old cwd `D:\Documents\毕业设计-2026年5月10日\04PBNN仿真\smtj_pbnn_sim`, which no longer existed and made shell startup fail before any command could run.
+  - Added a Windows junction at that old cwd pointing to `D:\Documents\Graduation Project-2026\04PBNNSim\smtj_pbnn_sim`.
+  - Treat the English path as canonical; the old CJK path is only a compatibility entry for stale tool/session metadata.
