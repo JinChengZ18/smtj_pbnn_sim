@@ -1,0 +1,272 @@
+{
+  "topology": "current_steering",
+  "nbits": 6,
+  "Rload_ohm": 776.0,
+  "LSB_mV": 2.192,
+  "LSB_over_VT": 0.0936,
+  "range_mV": 138.098,
+  "monotonic": false,
+  "INL_LSB": 1.708,
+  "VT_mV": 23.414,
+  "covers_148mV_predist": false,
+  "codes_for_predist": 67.75,
+  "notes": "First-cut binary-weighted PMOS current-steering DAC (unit current mirrored, branch i = 2^i * I_u via W scaling, Rref=147k), summed into the 776 ohm load DIRECTLY (current-mode, no buffer = its native form). L=0.5 mirror devices. Non-monotonic because the PMOS sources lose Vsd compliance as V_load swings.",
+  "transfer": [
+    {
+      "code": 0,
+      "v_load": 0.0
+    },
+    {
+      "code": 1,
+      "v_load": 0.003499
+    },
+    {
+      "code": 2,
+      "v_load": 0.005571
+    },
+    {
+      "code": 3,
+      "v_load": 0.009068
+    },
+    {
+      "code": 4,
+      "v_load": 0.009796
+    },
+    {
+      "code": 5,
+      "v_load": 0.013291
+    },
+    {
+      "code": 6,
+      "v_load": 0.015361
+    },
+    {
+      "code": 7,
+      "v_load": 0.018854
+    },
+    {
+      "code": 8,
+      "v_load": 0.017811
+    },
+    {
+      "code": 9,
+      "v_load": 0.021303
+    },
+    {
+      "code": 10,
+      "v_load": 0.023371
+    },
+    {
+      "code": 11,
+      "v_load": 0.02686
+    },
+    {
+      "code": 12,
+      "v_load": 0.027586
+    },
+    {
+      "code": 13,
+      "v_load": 0.031074
+    },
+    {
+      "code": 14,
+      "v_load": 0.033138
+    },
+    {
+      "code": 15,
+      "v_load": 0.036624
+    },
+    {
+      "code": 16,
+      "v_load": 0.034481
+    },
+    {
+      "code": 17,
+      "v_load": 0.037966
+    },
+    {
+      "code": 18,
+      "v_load": 0.040028
+    },
+    {
+      "code": 19,
+      "v_load": 0.043512
+    },
+    {
+      "code": 20,
+      "v_load": 0.044235
+    },
+    {
+      "code": 21,
+      "v_load": 0.047717
+    },
+    {
+      "code": 22,
+      "v_load": 0.049776
+    },
+    {
+      "code": 23,
+      "v_load": 0.053256
+    },
+    {
+      "code": 24,
+      "v_load": 0.052218
+    },
+    {
+      "code": 25,
+      "v_load": 0.055697
+    },
+    {
+      "code": 26,
+      "v_load": 0.057753
+    },
+    {
+      "code": 27,
+      "v_load": 0.06123
+    },
+    {
+      "code": 28,
+      "v_load": 0.061951
+    },
+    {
+      "code": 29,
+      "v_load": 0.065426
+    },
+    {
+      "code": 30,
+      "v_load": 0.067479
+    },
+    {
+      "code": 31,
+      "v_load": 0.070952
+    },
+    {
+      "code": 32,
+      "v_load": 0.067734
+    },
+    {
+      "code": 33,
+      "v_load": 0.071207
+    },
+    {
+      "code": 34,
+      "v_load": 0.073259
+    },
+    {
+      "code": 35,
+      "v_load": 0.076729
+    },
+    {
+      "code": 36,
+      "v_load": 0.077447
+    },
+    {
+      "code": 37,
+      "v_load": 0.080917
+    },
+    {
+      "code": 38,
+      "v_load": 0.082965
+    },
+    {
+      "code": 39,
+      "v_load": 0.086432
+    },
+    {
+      "code": 40,
+      "v_load": 0.085399
+    },
+    {
+      "code": 41,
+      "v_load": 0.088865
+    },
+    {
+      "code": 42,
+      "v_load": 0.090911
+    },
+    {
+      "code": 43,
+      "v_load": 0.094375
+    },
+    {
+      "code": 44,
+      "v_load": 0.095091
+    },
+    {
+      "code": 45,
+      "v_load": 0.098553
+    },
+    {
+      "code": 46,
+      "v_load": 0.100596
+    },
+    {
+      "code": 47,
+      "v_load": 0.104056
+    },
+    {
+      "code": 48,
+      "v_load": 0.101929
+    },
+    {
+      "code": 49,
+      "v_load": 0.105389
+    },
+    {
+      "code": 50,
+      "v_load": 0.10743
+    },
+    {
+      "code": 51,
+      "v_load": 0.110888
+    },
+    {
+      "code": 52,
+      "v_load": 0.111601
+    },
+    {
+      "code": 53,
+      "v_load": 0.115057
+    },
+    {
+      "code": 54,
+      "v_load": 0.117095
+    },
+    {
+      "code": 55,
+      "v_load": 0.120549
+    },
+    {
+      "code": 56,
+      "v_load": 0.119519
+    },
+    {
+      "code": 57,
+      "v_load": 0.122972
+    },
+    {
+      "code": 58,
+      "v_load": 0.125008
+    },
+    {
+      "code": 59,
+      "v_load": 0.128459
+    },
+    {
+      "code": 60,
+      "v_load": 0.129169
+    },
+    {
+      "code": 61,
+      "v_load": 0.132619
+    },
+    {
+      "code": 62,
+      "v_load": 0.134651
+    },
+    {
+      "code": 63,
+      "v_load": 0.138098
+    }
+  ]
+}

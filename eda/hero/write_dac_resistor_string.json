@@ -1,0 +1,272 @@
+{
+  "topology": "resistor_string",
+  "nbits": 6,
+  "Rload_ohm": 776.0,
+  "LSB_mV": 3.0411,
+  "LSB_over_VT": 0.1299,
+  "range_mV": 191.589,
+  "monotonic": true,
+  "INL_LSB": 0.4753,
+  "VT_mV": 23.414,
+  "covers_148mV_predist": true,
+  "codes_for_predist": 48.83,
+  "notes": "Voltage-mode 2^b unit-resistor string (Vspan=200 mV, unit R=100 ohm), code-selected tap through a CMOS transmission gate to a two-stage Miller unity buffer (PMOS input for the 0..0.2 V common mode), L=0.15 switches. The tap drives the high-Z buffer gate, so TG on-resistance does not load the divider; the buffer adds a fixed offset + slight gain compression (both monotonic) and sources the 776 ohm load. Monotonic by construction -- VERIFIED in sim, not the analytic LSB=Vspan/2^b. Assumptions: Vspan, unit R, buffer sizing.",
+  "transfer": [
+    {
+      "code": 0,
+      "v_load": 0.011957
+    },
+    {
+      "code": 1,
+      "v_load": 0.014696
+    },
+    {
+      "code": 2,
+      "v_load": 0.017509
+    },
+    {
+      "code": 3,
+      "v_load": 0.020371
+    },
+    {
+      "code": 4,
+      "v_load": 0.023268
+    },
+    {
+      "code": 5,
+      "v_load": 0.026192
+    },
+    {
+      "code": 6,
+      "v_load": 0.029137
+    },
+    {
+      "code": 7,
+      "v_load": 0.032098
+    },
+    {
+      "code": 8,
+      "v_load": 0.035073
+    },
+    {
+      "code": 9,
+      "v_load": 0.038059
+    },
+    {
+      "code": 10,
+      "v_load": 0.041055
+    },
+    {
+      "code": 11,
+      "v_load": 0.04406
+    },
+    {
+      "code": 12,
+      "v_load": 0.047071
+    },
+    {
+      "code": 13,
+      "v_load": 0.050089
+    },
+    {
+      "code": 14,
+      "v_load": 0.053113
+    },
+    {
+      "code": 15,
+      "v_load": 0.056141
+    },
+    {
+      "code": 16,
+      "v_load": 0.059174
+    },
+    {
+      "code": 17,
+      "v_load": 0.062211
+    },
+    {
+      "code": 18,
+      "v_load": 0.065251
+    },
+    {
+      "code": 19,
+      "v_load": 0.068295
+    },
+    {
+      "code": 20,
+      "v_load": 0.071342
+    },
+    {
+      "code": 21,
+      "v_load": 0.074391
+    },
+    {
+      "code": 22,
+      "v_load": 0.077443
+    },
+    {
+      "code": 23,
+      "v_load": 0.080497
+    },
+    {
+      "code": 24,
+      "v_load": 0.083553
+    },
+    {
+      "code": 25,
+      "v_load": 0.086611
+    },
+    {
+      "code": 26,
+      "v_load": 0.089671
+    },
+    {
+      "code": 27,
+      "v_load": 0.092733
+    },
+    {
+      "code": 28,
+      "v_load": 0.095796
+    },
+    {
+      "code": 29,
+      "v_load": 0.098861
+    },
+    {
+      "code": 30,
+      "v_load": 0.101927
+    },
+    {
+      "code": 31,
+      "v_load": 0.104994
+    },
+    {
+      "code": 32,
+      "v_load": 0.108062
+    },
+    {
+      "code": 33,
+      "v_load": 0.111132
+    },
+    {
+      "code": 34,
+      "v_load": 0.114202
+    },
+    {
+      "code": 35,
+      "v_load": 0.117274
+    },
+    {
+      "code": 36,
+      "v_load": 0.120347
+    },
+    {
+      "code": 37,
+      "v_load": 0.12342
+    },
+    {
+      "code": 38,
+      "v_load": 0.126494
+    },
+    {
+      "code": 39,
+      "v_load": 0.129569
+    },
+    {
+      "code": 40,
+      "v_load": 0.132645
+    },
+    {
+      "code": 41,
+      "v_load": 0.135722
+    },
+    {
+      "code": 42,
+      "v_load": 0.138799
+    },
+    {
+      "code": 43,
+      "v_load": 0.141877
+    },
+    {
+      "code": 44,
+      "v_load": 0.144955
+    },
+    {
+      "code": 45,
+      "v_load": 0.148035
+    },
+    {
+      "code": 46,
+      "v_load": 0.151115
+    },
+    {
+      "code": 47,
+      "v_load": 0.154195
+    },
+    {
+      "code": 48,
+      "v_load": 0.157276
+    },
+    {
+      "code": 49,
+      "v_load": 0.160357
+    },
+    {
+      "code": 50,
+      "v_load": 0.163439
+    },
+    {
+      "code": 51,
+      "v_load": 0.166522
+    },
+    {
+      "code": 52,
+      "v_load": 0.169605
+    },
+    {
+      "code": 53,
+      "v_load": 0.172688
+    },
+    {
+      "code": 54,
+      "v_load": 0.175772
+    },
+    {
+      "code": 55,
+      "v_load": 0.178857
+    },
+    {
+      "code": 56,
+      "v_load": 0.181942
+    },
+    {
+      "code": 57,
+      "v_load": 0.185027
+    },
+    {
+      "code": 58,
+      "v_load": 0.188112
+    },
+    {
+      "code": 59,
+      "v_load": 0.191198
+    },
+    {
+      "code": 60,
+      "v_load": 0.194285
+    },
+    {
+      "code": 61,
+      "v_load": 0.197371
+    },
+    {
+      "code": 62,
+      "v_load": 0.200459
+    },
+    {
+      "code": 63,
+      "v_load": 0.203546
+    }
+  ]
+}
