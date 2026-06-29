@@ -30,3 +30,11 @@ Energies are now all grounded; **the four AREA constants remain placeholders**.
 3. **`a_counter`** — popcount-counter column pitch. Cheapest once a stdcell flow (yosys + OpenROAD + sky130_fd_sc_hd) is set up; effort: low–medium.
 
 Each grounded value should be written back to `eda/extraction/peripheral_energy.yaml` (the P6 one-way injection interface) and `tech_params.py`, then `experiments/04_ppa_breakdown.py` re-run to refresh `figures/04_ppa_breakdown.png`. The area-extraction work is **GUI/flow-gated** and is deliberately left for a follow-up batch.
+
+## Environment blocker (confirmed 2026-06-29)
+
+A full-filesystem search of the `Ubuntu-24.04-EDA` WSL image found **no `sky130_fd_sc_hd` lef/lib** — the image carries the sky130A *analog* primitives (the `nmos18`/`pmos18`/resistor PCells used for the StrongARM SA and the resistor-string DAC) but **not the digital standard-cell library**. `PDK_ROOT` is also unset in a non-login shell. Consequences for grounding:
+- **Counter** area (and a tighter counter/DAC *energy*) need the standard cells → first `open_pdks`-install `sky130_fd_sc_hd` (lef for area, Liberty for energy), then count gates × cell area.
+- **Resistor-string DAC** area can instead be laid out from sky130A analog PCells the same way `eda/hero/layout/gen_sa_layout.py` builds the StrongARM (KLayout `pya`, headless) — no stdcell lib required.
+- **1T-1MTJ bitcell** (`a_smtj_cell`, `a_sot_track`) stays a **design-rule estimate** regardless — sky130 has no MTJ device (see chapter04 §4.6 black-box note).
+Next session: `source` the PDK env / install `sky130_fd_sc_hd`, then ground counter+DAC from real cell/PCell areas and design-rule the bitcell. Until then the four area constants stay honest 28 nm placeholders rather than fabricated estimates.
