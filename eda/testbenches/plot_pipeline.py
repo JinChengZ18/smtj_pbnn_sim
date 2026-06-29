@@ -12,7 +12,7 @@ phase-enable waveforms Phi_W and Phi_R are drawn aligned to the sample boxes -- 
 exactly over each write box, Phi_R high exactly over each read box -- so the waveform IS the
 per-sample timing, with light guides tying the edges to the phase boundaries of sample 1.
 
-Run with Windows Python (matplotlib). Outputs article/figs/Chapter04_local_21.{png,svg,pdf}.
+Run with Windows Python (matplotlib). Outputs article/figs/Chapter04_local_20.{png,svg,pdf}.
 """
 import matplotlib
 matplotlib.use("Agg")
@@ -109,8 +109,8 @@ def main():
     fig.tight_layout()
     FIGS.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "svg", "pdf"):
-        fig.savefig(FIGS / f"Chapter04_local_21.{ext}", dpi=200, bbox_inches="tight")
-    print("wrote Chapter04_local_21.{png,svg,pdf}")
+        fig.savefig(FIGS / f"Chapter04_local_20.{ext}", dpi=200, bbox_inches="tight")
+    print("wrote Chapter04_local_20.{png,svg,pdf}")
 
 
 if __name__ == "__main__":

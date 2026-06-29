@@ -8,7 +8,7 @@ PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$
 
 ![图B.1 Fashion-MNIST上PBNN-CNN与基线的训练曲线](figs/AppendixB_01.png)
 
-**图B.1** Fashion-MNIST上PBNN-CNN (二值$$\pm 1$$、sMTJ)、确定性BNN-CNN (数字sign-STE) 与FP-CNN (FP32 + INT8 QAT) 共用四层卷积 + 两层全连接同拓扑下的测试精度 (左) 与测试损失 (右) 随训练轮数演化，对数纵轴。FP32收敛至93.58%、INT8与之相距0.06pp，二值架构 (PBNN-CNN 88.11%、BNN-CNN 87.60%) 几乎完全重合，与FP32相距约5.5个百分点；定性形态与正文图4.4(b)的MLP-MNIST曲线一致。
+**图B.1** Fashion-MNIST上PBNN-CNN (二值$$\pm 1$$、sMTJ)、确定性BNN-CNN (数字sign-STE) 与FP-CNN (FP32 + INT8 QAT) 共用四层卷积 + 两层全连接同拓扑下的测试精度 (左) 与测试损失 (右) 随训练轮数演化，对数纵轴。FP32收敛至93.58%、INT8与之相距0.06pp，二值架构 (PBNN-CNN 88.11%、BNN-CNN 87.60%) 几乎完全重合，与FP32相距约5.5个百分点；定性形态与正文图4.3(b)的MLP-MNIST曲线一致。
 
 ![图B.2 CIFAR-10上PBNN-CNN与基线的训练曲线](figs/AppendixB_02.png)
 

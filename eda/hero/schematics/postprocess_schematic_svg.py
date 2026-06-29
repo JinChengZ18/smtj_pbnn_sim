@@ -24,13 +24,13 @@ FIGS = HERE.parent.parent.parent / "article" / "figs"
 # module-grouping boxes per schematic, in the SVG content coordinate system:
 #   (x, y, w, h, color, caption)   caption drawn just above the box's top-left.
 GROUPS = {
-    "strongarm_sa": ("Chapter04_local_15", [
+    "strongarm_sa": ("Chapter04_local_14", [
         (150, 88, 215, 170, "#5E3F8C", "cross-coupled latch"),
         (150, 290, 215, 72, "#1A6B5A", "input pair"),
         (205, 384, 95, 58, "#C77A0A", "clocked tail"),
     ]),
     # captions sit at each box's top-left in the box colour (module name beside box)
-    "writepath": ("Chapter04_local_19", [
+    "writepath": ("Chapter04_local_18", [
         (72, 66, 80, 254, "#5E3F8C", "R-string write-DAC"),
         (193, 184, 215, 70, "#1A6B5A", "k:1 tap select"),
         (468, 118, 82, 158, "#C77A0A", "CMOS write driver"),

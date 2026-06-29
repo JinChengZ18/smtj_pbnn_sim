@@ -45,9 +45,9 @@ LETTER_DX, LETTER_DY = 0.05, 0.02      # panel letter sits just inside each pane
 # chapter deck -> list of figures (stem in figures/panels/, panel letters, output name)
 DECKS = {
     "Chapter04_local.pptx": [
-        {"stem": "ch04_16", "panels": "abc", "out": "Chapter04_local_16"},
-        {"stem": "ch04_17", "panels": "ab", "out": "Chapter04_local_17"},
-        {"stem": "ch04_18", "panels": "abc", "out": "Chapter04_local_18"},
+        {"stem": "ch04_15", "panels": "abc", "out": "Chapter04_local_15"},
+        {"stem": "ch04_16", "panels": "ab", "out": "Chapter04_local_16"},
+        {"stem": "ch04_17", "panels": "abc", "out": "Chapter04_local_17"},
     ],
     "Chapter05_local.pptx": [
         {"stem": "ch05_09", "panels": "abc", "out": "Chapter05_local_09"},

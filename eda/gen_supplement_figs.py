@@ -3,9 +3,9 @@
 
 Reproduces the article figure style (palette + grid/log conventions of experiments/16_*.py) from the
 committed result JSONs, so the chapter figures regenerate deterministically. Headless matplotlib
-(no GUI). Outputs: Chapter04_local_22 (device dual-model consistency), Chapter04_local_16 (read-out
-offset pareto), Chapter04_local_17 (write energy/supply), Chapter05_local_09 (reservoir energy front),
-Chapter04_local_18 (IR pre-distortion). The circuit schematics live under eda/hero/schematics/.
+(no GUI). Outputs: Chapter04_local_21 (device dual-model consistency), Chapter04_local_15 (read-out
+offset pareto), Chapter04_local_16 (write energy/supply), Chapter05_local_09 (reservoir energy front),
+Chapter04_local_17 (IR pre-distortion). The circuit schematics live under eda/hero/schematics/.
 
 Run: python eda/gen_supplement_figs.py
 """
@@ -161,7 +161,7 @@ def fig1():
     ax.set_xlabel(r"write voltage $V$ (V)"); ax.set_ylabel(r"switching probability $P_{sw}$")
     ax.set_title(r"LLG vs behavioral $P_{sw}$ validation")
     ax.legend(fontsize=9, loc="upper left")
-    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_22.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_21.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -200,8 +200,8 @@ def fig2():
     ax[1].legend(fontsize=8.5)
     design_cmp_table(ax[2], "readout_sa", "Readout SA: capability vs literature")
     fig.tight_layout()
-    save_panels(fig, ax, "ch04_16")
-    fig.savefig(OUT / "Chapter04_local_16.png", dpi=200, bbox_inches="tight")
+    save_panels(fig, ax, "ch04_15")
+    fig.savefig(OUT / "Chapter04_local_15.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -236,8 +236,8 @@ def fig3():
     ax[1].set_title("Write-driver voltage delivery")
     ax[1].legend(handles=[l1, l2], fontsize=9, loc="center right")
     fig.tight_layout()
-    save_panels(fig, ax, "ch04_17")
-    fig.savefig(OUT / "Chapter04_local_17.png", dpi=200, bbox_inches="tight")
+    save_panels(fig, ax, "ch04_16")
+    fig.savefig(OUT / "Chapter04_local_16.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
@@ -316,12 +316,12 @@ def fig5():
     # (c) write-path capability matrix vs surveyed literature (qualitative; no fabricated coords)
     design_cmp_table(ax[2], "write_dac_ir", "Write path: capability vs literature")
     fig.tight_layout()
-    save_panels(fig, ax, "ch04_18")
-    fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")
+    save_panels(fig, ax, "ch04_17")
+    fig.savefig(OUT / "Chapter04_local_17.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 
 if __name__ == "__main__":
     for f in (fig1, fig2, fig3, fig4, fig5):
         f(); print("wrote", f.__name__)
-    print("EDA analysis figures -> article/figs/Chapter04_local_{16,17,18,22}.png + Chapter05_local_09.png")
+    print("EDA analysis figures -> article/figs/Chapter04_local_{15,16,17,21}.png + Chapter05_local_09.png")
