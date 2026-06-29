@@ -1,7 +1,7 @@
 {
   "design": "double_tail",
   "desc": "Double tail charge steering Zhang2022",
-  "N": 24,
+  "N": 120,
   "scale": 1.0,
   "Win_um": 4.0,
   "AVT_N_mV_um": 5.0,
@@ -9,10 +9,10 @@
     6.454972243679028,
     6.454972243679028
   ],
-  "offset_mean_mV": -3.5812101049443026,
-  "offset_sigma_mV": 10.557814842023742,
+  "offset_mean_mV": -1.4992507492507534,
+  "offset_sigma_mV": 9.198183756376668,
   "VT_mV": 23.414,
-  "sigma_offset_over_VT": 0.4509188879313121,
-  "three_sigma_over_VT": 1.352756663793936,
+  "sigma_offset_over_VT": 0.39284973760898045,
+  "three_sigma_over_VT": 1.1785492128269413,
   "note": "AVT is a sky130-class assumption (not PDK mismatch model); 130nm/1.8V -> ratio sigma_offset/V_T transfers, not absolute mV. Same-flow reproduction comparison: all designs share this harness."
 }
