@@ -1,0 +1,69 @@
+{
+  "_about": "Phase-4 aggregation of same-flow reproduction results (revision plan). Numbers are read verbatim from committed *_summary.json; nothing is invented. The capability matrix (gen_supplement_figs.py CAPS) remains the qualitative view; this is the quantitative one.",
+  "readout_sa": {
+    "metric": "input-referred offset sigma / V_T (lower better)",
+    "flow": "sky130 offset-MC (run_offset_mc.py)",
+    "designs": [
+      {
+        "design": "dsa",
+        "is_ours": false,
+        "sigma_offset_over_VT": 0.38615483622783886,
+        "sigma_offset_mV": 9.04142933543862,
+        "N": 120
+      },
+      {
+        "design": "double_tail",
+        "is_ours": false,
+        "sigma_offset_over_VT": 0.39284973760898045,
+        "sigma_offset_mV": 9.198183756376668,
+        "N": 120
+      },
+      {
+        "design": "strongarm",
+        "is_ours": true,
+        "sigma_offset_over_VT": 0.39340092810742305,
+        "sigma_offset_mV": 9.211089330707203,
+        "N": 120
+      }
+    ],
+    "finding": "All comparators land at ~0.39 V_T in the same 130 nm flow: offset is set by input-pair Pelgrom mismatch (same W*L), so the literature topology advantages (28 nm sims) do not reproduce here -> plain StrongARM is Pareto-optimal."
+  },
+  "write_dac": {
+    "metric": "monotonicity + INL (LSB) into the 776 ohm write load",
+    "flow": "sky130 code-sweep (run_write_dac.py topology factory)",
+    "designs": [
+      {
+        "topology": "resistor_string",
+        "is_ours": true,
+        "monotonic": true,
+        "INL_LSB": 0.4753,
+        "LSB_mV": 3.0411,
+        "range_mV": 191.589
+      },
+      {
+        "topology": "current_steering",
+        "is_ours": false,
+        "monotonic": false,
+        "INL_LSB": 1.708,
+        "LSB_mV": 2.192,
+        "range_mV": 138.098
+      },
+      {
+        "topology": "r2r",
+        "is_ours": false,
+        "monotonic": false,
+        "INL_LSB": 2.6234,
+        "LSB_mV": 3.0059,
+        "range_mV": 189.371
+      }
+    ],
+    "finding": "Into the low-impedance 776 ohm write load only the voltage-mode resistor-string is monotonic (INL 0.48 LSB); current-steering (INL 1.71, PMOS Vsd compliance) and R-2R (INL 2.62, switch Ron at major carry) are non-monotonic -> resistor-string is the correct write-DAC, now measured not asserted."
+  },
+  "sar_adc": {
+    "metric": "comparator + cap-DAC energy per conversion (fJ)",
+    "flow": "ANALYTIC (E_comp from extracted StrongARM SA + cap-DAC switching formula)",
+    "status": "pending: needs an ngspice transient SAR testbench for a true same-flow comparison",
+    "E_comp_fJ": 48.0,
+    "C_u_fF": 1.5
+  }
+}
