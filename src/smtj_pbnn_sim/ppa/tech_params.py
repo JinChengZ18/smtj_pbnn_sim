@@ -9,9 +9,11 @@ placeholder, so the simulator reports a credible read fraction without an
 external override. The DAC code-set and counter-increment energies are now
 grounded in sky130 as well (``eda/testbenches/dac_counter_energy.py``: ngspice
 analog core + a sky130 stdcell-capacitance estimate for the digital decode /
-flip-flops, since the sky130_fd_sc_hd Liberty is not installed). Only the AREAS
-remain 28 nm order-of-magnitude and SHOULD be replaced with sky130 layout
-extraction before reporting their absolute numbers (see
+flip-flops; ~2x uncertainty pending a Liberty/OpenSTA characterization). The cell
+and peripheral AREAS are now first-order grounded too, from extracted
+``sky130_fd_sc_hd`` standard-cell areas + design rules
+(``eda/testbenches/area_estimate.py``): a cell-count + sized-FET estimate, NOT a
+DRC-clean GDS extraction -- so the absolute area numbers carry that caveat (see
 ``.agents/eda/PPA_grounding_plan.md``).
 
 NOTE (see ``.agents/errata.md``, item E1): NeuroSim does NOT model the sMTJ
@@ -40,7 +42,7 @@ class TechParams:
     R_SOT: float         = 776.0       # SOT channel resistance [ohm]
     t_write: float       = 0.75e-9     # write pulse width [s]
 
-    # ---- CMOS peripheral energies (28 nm order of magnitude) -------------#
+    # ---- CMOS peripheral energies (sky130-grounded) ---------------------#
     e_dac_step: float    = 3.4e-14     # sky130 R-string write-DAC code-set: ngspice analog core ~0.6 fJ + decode ~33 fJ (eda/testbenches/dac_counter_energy.py; ~2x uncertainty pending stdcell extraction)
     e_smtj_read: float   = 4.8e-14     # sky130 StrongARM SA decision, ~48 fJ (eda/ extraction; errata R1)
     e_count_inc: float   = 1.9e-14     # sky130 popcount-counter increment: ~2 DFF toggles x ~10 fJ at 1.8 V (eda/testbenches/dac_counter_energy.py; ~2x uncertainty pending Liberty)
@@ -65,10 +67,10 @@ class TechParams:
     t_count_inc: float   = 0.5e-9
 
     # ---- Areas (um^2) ----------------------------------------------------#
-    a_smtj_cell: float   = 0.05        # 2T SOT-MTJ cell: write (WWL) + read (RWL) access FETs
-    a_sot_track: float   = 0.04        # extra area for the 3-terminal SOT channel under the MTJ
-    a_dac: float         = 200.0
-    a_counter: float     = 50.0
+    a_smtj_cell: float   = 4.6         # 2T SOT-MTJ cell; write FET W~2.2um @ 1.16mA dominates (eda/testbenches/area_estimate.py)
+    a_sot_track: float   = 0.03        # BEOL SOT channel under the MTJ (~negligible planar footprint)
+    a_dac: float         = 800.0       # 6-bit R-string DAC: 64 unit-R + 63-switch tap MUX, sky130_fd_sc_hd areas
+    a_counter: float     = 630.0       # 11-bit column accumulator w*(DFF+FA), sky130_fd_sc_hd areas
 
     # ---- Identifying meta -----------------------------------------------#
     name: str = "sky130-read-sot-default"

@@ -1,6 +1,6 @@
 # PPA grounding plan — replacing the simulator's 28 nm placeholders with sky130
 
-Audit + plan for `src/smtj_pbnn_sim/ppa/tech_params.py`. The PPA estimator started from 28 nm order-of-magnitude constants; this is the running ledger of which inputs are grounded in the sky130 EDA flow and which still need work.
+Ledger of `src/smtj_pbnn_sim/ppa/tech_params.py` grounding. The PPA estimator started from 28 nm order-of-magnitude constants; as of 2026-06-29 **all energies and all areas are sky130-grounded** (first-order), leaving only the precision refinements below.
 
 ## Status (2026-06-29)
 
@@ -8,33 +8,27 @@ Audit + plan for `src/smtj_pbnn_sim/ppa/tech_params.py`. The PPA estimator start
 |------------------|-----------:|-----------|--------|
 | `e_smtj_write`   | 0.78 pJ    | **physical** | V_wr²/R_SOT·t_p (Chapter 2.3 op point), `tech_params.e_smtj_write` |
 | `e_smtj_read`    | 48 fJ      | **EDA**   | sky130 StrongARM SA extraction (`eda/hero/sa_postlayout.py`, range 23–74 fJ; errata R1) |
-| `e_dac_step`     | 34 fJ      | **EDA (energy)** | `eda/testbenches/dac_counter_energy.py`: ngspice analog core (~0.6 fJ) + sky130 stdcell-cap decode (~33 fJ) |
-| `e_count_inc`    | 19 fJ      | **EDA (energy)** | `eda/testbenches/dac_counter_energy.py`: ~2 DFF toggles × ~10 fJ (sky130 stdcell-cap) |
-| `a_smtj_cell`    | 0.05 µm²   | placeholder | 28 nm order-of-magnitude — **needs sky130 layout** |
-| `a_sot_track`    | 0.04 µm²   | placeholder | 28 nm order-of-magnitude — **needs sky130 layout** |
-| `a_dac`          | 200 µm²    | placeholder | 28 nm order-of-magnitude — **needs sky130 layout** |
-| `a_counter`      | 50 µm²     | placeholder | 28 nm order-of-magnitude — **needs sky130 layout** |
+| `e_dac_step`     | 34 fJ      | **EDA (est)** | `eda/testbenches/dac_counter_energy.py`: ngspice analog core (~0.6 fJ) + sky130 stdcell-cap decode (~33 fJ) |
+| `e_count_inc`    | 19 fJ      | **EDA (est)** | same; ~11-bit accumulator clock toggle — cross-checks the area model below |
+| `a_smtj_cell`    | 4.6 µm²    | **EDA (est)** | `eda/testbenches/area_estimate.py`: 2T cell, write FET W~2.2 µm @ 1.16 mA dominates |
+| `a_sot_track`    | 0.03 µm²   | **EDA (est)** | same; BEOL SOT channel under the MTJ (~negligible planar) |
+| `a_dac`          | 800 µm²    | **EDA (est)** | same; 6-bit R-string: 64 unit-R + 63-switch tap MUX (`sky130_fd_sc_hd` cell areas) |
+| `a_counter`      | 630 µm²    | **EDA (est)** | same; 11-bit column accumulator w·(DFF+FA), real `sky130_fd_sc_hd` cell areas |
 
-Energies are now all grounded; **the four AREA constants remain placeholders**.
+## What was done
 
-## What was done this round (energies)
+**Energies** (`eda/testbenches/dac_counter_energy.py`): grounded the DAC code-set (~34 fJ) and counter increment (~19 fJ) from a sky130 ngspice analog core + gate-capacitance estimate. Net per-MAC breakdown: write ~89 %, read ~5.4 %, DAC ~3.8 %, counter ~2.1 % (peripheral share rose ~1 % → ~11 % vs the old placeholders).
 
-`eda/testbenches/dac_counter_energy.py` grounds the two remaining energy placeholders. The DAC analog core (resistor-string + tap transmission-gate + write-driver gate load) is measured with an ngspice transient on the sky130 models; the digital one-hot decode and the counter flip-flops are estimated from sky130 gate capacitance (Cox≈8.6 fF/µm², 1.8 V) because the `sky130_fd_sc_hd` Liberty is not installed in the `Ubuntu-24.04-EDA` image. Net effect on the per-MAC breakdown: peripheral share rises from ~6% to ~11% (DAC 3.8% + read 5.4% + counter 2.1%); the stochastic SOT write still dominates at ~89%.
+**Areas** (`eda/testbenches/area_estimate.py`): grounded the four area constants from REAL `sky130_fd_sc_hd` standard-cell areas (`.lef` SIZE, row height 2.72 µm: DFF/FA 20.0 µm², MUX2 11.3, einvp 6.3, inv 3.8) plus sky130 design rules. Key result: the **2T cell jumps 0.05 → ~4.6 µm²** because the write-access FET must pass I_wr = V_wr/R_SOT ≈ 1.16 mA (→ W ≈ 2.2 µm at sky130's ~0.52 mA/µm) — the low-R SOT write line drives the cell size. The tile area rises ~70 k → ~670 k µm² (0.07 → 0.67 mm² for 256×256), and the periphery (DAC + counter accumulators) becomes comparable to the array rather than negligible (`figures/04_ppa_breakdown.png`).
 
-**Residual uncertainty (~2×)** on `e_dac_step`/`e_count_inc`: the digital terms are cap-estimates, not extracted. Refinement path: install open_pdks `sky130_fd_sc_hd` Liberty and read the DFF/decoder `internal_power`, or synthesize (yosys) + place-route (OpenROAD) the decode+counter and extract.
+## Environment note (corrected 2026-06-29)
 
-## Remaining work — area grounding (priority order)
+An earlier note here claimed the WSL image lacked `sky130_fd_sc_hd`; **that was wrong** — a bad `find /` (errored on a WSL networking warning, `PDK_ROOT` unset) missed it. The library is present at `/opt/pdk/sky130A/libs.ref/sky130_fd_sc_hd/` with both `.lef` (areas, used above) and `.lib` (Liberty). `export PDK_ROOT=/opt/pdk PDK=sky130A` to use it.
 
-1. **`a_smtj_cell` + `a_sot_track`** (highest leverage — sets the array area, the only block whose area is intrinsic to the device). Artifact: a **2T SOT-MTJ** bit-cell layout — TWO FEOL access FETs (write `MW`/WWL + read `MR`/RWL, per `gen_system_sch.py`) + BEOL MTJ pillar + 3-terminal SOT channel track — in sky130 (Magic/KLayout), DRC-clean, area read from the GDS bbox; the StrongARM cell layout under `eda/hero/layout/` is a template for the flow. Effort: medium (GUI layout); tool: Magic + sky130A. NB: it is a 2T cell (write + read access), not a 1T-1MTJ STT cell — area is two FETs + routing pitch, the MTJ being BEOL.
-2. **`a_dac`** — resistor-string DAC bank floorplan (the chosen 6–7 bit string + tap MUX + driver), area per column. Tool: KLayout/OpenROAD; effort: medium.
-3. **`a_counter`** — popcount-counter column pitch. Cheapest once a stdcell flow (yosys + OpenROAD + sky130_fd_sc_hd) is set up; effort: low–medium.
+## Remaining refinements (precision, not blockers)
 
-Each grounded value should be written back to `eda/extraction/peripheral_energy.yaml` (the P6 one-way injection interface) and `tech_params.py`, then `experiments/04_ppa_breakdown.py` re-run to refresh `figures/04_ppa_breakdown.png`. The area-extraction work is **GUI/flow-gated** and is deliberately left for a follow-up batch.
+1. **DRC-clean GDS extraction of the areas.** The current numbers are cell-count + sized-FET estimates, not laid-out + extracted. To tighten: lay out the 2T cell (Magic/KLayout — the StrongARM under `eda/hero/layout/` is the template; the MTJ stays an abstract BEOL black-box, no sky130 device), the R-string DAC from analog PCells, and a counter from `sky130_fd_sc_hd` placed cells; read the GDS bbox. The softest current assumptions are the unit-resistor area (`A_RUNIT`) and the 1/UTIL routing overhead.
+2. **Liberty/OpenSTA energy.** `e_dac_step`/`e_count_inc` are ~2× cap-estimates; the now-confirmed `.lib` lets OpenSTA report characterized switching energy for the decode/accumulator cells. (Hand-parsing Liberty `internal_power` is unit-error-prone — use a tool.)
+3. Re-run `experiments/04_ppa_breakdown.py` after any refinement; write grounded values back to `eda/extraction/peripheral_energy.yaml` + `tech_params.py`.
 
-## Environment blocker (confirmed 2026-06-29)
-
-A full-filesystem search of the `Ubuntu-24.04-EDA` WSL image found **no `sky130_fd_sc_hd` lef/lib** — the image carries the sky130A *analog* primitives (the `nmos18`/`pmos18`/resistor PCells used for the StrongARM SA and the resistor-string DAC) but **not the digital standard-cell library**. `PDK_ROOT` is also unset in a non-login shell. Consequences for grounding:
-- **Counter** area (and a tighter counter/DAC *energy*) need the standard cells → first `open_pdks`-install `sky130_fd_sc_hd` (lef for area, Liberty for energy), then count gates × cell area.
-- **Resistor-string DAC** area can instead be laid out from sky130A analog PCells the same way `eda/hero/layout/gen_sa_layout.py` builds the StrongARM (KLayout `pya`, headless) — no stdcell lib required.
-- **2T SOT-MTJ bitcell** (`a_smtj_cell`, `a_sot_track`) stays a **design-rule estimate** regardless — sky130 has no MTJ device (see chapter04 §4.6 black-box note). Area basis = two access FETs (write + read) sized from our currents + sky130 rules; the MTJ pillar (~100 nm, Hikstor) is BEOL on top.
-Next session: `source` the PDK env / install `sky130_fd_sc_hd`, then ground counter+DAC from real cell/PCell areas and design-rule the bitcell. Until then the four area constants stay honest 28 nm placeholders rather than fabricated estimates.
+The first-order estimates are flagged as such in `tech_params` and chapter04 §4.6 — they are sky130-grounded, not DRC-extracted.

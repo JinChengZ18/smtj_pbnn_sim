@@ -100,7 +100,7 @@ A T=1 explicit-sample pass is equivalent to a single Bernoulli draw, which has v
 
 ### PPA constants are placeholders for CMOS peripherals
 
-As of 0.4.0 the peripheral **energies** are sky130-grounded: `e_smtj_read` (~48 fJ, extracted StrongARM SA), `e_dac_step` (~34 fJ) and `e_count_inc` (~19 fJ) via `eda/testbenches/dac_counter_energy.py`, plus the physically-derived `e_smtj_write` (SOT channel dissipation). Only the **area** constants (`a_smtj_cell`, `a_sot_track`, `a_dac`, `a_counter`) remain 28 nm order-of-magnitude — replace via sky130 layout extraction before absolute area claims (plan in `.agents/eda/PPA_grounding_plan.md`).
+As of 0.4.0 the peripheral **energies** are sky130-grounded: `e_smtj_read` (~48 fJ, extracted StrongARM SA), `e_dac_step` (~34 fJ) and `e_count_inc` (~19 fJ) via `eda/testbenches/dac_counter_energy.py`, plus the physically-derived `e_smtj_write` (SOT channel dissipation). The **areas** are now first-order grounded too (`eda/testbenches/area_estimate.py`, from real `sky130_fd_sc_hd` cell areas + design rules): `a_smtj_cell` ~4.6 um^2 (2T cell, write-FET-dominated), `a_dac` ~800, `a_counter` ~630, `a_sot_track` ~0.03 um^2. These are cell-count estimates, not DRC-clean GDS extraction — refine via layout extraction before final absolute area claims (plan in `.agents/eda/PPA_grounding_plan.md`).
 
 ### CSV column units
 
@@ -182,7 +182,8 @@ Grounds the simulator's CMOS-peripheral PPA inputs in an open-source sky130 (130
 
 ### Changed -- PPA grounding
 
-* `tech_params`: `e_smtj_read` 5 fJ -> 48 fJ, `e_dac_step` 5 fJ -> 34 fJ, `e_count_inc` 0.5 fJ -> 19 fJ (all sky130-grounded); per-MAC peripheral share ~1% -> ~11%, with the SOT write still ~89%. Only the four AREA constants remain 28 nm placeholders (plan in `.agents/eda/PPA_grounding_plan.md`).
+* `tech_params`: `e_smtj_read` 5 fJ -> 48 fJ, `e_dac_step` 5 fJ -> 34 fJ, `e_count_inc` 0.5 fJ -> 19 fJ (all sky130-grounded); per-MAC peripheral share ~1% -> ~11%, with the SOT write still ~89%.
+* `tech_params` areas now **first-order grounded** too (`eda/testbenches/area_estimate.py`, from real `sky130_fd_sc_hd` cell areas + design rules): 2T cell 0.05 -> 4.6 um^2 (the 1.16 mA write FET dominates), DAC 200 -> 800, counter 50 -> 630 um^2; 256x256 tile 0.07 -> 0.67 mm^2, periphery now comparable to the array. Cell-count estimate, not DRC-clean GDS extraction (refinement in `.agents/eda/PPA_grounding_plan.md`).
 * `tests/test_ppa.py`: write-fraction threshold updated to the grounded breakdown. Full suite: 111 passing (torch included).
 
 ### Changed -- article / figures
