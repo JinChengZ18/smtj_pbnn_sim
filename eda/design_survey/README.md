@@ -8,6 +8,10 @@ The panels are now a **qualitative capability matrix** (Y / partial / N coverage
 
 All ~19 cited papers were confirmed to exist (no hallucinated papers). Citations corrected after verification: PICO-RAM author B. Zhang → **Z. Chen** (IEEE JSSC 2025); ADC-energy model Krishnan/Cao → **Andrulis et al. (MIT)**; image-sensor Kim/Hong/Kwon → **Zhang/Yu/Lyu/Li** (IEICE E101.A:434–437, 2018); 1S1R Cassuto/Ben-Hur → **Chen & Dolecek**; Liu/Zhang add AICAS 2023 DOI; Dutta is a sole author; Yoon author **Caçoilo** (chapter footnote fixed). The capability-matrix Y/N/partial marks are derived from those (verified) paper descriptions.
 
+### Phase ② — what the papers actually report (and why there is still no quantitative scatter)
+
+The `verified_reported` block in `submodule_survey.json` records, per design, the metric each paper genuinely reports (value, axis, node). The decisive finding: **almost no design reports both comparison axes at a comparable node/level** — e.g. the double-tail comparator reports an offset (6.9 mV, simulated) but not a per-decision energy; Xcel-RAM reports 1.914 pJ/op but no offset; the SAR papers report a whole-converter FoM or only relative gains. So a *legitimate* 2-axis literature scatter **cannot** be built from reported numbers without mixing axes/nodes. The capability matrix therefore stands as the honest comparison, and a true quantitative (same-axis) comparison is deferred to **Phase ③** (local reproduction of the designs in the same sky130/ngspice flow) — see the revision plan. No "as-reported" scatter is plotted, to avoid implying a like-for-like comparison that the sources do not support.
+
 ## Our data points — EDA-derived, reproducible
 
 Every "ours" number (used in the capability matrix, in panels (a)/(b), and in the chapter §4.6 / §5.5 prose) is produced by a committed script and stored in a committed JSON. The circuit design source (Xschem `.sch` + symbols, SPICE netlists, the Verilog-A device model, extraction scripts) is committed under `eda/hero/schematics/`, `eda/hero/*.spice`, `eda/models/smtj_sot.va`, and `eda/extraction/`.

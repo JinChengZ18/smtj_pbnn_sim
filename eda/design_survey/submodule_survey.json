@@ -2,6 +2,35 @@
   "source": "multi-agent arxiv/OA survey (workflow wf_3df4813c-07b, 2026-06-29)",
   "_caveat": "INTEGRITY NOTE (2026-06-30): the numeric figure_data/comparison_rows coordinates below were multi-agent survey ESTIMATES. Web verification found that most literature axis values are NOT reported by the cited papers (estimates / back-of-envelope / placeholders / 'not reported'; one SAR energy was even copied from our own value). They are NO LONGER plotted in the thesis. The chapter figures (16/18/5.9 panel c) now use the QUALITATIVE capability matrix in eda/gen_supplement_figs.py (CAPS) -- Y/N/partial coverage, no fabricated numbers. These JSON coordinates are retained only as the raw survey record. See eda/design_survey/README.md.",
   "_verification": "All ~19 cited papers were confirmed to EXIST (no hallucinated papers). Citations corrected per web check: PICO-RAM author B.Zhang->Z.Chen (now IEEE JSSC 2025); ADC-energy-model authors Krishnan/Cao->Andrulis,Chen,Lee,Emer,Sze (MIT); image-sensor Kim/Hong/Kwon->Zhang,Yu,Lyu,Li (IEICE Trans. Fundamentals E101.A(2):434-437, 2018, DOI 10.1587/transfun.E101.A.434); 1S1R Cassuto/Ben-Hur->Z.Chen & L.Dolecek; Liu/Zhang add AICAS 2023, DOI 10.1109/AICAS57966.2023.10168604; Dutta (2209.07259) is a sole author. The readout-SA 'conventional-SA sigma~19mV' was a survey MISREAD (the paper's only 19mV is an unrelated VDD_min); Dong reports only a >60% relative offset reduction.",
+  "verified_reported": {
+    "_note": "Phase-2 (2026-06-30): what each cited paper ACTUALLY reports, per web verification. KEY FINDING: almost no design reports BOTH comparison axes (input-referred offset AND per-decision energy) at a comparable node/level, so an honest 2-axis literature scatter is NOT constructible. The qualitative capability matrix (gen_supplement_figs.py CAPS) stands; a true quantitative comparison needs same-workflow local reproduction (Phase 3 of the revision plan).",
+    "readout_sa": {
+      "Dong single-cap SA": ">60% input-offset sigma reduction (RELATIVE; no absolute mV, no per-read fJ), 28 nm",
+      "double-tail comparator": "input-referred offset 6.9 mV (simulated) at 0.9 V; 5.4 uW @ 1 MHz, 245 ps; 28 nm -- offset reported, per-decision energy not directly",
+      "Xcel-RAM": "1.914 pJ and 45 ns per OPERATION (array-level; node not in abstract) -- energy reported, offset not",
+      "RRAM XNOR-BNN": "24 TOPS/W, 158 GOPS, 98.5% MNIST; 90 nm -- efficiency, not per-decision fJ or offset",
+      "current-sampling SA": "offset (mV) and energy NOT in the open abstract (paywalled) -- unverifiable",
+      "_axis": "Only double-tail reports an absolute offset (6.9 mV, sim); only Xcel-RAM reports an energy (per-op). No design reports both on the offset-vs-energy axes."
+    },
+    "write_dac_ir": {
+      "Truong": "recognition 99/95/81/65% at wire R 1.5/2.0/2.5/3.0 ohm; model-vs-SPICE <2.9% (algorithm/SPICE; no residual write mV)",
+      "Zhu": "qualitative: array scale x line-R/RRAM-R ratio drive impact (full text paywalled; N_col^2 square-law not textually confirmed)",
+      "Kim water-filling": "~40% write-energy reduction; MSE ~21x for an 8-bit word (no residual write mV)",
+      "Chen-Dolecek 1S1R": "write/read channel + BER models (no residual write mV; opposite high-line-R regime)",
+      "VECOM": "9.1x throughput, ~50% energy (read-side encode + SA trim; no write residual)",
+      "Yoon sMTJ p-bit": "130 nm; ~100 mV swing @ Vgate~0.85 V; variable inverter threshold 0.7-1.1 V/100 mV; gate-bias 5-20 mV steps (single p-bit; no array IR residual)",
+      "_axis": "No paper reports a remote-row residual write-voltage error on an N=256 column; all literature x-values in the retired scatter were survey-ASSIGNED."
+    },
+    "sar_adc": {
+      "Liu-Zhang SAR/SS": "Walden FoM 44.8 fJ/conv-step, SNDR 40.93 dB, 350 MS/s, 1.429 mW @ 8b, 55 nm (whole-converter FoM, NOT comparator-only; no offset)",
+      "PICO-RAM (Z. Chen)": "55.8% local-ADC energy reduction, 40.2 TOPS/W, 8.5-bit, ADC area 387.9 um^2, 65 nm (no absolute comparator fJ; offset 'minimal', qualitative)",
+      "Andrulis ADC model": "ADC energy ~ exponential in ENOB; optimal ~5-9b (regression over the Murmann dataset; no single design datapoint)",
+      "Dutta StrongARM-SAR": "8 mV offset reduction, 6% PDP -- RELATIVE only; 45 nm (no absolute offset or fJ)",
+      "Zhong memristor RC": "~1000x lower power, 96.6%/97.9% accuracy (fully-analog, no ADC in the path; no per-conversion fJ)",
+      "image-sensor (Zhang/Yu)": "89 uW/column, 763 uW ramp gen, 12-bit, 3.2 us, SMIC 0.18 um (no fJ/conv or FoM; offset via CDS)",
+      "_axis": "Only Liu-Zhang reports an energy (whole-converter FoM, a different axis). No design reports comparator energy + V_T-window offset together."
+    }
+  },
   "submodules": [
     {
       "key": "readout_sa",
