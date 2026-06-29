@@ -1,5 +1,7 @@
 {
   "source": "multi-agent arxiv/OA survey (workflow wf_3df4813c-07b, 2026-06-29)",
+  "_caveat": "INTEGRITY NOTE (2026-06-30): the numeric figure_data/comparison_rows coordinates below were multi-agent survey ESTIMATES. Web verification found that most literature axis values are NOT reported by the cited papers (estimates / back-of-envelope / placeholders / 'not reported'; one SAR energy was even copied from our own value). They are NO LONGER plotted in the thesis. The chapter figures (16/18/5.9 panel c) now use the QUALITATIVE capability matrix in eda/gen_supplement_figs.py (CAPS) -- Y/N/partial coverage, no fabricated numbers. These JSON coordinates are retained only as the raw survey record. See eda/design_survey/README.md.",
+  "_verification": "All ~19 cited papers were confirmed to EXIST (no hallucinated papers). Citations corrected per web check: PICO-RAM author B.Zhang->Z.Chen (now IEEE JSSC 2025); ADC-energy-model authors Krishnan/Cao->Andrulis,Chen,Lee,Emer,Sze (MIT); image-sensor Kim/Hong/Kwon->Zhang,Yu,Lyu,Li (IEICE Trans. Fundamentals E101.A(2):434-437, 2018, DOI 10.1587/transfun.E101.A.434); 1S1R Cassuto/Ben-Hur->Z.Chen & L.Dolecek; Liu/Zhang add AICAS 2023, DOI 10.1109/AICAS57966.2023.10168604; Dutta (2209.07259) is a sole author. The readout-SA 'conventional-SA sigma~19mV' was a survey MISREAD (the paper's only 19mV is an unrelated VDD_min); Dong reports only a >60% relative offset reduction.",
   "submodules": [
     {
       "key": "readout_sa",
@@ -205,7 +207,7 @@
           },
           {
             "name": "1S1R high-line-resistance crossbar write/read channel model (V/2 vs V/3 write biasing)",
-            "citation": "Y. Cassuto et al. (Y. Ben-Hur / Y. Cassuto group), \"Write and Read Channel Models for 1S1R Crossbar Resistive Memory with High Line Resistance,\" arXiv:1912.02963 [cs.IT], 2019 (companion: \"Channel Models and Coding Solutions for 1S1R Crossbar Resistive Memory with High Line Resistance,\" arXiv:2104.14011). Note: full author list not fully verified from the fetched copy.",
+            "citation": "Z. Chen and L. Dolecek (UCLA), \"Write and Read Channel Models for 1S1R Crossbar Resistive Memory with High Line Resistance,\" arXiv:1912.02963 [cs.IT], 2019 (companion: \"Channel Models and Coding Solutions for 1S1R Crossbar Resistive Memory with High Line Resistance,\" arXiv:2104.14011). [author corrected: NOT 'Cassuto/Ben-Hur']",
             "approach": "Derives channel models capturing how high line resistance attenuates the delivered write voltage as a function of cell position, and compares the V/2 and V/3 write-bias schemes (selected cell at V, half-select lines biased to limit disturb). Represents the write-bias/line-resistance modeling and source-line-driving design space.",
             "key_metrics": "Shows V/2 is generally more energy-efficient than V/3 but suffers larger IR-induced attenuation across the array; position-dependent voltage loss grows with array size. Quantitative per-position attenuation curves are in simulation sections not fully extracted; no CMOS node or energy/op, no offset/mV window.",
             "pros": "Formalizes the position-dependent write-voltage-loss problem and the disturb-vs-energy tradeoff between bias schemes, which informs how far the remote-cell write voltage can fall before it misses threshold (our exact remote-cell write-failure concern).",
@@ -361,7 +363,7 @@
         "designs": [
           {
             "name": "Column-parallel time-interleaved SAR/single-slope (SS) hybrid ADC for CIM (reconfigurable 2-8b)",
-            "citation": "L. Liu et al. (Zhang group), \"A Column-Parallel Time-Interleaved SAR/SS ADC for Computing in Memory with 2-8bit Reconfigurable Resolution,\" (peer-reviewed; OpenReview id QWZOZa3z5a; also indexed ResearchGate pub. 372202560), 2023. DOI not confirmed from the open record I read.",
+            "citation": "L. Liu et al. (Zhang group), \"A Column-Parallel Time-Interleaved SAR/SS ADC for Computing in Memory with 2-8bit Reconfigurable Resolution,\" IEEE AICAS 2023, DOI 10.1109/AICAS57966.2023.10168604 (OpenReview QWZOZa3z5a; ResearchGate 372202560).",
             "approach": "One column-parallel converter that shares a single comparator and a single cap-DAC between a SAR phase (resolves the high MSBs fast) and a single-slope/ramp phase (resolves LSBs with a globally shared ramp generator). Resolution is reconfigurable 2-8b to trade speed for accuracy per CIM workload. The comparator is shared between the SAR and SS modes within each column, and the ramp generator is shared across ALL columns -- i.e. amortization is applied to the most expensive global block.",
             "key_metrics": "55 nm CMOS; 350 MS/s at Nyquist; 8b mode SNDR 40.93 dB, SFDR 51.08 dB; Walden FoM 44.8 fJ/conv-step; power 1.429 mW @ 8b; area 330 um x 13 um (tall, thin column pitch). Offset vs a ~23mV window: not reported separately (SNDR 40.93 dB at 8b implies ~6.5 ENOB, LSB-level offset not broken out). Low-R write-line IR handling: not addressed (read-side converter).",
             "pros": "Directly the column-shared, time-multiplexed concept we use; demonstrates sharing the comparator AND the global ramp to amortize cost; reconfigurable resolution validates our 'mid-resolution is affordable' lever; thin column-pitch layout proves per-column-pitch feasibility.",
@@ -370,7 +372,7 @@
           },
           {
             "name": "PICO-RAM: charge-domain CIM SRAM with local time-domain ADC and comparator power-gating",
-            "citation": "B. Zhang et al., \"PICO-RAM: A PVT-Insensitive Analog Compute-In-Memory SRAM Macro with In-Situ Multi-Bit Charge Computing and 6T Thin-Cell-Compatible Layout,\" arXiv:2407.12829, 2024.",
+            "citation": "Z. Chen et al. (first author Zhiyu Chen; IEEE JSSC 2025), \"PICO-RAM: A PVT-Insensitive Analog Compute-In-Memory SRAM Macro with In-Situ Multi-Bit Charge Computing and 6T Thin-Cell-Compatible Layout,\" arXiv:2407.12829, 2024.",
             "approach": "Charge-domain 6T-compatible CIM macro digitized by a dual-threshold time-domain ADC (VTC + folding-flash TDC), with an 8-phase differential ring oscillator SHARED across multiple local ADCs. Key idea for us: a small low-power second comparator (Cmp2) with a slightly higher threshold power-gates the main high-power comparator (Cmp1) so the expensive comparator path is disabled most of the time -- an energy-amortization trick on the comparator itself, complementary to spatial column sharing.",
             "key_metrics": "65 nm CMOS; 8.5-bit resolution; 55.8% energy reduction of local ADCs from comparator power-gating (no accuracy loss); 40.2 TOPS/W @ 0.65V (18.6 TOPS/W @ 1.2V); ADC area only 4.6% of macro (387.9 um^2 each, 8 ADCs); auto-zeroed comparator with 'minimal offset' (no mV figure given); 90.7% CIFAR-10 / 66.2% CIFAR-100 on 4b ResNet-20.",
             "pros": "Strong, quantified evidence that the comparator dominates ADC energy and that gating/amortizing it (here in time, via Cmp2) yields ~56% savings -- directly supports our 'comparator is the real lever' insight; uses an auto-zeroed comparator to keep offset low; shows ADC area is a small fraction (4.6%) so sharing is layout-cheap.",
@@ -379,7 +381,7 @@
           },
           {
             "name": "Modeling ADC energy/area for CIM design (Murmann-dataset regression model)",
-            "citation": "G. Krishnan / Y. Cao group (Akinaga et al. listing varies), \"Modeling Analog-Digital-Converter Energy and Area for Compute-In-Memory Accelerator Design,\" arXiv:2404.06553, 2024.",
+            "citation": "T. Andrulis, R. Chen, H.-S. Lee, J. S. Emer, V. Sze (MIT), \"Modeling Analog-Digital-Converter Energy and Area for Compute-In-Memory Accelerator Design,\" arXiv:2404.06553, 2024.",
             "approach": "Architecture-level model fitting piecewise power functions to the Murmann ADC survey dataset to predict ADC energy and area vs ENOB, throughput, and technology node, then plugging into a CIM evaluation flow (e.g. RAELLA). Used to find Pareto-optimal ADC resolution for CIM accelerators.",
             "key_metrics": "Across published silicon, ADC energy increases EXPONENTIALLY with ENOB; area scales sublinearly as ~Energy^0.3 and ~Tech(nm)^1.0; best-performing configs in their CIM test use 6-9b ADCs, with 7b/8b best across ResNet18 layers; companion literature notes Pareto-optimal CIM designs converge around 5-7b ADC. No per-component (comparator vs cap-DAC) breakdown; offset/IR-drop not modeled.",
             "pros": "Authoritative, data-grounded statement of the bits-vs-energy trade-off and of the optimal CIM resolution band (5-9b), which brackets our chosen b~8; useful sanity check that mid-resolution is the published sweet spot.",
@@ -388,7 +390,7 @@
           },
           {
             "name": "Strong-ARM dynamic-latch comparator for SAR-ADC (low offset, low power)",
-            "citation": "(Authors per arXiv listing) \"Design of a Strong-Arm Dynamic-Latch based comparator with high speed, low power and low offset for SAR-ADC,\" arXiv:2209.07259, 2022.",
+            "citation": "S. Dutta, \"Design of a Strong-Arm Dynamic-Latch based comparator with high speed, low power and low offset for SAR-ADC,\" arXiv:2209.07259, 2022.",
             "approach": "Transistor-level design and optimization of a StrongARM dynamic latch comparator specifically as the decision element of a SAR ADC, targeting reduced input-referred offset and power-delay product. This is the same comparator family as our extracted StrongARM SA (E_comp ~48 fJ in sky130).",
             "key_metrics": "45 nm CMOS (GPDK), 1.2 V, 100 MHz; reports an 8 mV input-referred offset REDUCTION vs the baseline StrongARM and ~6% PDP reduction; absolute offset (mV) and absolute fJ/comparison not given in the open abstract I read -- flagged as unconfirmed.",
             "pros": "Confirms the StrongARM-in-SAR pairing we use and that offset is the design-critical parameter being optimized; relevant because StrongARM offset is exactly what must be budgeted against our 23mV window.",
@@ -406,7 +408,7 @@
           },
           {
             "name": "Column-parallel two-step SAR / single-slope ADC (image-sensor lineage of column-shared converters)",
-            "citation": "M.-K. Kim, S.-K. Hong, O.-K. Kwon, \"A Fast Multiple Sampling Method for Low-Noise CMOS Image Sensors With Column-Parallel Two-Step SAR/Single-Slope ADCs\" / related ResearchGate pub. 322844082 \"Two-step column-parallel SAR/single-slope ADC for CMOS image sensors,\" ~2018. Exact venue/DOI not confirmed from the open record.",
+            "citation": "H. Zhang, N. Yu, N. Lyu, K. Li, \"Two-step column-parallel SAR/single-slope ADC for CMOS image sensors,\" IEICE Trans. Fundamentals, vol. E101.A, no. 2, pp. 434-437, 2018, DOI 10.1587/transfun.E101.A.434 (ResearchGate pub. 322844082). [author corrected: NOT Kim/Hong/Kwon, who are a different group's 12-b T-ED 2016 image-sensor ADC]",
             "approach": "Column-parallel readout for image sensors: a coarse SAR stage resolves MSBs, a single-slope stage resolves LSBs, with the comparator and a global ramp shared to cut per-column power. This is the architectural ancestor of column-shared CIM converters and shows the per-column-pitch amortization discipline.",
             "key_metrics": "12-bit class; literature notes such SAR/SS hybrids reduce unit-capacitor count and share analog circuits to cut power; one related multiple-ramp SS variant gives 3.3x speed at +16% power. Exact energy/op, offset, and node not confirmed from the open summary -- flagged.",
             "pros": "Mature, well-characterized column-shared converter family (massively parallel columns, shared comparator + global ramp) that is the engineering template for amortizing readout across many columns -- exactly our deployment pattern; demonstrates two-step (coarse-fine) as a way to keep cap-DAC small.",

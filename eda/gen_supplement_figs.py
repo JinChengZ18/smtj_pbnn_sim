@@ -57,89 +57,88 @@ def jload(p):
     return json.loads(Path(p).read_text(encoding="utf-8"))
 
 
-def _short_ref(lbl, ours):
-    if ours:
-        return "ours (auto-zero)" if "auto-zero" in lbl.lower() else "ours"
-    w = lbl.replace(",", " ").replace(":", " ").split()
-    return f"{w[0]} {w[1]}" if len(w) > 1 and w[1][:2].isdigit() else w[0]
+# Qualitative capability matrices (replace the earlier scatter, whose literature
+# coordinates were largely survey estimates/placeholders). Each cell states whether
+# a design ADDRESSES a task-relevant capability -- Y=yes, N=no, ~=partial -- derived
+# from the (web-verified) survey descriptions, with NO invented numbers. Citations
+# for each row live in eda/design_survey/submodule_survey.json (see the README).
+CAPS = {
+    "readout_sa": {
+        "cols": ["offset\nvs $V_T$", "XNOR\npopcount", "shared\nADC",
+                 "resistive\nMTJ", "SOT-line\nIR", "silicon\nmeas."],
+        "rows": [
+            ("ours: TIA + StrongARM (sky130)", True, "Y Y Y Y Y N"),
+            ("Dong single-cap SA", False, "N N N Y N Y"),
+            ("double-tail comparator", False, "N N N N N N"),
+            ("Xcel-RAM SRAM XNOR", False, "N Y Y N N Y"),
+            ("RRAM XNOR-BNN macro", False, "N Y Y Y N Y"),
+            ("current-sampling SA", False, "N N N Y N Y"),
+        ],
+    },
+    "write_dac_ir": {
+        "cols": ["per-row\nIR pred.", "DAC +\nrail", "write\nenergy",
+                 "binary\n$P_{sw}$", "$V_{th}$\ntrim", "sMTJ\ndevice"],
+        "rows": [
+            ("ours: R-string DAC + IR pre-distort", True, "Y Y Y Y Y Y"),
+            ("Truong parasitic-adapted", False, "~ N N N N N"),
+            ("Zhu positional boost", False, "~ N N N N N"),
+            ("Kim water-filling", False, "N N Y N N N"),
+            ("Chen-Dolecek 1S1R model", False, "N N N N N N"),
+            ("VECOM encode + SA trim", False, "N ~ N N Y N"),
+            ("Yoon sMTJ p-bit driver", False, "N ~ N Y ~ Y"),
+        ],
+    },
+    "sar_adc": {
+        "cols": ["extr.\ncomp E", "offset\nvs $V_T$", "col.\nshared",
+                 "charge\nSAR", "comp/DAC\nsplit", "RC/CIM"],
+        "rows": [
+            ("ours: col-shared SAR", True, "Y Y Y Y Y Y"),
+            ("Liu-Zhang SAR/SS", False, "N N Y ~ N Y"),
+            ("PICO-RAM TD-ADC (Z. Chen)", False, "N ~ ~ N N Y"),
+            ("Andrulis ADC model", False, "N N N N ~ Y"),
+            ("Dutta StrongARM-SAR", False, "~ N N Y N N"),
+            ("Zhong memristor RC", False, "N N N N N Y"),
+            ("image-sensor SAR/SS", False, "N N Y ~ N N"),
+        ],
+    },
+}
 
 
-def _place_labels(ax, items):
-    """Place each label next to its own data point, greedily avoiding collisions with
-    other labels, the markers, and the axes edge. Adds a short leader only when a label
-    has to be displaced. `items`: dicts with x, y (data), text, color, weight, fontsize."""
-    fig = ax.figure
-    fig.canvas.draw()
-    rend = fig.canvas.get_renderer()
-    P = fig.dpi / 72.0
-    disp = [ax.transData.transform((it["x"], it["y"])) for it in items]
-    marker = [(x - 5, y - 5, x + 5, y + 5) for (x, y) in disp]
-    ab = ax.get_window_extent(rend)
-    axbox = (ab.x0, ab.y0, ab.x1, ab.y1)
-
-    def ovl(a, b):
-        dx = min(a[2], b[2]) - max(a[0], b[0]); dy = min(a[3], b[3]) - max(a[1], b[1])
-        return dx * dy if dx > 0 and dy > 0 else 0.0
-
-    cands = [(9, 3, "left", "center"), (-9, 3, "right", "center"), (5, 10, "left", "bottom"),
-             (5, -12, "left", "top"), (-5, 10, "right", "bottom"), (-5, -12, "right", "top"),
-             (14, -2, "left", "center"), (-14, -2, "right", "center"),
-             (3, 18, "left", "bottom"), (3, -20, "left", "top")]
-    placed = []
-    for i in sorted(range(len(items)), key=lambda i: -disp[i][1]):
-        it = items[i]; px, py = disp[i]
-        w = 0.58 * it["fontsize"] * len(it["text"]) * P
-        h = 1.25 * it["fontsize"] * P
-        best, bestpen = None, 1e30
-        for (dx, dy, ha, va) in cands:
-            x0 = px + dx * P - (0 if ha == "left" else w)
-            y0 = py + dy * P - (0 if va == "bottom" else (h if va == "top" else h / 2))
-            box = (x0, y0, x0 + w, y0 + h)
-            pen = sum(ovl(box, pb) for pb in placed)
-            pen += sum(ovl(box, marker[j]) for j in range(len(items)) if j != i)
-            pen += 0.6 * (w * h - ovl(box, axbox))   # prefer staying inside the axes
-            if pen < bestpen:
-                bestpen, best = pen, (dx, dy, ha, va, box)
-            if pen <= 0.0:
-                break
-        dx, dy, ha, va, box = best
-        placed.append(box)
-        lead = bestpen > 1.0 or (dx * dx + dy * dy) > 230
-        ax.annotate(it["text"], xy=(it["x"], it["y"]), textcoords="offset points",
-                    xytext=(dx, dy), ha=ha, va=va, fontsize=it["fontsize"], color=it["color"],
-                    fontweight=it["weight"], zorder=6,
-                    arrowprops=dict(arrowstyle="-", color="0.6", lw=0.5, shrinkB=2) if lead else None)
-
-
-def design_cmp_panel(ax, key, title, xlabel, ylabel, logy=False):
-    """Plot the submodule design-space comparison (ours vs surveyed literature) on
-    `ax`, labelled DIRECTLY at each point (no legend): markers that share an x are
-    jittered apart and every design name is placed beside its own marker with
-    collision avoidance. Reads the multi-agent survey JSON."""
-    sv = jload(REPO / "eda" / "design_survey" / "submodule_survey.json")
-    pts = json.loads(next(s for s in sv["submodules"] if s["key"] == key)["compare"]["figure_data"])["points"]
-    xs = [p["x"] for p in pts]
-    xr = (max(xs) - min(xs)) or 1.0
-    groups = {}
-    for i, p in enumerate(pts):
-        groups.setdefault(round(p["x"], 6), []).append(i)
-    xj = {}
-    for idxs in groups.values():
-        for k, i in enumerate(idxs):
-            xj[i] = pts[i]["x"] + (k - (len(idxs) - 1) / 2.0) * 0.020 * xr
-    for i, p in enumerate(pts):
-        ours = bool(p.get("is_ours"))
-        ax.scatter(xj[i], p["y"], s=180 if ours else 55, marker="*" if ours else "o",
-                   c=RED if ours else PURPLE, edgecolor="black", linewidth=0.8,
-                   zorder=5 if ours else 3, alpha=0.95 if ours else 0.85)
-    if logy:
-        ax.set_yscale("log")
-    ax.set_xlabel(xlabel); ax.set_ylabel(ylabel); ax.set_title(title); ax.margins(0.30)
-    items = [dict(x=xj[i], y=p["y"], text=_short_ref(p["label"], bool(p.get("is_ours"))),
-                  color=RED if p.get("is_ours") else "0.2",
-                  weight="bold" if p.get("is_ours") else "normal",
-                  fontsize=7.4 if p.get("is_ours") else 6.6) for i, p in enumerate(pts)]
-    _place_labels(ax, items)
+def design_cmp_table(ax, key, title):
+    """Render the submodule capability matrix (ours vs surveyed literature) as a
+    Y/N/~ table on `ax` -- a qualitative comparison with NO fabricated coordinates.
+    Each row's full citation is in submodule_survey.json (web-verified)."""
+    d = CAPS[key]
+    cols, rows = d["cols"], d["rows"]
+    nr, nc = len(rows), len(cols)
+    ax.set_axis_off(); ax.set_xlim(0, 1); ax.set_ylim(0, 1)
+    ax.set_title(title, fontsize=10.5, pad=6)
+    w_lab = 0.42                      # left design-name column
+    x0 = w_lab; w_cell = (1.0 - w_lab) / nc
+    y_hi, y_lo = 0.84, 0.10
+    h_row = (y_hi - y_lo) / nr
+    sym = {"Y": ("✓", GREEN), "N": ("✗", "0.72"), "~": ("∼", GOLD)}
+    for j in range(nc + 1):          # vertical gridlines
+        ax.plot([x0 + j * w_cell] * 2, [y_lo, y_hi], color="0.88", lw=0.5, zorder=0)
+    for i in range(nr + 1):          # horizontal gridlines
+        ax.plot([0, 1], [y_hi - i * h_row] * 2, color="0.88", lw=0.5, zorder=0)
+    for j, c in enumerate(cols):     # column headers
+        ax.text(x0 + (j + 0.5) * w_cell, y_hi + 0.015, c, ha="center", va="bottom",
+                fontsize=5.4, color="0.25", linespacing=0.9)
+    for i, (label, ours, cells) in enumerate(rows):
+        yc = y_hi - (i + 0.5) * h_row
+        if ours:
+            ax.add_patch(plt.Rectangle((0, y_hi - (i + 1) * h_row), 1, h_row,
+                                       color=RED, alpha=0.08, zorder=0))
+        ax.text(0.01, yc, label, ha="left", va="center", fontsize=7.0,
+                color=RED if ours else "0.15", fontweight="bold" if ours else "normal")
+        for j, tok in enumerate(cells.split()):
+            s, col = sym[tok]
+            ax.text(x0 + (j + 0.5) * w_cell, yc, s, ha="center", va="center",
+                    fontsize=10.5, color=col, fontweight="bold")
+    ax.text(0.0, 0.02, "✓ addresses   ∼ partial   ✗ not addressed   "
+            "(qualitative; citations in submodule_survey.json)",
+            ha="left", va="center", fontsize=5.6, color="0.45")
 
 
 # ---------- Fig S1: device-model validation (LLG vs behavioral sigmoid) ----------
@@ -199,8 +198,7 @@ def fig2():
     ax[1].set_xlabel(r"residual offset / $V_T$"); ax[1].set_ylabel("accuracy drop vs baseline (pp)")
     ax[1].set_title("Offset-cancellation Pareto")
     ax[1].legend(fontsize=8.5)
-    design_cmp_panel(ax[2], "readout_sa", "Readout SA vs literature",
-                     "input-referred offset (×$V_T$)", "readout energy / decision (fJ)", logy=True)
+    design_cmp_table(ax[2], "readout_sa", "Readout SA: capability vs literature")
     fig.tight_layout()
     save_panels(fig, ax, "ch04_16")
     fig.savefig(OUT / "Chapter04_local_16.png", dpi=200, bbox_inches="tight")
@@ -272,8 +270,7 @@ def fig4():
     ax[1].set_ylabel(r"energy advantage vs digital ESN ($\times$)")
     ax[1].set_title("RC energy advantage vs digital ESN")
     ax[1].legend(fontsize=9)
-    design_cmp_panel(ax[2], "sar_adc", "SAR readout vs literature",
-                     "SA offset (×$V_T$; 0 = n/r)", "comparator energy (fJ)", logy=True)
+    design_cmp_table(ax[2], "sar_adc", "SAR readout: capability vs literature")
     fig.tight_layout()
     save_panels(fig, ax, "ch05_09")
     fig.savefig(OUT / "Chapter05_local_09.png", dpi=200, bbox_inches="tight")
@@ -316,10 +313,8 @@ def fig5():
     ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel(r"write probability $P_\mathrm{sw}$")
     ax[1].set_title(r"Pre-distortion holds $P_\mathrm{sw}$ on target")
     ax[1].legend(fontsize=7.5, loc="center left")
-    # (c) write-path design space vs surveyed literature (direct in-panel labels)
-    design_cmp_panel(ax[2], "write_dac_ir", "Write-path vs literature",
-                     "residual remote-row write error on N=256 (mV)",
-                     "circuit-layer completeness (0–5)")
+    # (c) write-path capability matrix vs surveyed literature (qualitative; no fabricated coords)
+    design_cmp_table(ax[2], "write_dac_ir", "Write path: capability vs literature")
     fig.tight_layout()
     save_panels(fig, ax, "ch04_18")
     fig.savefig(OUT / "Chapter04_local_18.png", dpi=200, bbox_inches="tight")
