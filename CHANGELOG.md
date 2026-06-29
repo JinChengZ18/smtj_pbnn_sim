@@ -183,7 +183,7 @@ Grounds the simulator's CMOS-peripheral PPA inputs in an open-source sky130 (130
 ### Changed -- PPA grounding
 
 * `tech_params`: `e_smtj_read` 5 fJ -> 48 fJ, `e_dac_step` 5 fJ -> 34 fJ, `e_count_inc` 0.5 fJ -> 19 fJ (all sky130-grounded); per-MAC peripheral share ~1% -> ~11%, with the SOT write still ~89%. Only the four AREA constants remain 28 nm placeholders (plan in `.agents/eda/PPA_grounding_plan.md`).
-* `tests/test_ppa.py`: write-fraction threshold updated to the grounded breakdown. Suite: 93 -> 95 passing.
+* `tests/test_ppa.py`: write-fraction threshold updated to the grounded breakdown. Full suite: 111 passing (torch included).
 
 ### Changed -- article / figures
 

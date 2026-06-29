@@ -46,5 +46,5 @@ Grounds the CMOS-peripheral PPA inputs in an open-source sky130 (130 nm/1.8 V) f
 
 ## Tests & experiments
 
-* **95 unit tests** pass (was 61 before the RC extension, 93 before the EDA-grounding round; added telegraph, reservoir, RC-energy, and the updated PPA-grounding cases).
+* **111 unit tests** pass (61 before the RC extension; added telegraph, reservoir, RC-energy, CNN-extension, and PPA-grounding cases).
 * **Experiments 01–13** (PBNN), **14–19** (reservoir computing), **20** (write-line IR-drop) and **21** (seed-independence) all run end-to-end and produce figures; 01–04, 13 and 16 are torch-free.
