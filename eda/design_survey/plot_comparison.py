@@ -31,18 +31,30 @@ def _ours_color(is_ours):
 
 
 def plot_readout_sa(ax):
+    # The three offsets are within MC noise of each other (~0.39), so bars from zero
+    # read as flat. A zoomed point plot with +/-1 s.e. error bars (s.e. of an estimated
+    # std = sigma/sqrt(2(N-1))) shows the small means AND that they overlap -> the honest
+    # "indistinguishable" message, not a fabricated gap.
     rows = d["readout_sa"]["designs"]
-    labels = [r["design"] for r in rows]
     vals = [r["sigma_offset_over_VT"] for r in rows]
-    cols = [_ours_color(r.get("is_ours")) for r in rows]
-    b = ax.bar(labels, vals, color=cols, edgecolor="black", linewidth=0.7)
-    for r, v in zip(rows, vals):
-        ax.text(labels.index(r["design"]), v + 0.008, f"{v:.3f}", ha="center", fontsize=8.5,
-                fontweight="bold" if r.get("is_ours") else "normal")
+    se = [v / (2 * (r["N"] - 1)) ** 0.5 for v, r in zip(vals, rows)]
+    xs = list(range(len(rows)))
+    for i, r in enumerate(rows):
+        ours = r.get("is_ours")
+        ax.errorbar(i, vals[i], yerr=se[i], fmt=("D" if ours else "o"),
+                    color=_ours_color(ours), ms=11, capsize=6, elinewidth=1.6,
+                    mec="black", mew=0.8, zorder=3)
+        ax.annotate(f"{vals[i]:.3f}", (i, vals[i]), textcoords="offset points",
+                    xytext=(13, 0), va="center", fontsize=9,
+                    fontweight="bold" if ours else "normal")
+    ax.set_xticks(xs)
+    ax.set_xticklabels([r["design"] for r in rows])
+    ax.set_xlim(-0.5, len(rows) - 0.1)
+    lo, hi = min(v - s for v, s in zip(vals, se)), max(v + s for v, s in zip(vals, se))
+    pad = (hi - lo) * 0.55
+    ax.set_ylim(lo - pad, hi + pad)
     ax.set_ylabel(r"input-referred offset  $\sigma_\mathrm{off}/V_T$")
-    ax.set_title("Readout SA offset (same sky130 flow, N=120)")
-    ax.set_ylim(0, max(vals) * 1.25)
-    ax.tick_params(axis="x", labelrotation=12)
+    ax.set_title("Readout SA comparator")
 
 
 def plot_write_dac(ax):
@@ -58,7 +70,7 @@ def plot_write_dac(ax):
                 fontweight="bold" if r.get("is_ours") else "normal")
     ax.axhline(1.0, color=GOLD, ls="--", lw=1, label="1 LSB")
     ax.set_ylabel("INL (LSB) into 776 $\\Omega$ write load")
-    ax.set_title("Write-DAC linearity (same sky130 flow)")
+    ax.set_title("Write DAC")
     ax.set_ylim(0, max(vals) * 1.3)
     ax.legend(fontsize=8, loc="upper left")
 
@@ -76,7 +88,7 @@ def plot_sar(ax):
         ax.text(i, r["E_total_fJ"] + 12, f"{r['E_total_fJ']:.0f} fJ", ha="center", fontsize=8.5)
     ax.set_xticks(list(x)); ax.set_xticklabels(labels)
     ax.set_ylabel("energy per conversion (fJ)")
-    ax.set_title(f"SAR readout energy (b={rows[0]['b']}, same flow)")
+    ax.set_title(f"SAR readout ({rows[0]['b']}-bit)")
     ax.set_ylim(0, max(r["E_total_fJ"] for r in rows) * 1.2)
     ax.legend(fontsize=8, loc="upper right")
 
