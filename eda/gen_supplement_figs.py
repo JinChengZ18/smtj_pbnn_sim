@@ -32,6 +32,13 @@ OUT.mkdir(parents=True, exist_ok=True)
 PANELS = REPO / "figures" / "panels"
 PANELS.mkdir(parents=True, exist_ok=True)
 
+# Panel (c) of each submodule figure is the quantitative same-flow comparison (ours vs
+# the reproduced alternatives), rendered by the design-survey module so there is one
+# source of truth. comparison_results.json is produced by comparison_driver.py.
+import sys
+sys.path.insert(0, str(REPO / "eda" / "design_survey"))
+import plot_comparison as cmp
+
 
 def save_panels(fig, axes, stem):
     """Save each axes of `fig` as its own PNG (no panel letter) to figures/panels/.
@@ -198,7 +205,7 @@ def fig2():
     ax[1].set_xlabel(r"residual offset / $V_T$"); ax[1].set_ylabel("accuracy drop vs baseline (pp)")
     ax[1].set_title("Offset-cancellation Pareto")
     ax[1].legend(fontsize=8.5)
-    design_cmp_table(ax[2], "readout_sa", "Readout SA: capability vs literature")
+    cmp.plot_readout_sa(ax[2])
     fig.tight_layout()
     save_panels(fig, ax, "ch04_15")
     fig.savefig(OUT / "Chapter04_local_15.png", dpi=200, bbox_inches="tight")
@@ -270,7 +277,7 @@ def fig4():
     ax[1].set_ylabel(r"energy advantage vs digital ESN ($\times$)")
     ax[1].set_title("RC energy advantage vs digital ESN")
     ax[1].legend(fontsize=9)
-    design_cmp_table(ax[2], "sar_adc", "SAR readout: capability vs literature")
+    cmp.plot_sar(ax[2])
     fig.tight_layout()
     save_panels(fig, ax, "ch05_09")
     fig.savefig(OUT / "Chapter05_local_09.png", dpi=200, bbox_inches="tight")
@@ -313,8 +320,7 @@ def fig5():
     ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel(r"write probability $P_\mathrm{sw}$")
     ax[1].set_title(r"Pre-distortion holds $P_\mathrm{sw}$ on target")
     ax[1].legend(fontsize=7.5, loc="center left")
-    # (c) write-path capability matrix vs surveyed literature (qualitative; no fabricated coords)
-    design_cmp_table(ax[2], "write_dac_ir", "Write path: capability vs literature")
+    cmp.plot_write_dac(ax[2])
     fig.tight_layout()
     save_panels(fig, ax, "ch04_17")
     fig.savefig(OUT / "Chapter04_local_17.png", dpi=200, bbox_inches="tight")
