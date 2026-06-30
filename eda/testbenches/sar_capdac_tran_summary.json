@@ -1,0 +1,80 @@
+{
+  "method": "ngspice transient charge-redistribution; E=-integral(v(vref)*i(Vref))",
+  "C_u_fF": 1.5,
+  "Vref": 1.0,
+  "E_comp_fJ_extracted": 48.0,
+  "decision_pattern": "alternating (1,0,1,0,...) imposed stimulus",
+  "rows": [
+    {
+      "b": 6,
+      "scheme": "conventional",
+      "E_capdac_fJ_measured": 247.315,
+      "E_capdac_fJ_analytic": 125.02,
+      "E_comp_fJ": 288.0,
+      "E_total_fJ": 535.3,
+      "capdac_frac_of_total": 0.462,
+      "converged": true
+    },
+    {
+      "b": 6,
+      "scheme": "monotonic",
+      "E_capdac_fJ_measured": 70.955,
+      "E_capdac_fJ_analytic": 12.5,
+      "E_comp_fJ": 288.0,
+      "E_total_fJ": 359.0,
+      "capdac_frac_of_total": 0.1977,
+      "converged": true
+    },
+    {
+      "b": 7,
+      "scheme": "conventional",
+      "E_capdac_fJ_measured": 338.603,
+      "E_capdac_fJ_analytic": 253.01,
+      "E_comp_fJ": 336.0,
+      "E_total_fJ": 674.6,
+      "capdac_frac_of_total": 0.5019,
+      "converged": true
+    },
+    {
+      "b": 7,
+      "scheme": "monotonic",
+      "E_capdac_fJ_measured": 84.246,
+      "E_capdac_fJ_analytic": 25.3,
+      "E_comp_fJ": 336.0,
+      "E_total_fJ": 420.2,
+      "capdac_frac_of_total": 0.2005,
+      "converged": true
+    },
+    {
+      "b": 8,
+      "scheme": "conventional",
+      "E_capdac_fJ_measured": 457.382,
+      "E_capdac_fJ_analytic": 509.0,
+      "E_comp_fJ": 384.0,
+      "E_total_fJ": 841.4,
+      "capdac_frac_of_total": 0.5436,
+      "converged": true
+    },
+    {
+      "b": 8,
+      "scheme": "monotonic",
+      "E_capdac_fJ_measured": 140.574,
+      "E_capdac_fJ_analytic": 50.9,
+      "E_comp_fJ": 384.0,
+      "E_total_fJ": 524.6,
+      "capdac_frac_of_total": 0.268,
+      "converged": true
+    }
+  ],
+  "validation": [
+    "b6/conv: meas/analytic=1.98",
+    "b6/mono: meas/analytic=5.68",
+    "b7/conv: meas/analytic=1.34",
+    "b7/mono: meas/analytic=3.33",
+    "b8/conv: meas/analytic=0.90",
+    "b8/mono: meas/analytic=2.76"
+  ],
+  "notes": "Cap-DAC SWITCHING energy measured by transient charge integration from Vref (E = -integral(v(vref)*i(Vref) dt)) over a full b-step SAR sequence with an imposed alternating decision pattern; bottom plates switched Vref<->gnd through REAL sky130 CMOS transmission gates. Comparator energy is the EXTRACTED StrongARM SA (48 fJ), added analytically as b*E_comp -- NOT simulated here. Two schemes: conventional (tentative set-to-Vref then keep/pull-down) vs monotonic set-and-down (sample all-Vref, only down-transitions).",
+  "what_is_simulated_vs_analytic": "SIMULATED (ngspice transient, sky130): the cap-DAC bottom-plate switching charge drawn from Vref, through real CMOS TG switches, for b=6,7,8, both schemes. EXTRACTED (prior, sa_postlayout): comparator energy 48 fJ/decision. ANALYTIC (for comparison only): the Ginsburg/Chandrakasan conventional series and its /10 monotonic estimate from sar_capdac_energy.py. The cap is a lumped linear C_u=1.5 fF (MIM-density-validated); not simulated: the comparator, the SAR control logic, MIM voltage-nonlinearity, and the SS/single-slope hybrid (see hybrid field).",
+  "hybrid_SAR_SS": "not done (see optional task 4)"
+}
