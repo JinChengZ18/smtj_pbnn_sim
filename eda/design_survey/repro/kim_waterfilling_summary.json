@@ -1,0 +1,185 @@
+{
+  "_about": "Faithful reproduction of Kim et al. iterative water-filling (arXiv:2112.02842) run on our committed sMTJ write model. Numbers are computed by this script only.",
+  "_paper": "Y. Kim, Y. Jeon, H. Choi, C. Guyot, Y. Cassuto, 'Optimizing Write Fidelity of MRAMs via Iterative Water-filling Algorithm,' arXiv:2112.02842 [cs.ET], 2021; companion ISIT 2020 DOI 10.1109/ISIT44484.2020.9173990.",
+  "_equations_implemented": [
+    "Eq.(1) p_WF(i,t)=1-exp(-Delta*pi^2(i-1)/[4{i exp(2(i-1)t)-1}])",
+    "Eq.(3) proxy p_tilde_WF=c exp(-2(i-1)t), c=(pi^2/4)Delta",
+    "Eq.(4) p(i,t)=(1/2)p_WF",
+    "Eq.(7) E=sum_b i_b^2 t_b",
+    "Eqs.(9)-(10) MSE=c' sum_b w_b exp(-2(i_b-1)t_b), w_b=4^b (Kim) / 1 (ours), c'=c/2",
+    "Eq.(14) min MSE s.t. sum i_b^2 t_b<=E, i_b>=1+eps, t_b>=0",
+    "Theorem 15 water-filling t|i",
+    "Theorem 17 Lambert-W current update i|t",
+    "Algorithm 2 iterative water-filling",
+    "Theorem 21 gamma=(3B/2)2^B/(4^B-1)~=(3B/2)2^-B (closed-form self-check)"
+  ],
+  "selfcheck_kim_value_weighted": [
+    {
+      "name": "Kim value-weighted word B=4 (w_b=4^b)",
+      "B": 4,
+      "weights_w_b": [
+        1.0,
+        4.0,
+        16.0,
+        64.0
+      ],
+      "E_budget": 49.90659700031606,
+      "mse_uniform": 12.288814073622003,
+      "mse_waterfilling": 4.626377063010633,
+      "mse_reduction_ratio_gamma": 0.37647058823529383,
+      "E_waterfilling_for_uniform_mse": 42.09127417079134,
+      "energy_reduction_factor_at_matched_fidelity": 1.1856756057755091,
+      "iters_to_converge": 2,
+      "durations_waterfilling": [
+        2.079442,
+        2.772589,
+        3.465736,
+        4.158883
+      ],
+      "currents_waterfilling": [
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "gamma_closed_form_Thm21": 0.3764705882352941,
+      "gamma_numeric_over_closed": 0.9999999999999992,
+      "E_budget_floor_2B(B-1)log2": 16.635532333438686
+    },
+    {
+      "name": "Kim value-weighted word B=8 (w_b=4^b)",
+      "B": 8,
+      "weights_w_b": [
+        1.0,
+        4.0,
+        16.0,
+        64.0,
+        256.0,
+        1024.0,
+        4096.0,
+        16384.0
+      ],
+      "E_budget": 232.89745266814163,
+      "mse_uniform": 0.7710510783498179,
+      "mse_waterfilling": 0.03614357080477062,
+      "mse_reduction_ratio_gamma": 0.04687571526665144,
+      "E_waterfilling_for_uniform_mse": 183.9333640955643,
+      "energy_reduction_factor_at_matched_fidelity": 1.2662055838175046,
+      "iters_to_converge": 2,
+      "durations_waterfilling": [
+        4.85203,
+        5.545177,
+        6.238325,
+        6.931472,
+        7.624619,
+        8.317766,
+        9.010913,
+        9.704061
+      ],
+      "currents_waterfilling": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ],
+      "gamma_closed_form_Thm21": 0.04687571526665141,
+      "gamma_numeric_over_closed": 1.0000000000000007,
+      "E_budget_floor_2B(B-1)log2": 77.63248422271387
+    }
+  ],
+  "our_equisignificance_array": [
+    {
+      "name": "Our equi-significance p-bit array B=4 (w_b=1)",
+      "B": 4,
+      "weights_w_b": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "E_budget": 49.90659700031606,
+      "mse_uniform": 0.5782971328763296,
+      "mse_waterfilling": 0.5782971328763301,
+      "mse_reduction_ratio_gamma": 1.0000000000000009,
+      "E_waterfilling_for_uniform_mse": NaN,
+      "energy_reduction_factor_at_matched_fidelity": 1.0,
+      "iters_to_converge": 2,
+      "durations_waterfilling": [
+        3.119162,
+        3.119162,
+        3.119162,
+        3.119162
+      ],
+      "currents_waterfilling": [
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ]
+    },
+    {
+      "name": "Our equi-significance p-bit array B=8 (w_b=1)",
+      "B": 8,
+      "weights_w_b": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "E_budget": 232.89745266814163,
+      "mse_uniform": 0.00028237164691227024,
+      "mse_waterfilling": 0.00028237164691226975,
+      "mse_reduction_ratio_gamma": 0.9999999999999982,
+      "E_waterfilling_for_uniform_mse": 232.89745266814163,
+      "energy_reduction_factor_at_matched_fidelity": 1.0,
+      "iters_to_converge": 2,
+      "durations_waterfilling": [
+        7.278045,
+        7.278045,
+        7.278045,
+        7.278045,
+        7.278045,
+        7.278045,
+        7.278045,
+        7.278045
+      ],
+      "currents_waterfilling": [
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0
+      ]
+    }
+  ],
+  "our_model_provenance": {
+    "VTH": 0.895783,
+    "VT": 0.023414,
+    "RSOT": 776.0,
+    "E_dev_pJ_committed": 0.7828608247422679,
+    "I_write_mA_committed": 1.1597938144329898,
+    "t_write_ns_committed": 0.75,
+    "note": "Our device P_sw is a VOLTAGE sigmoid, not Kim's normalized (i=I/Ic, t=T/Tc). We run Kim's optimizer in his own normalized space (faithful) and report the energy-reduction FACTOR; we do not identify (i,t) with our single fixed-duration voltage pulse."
+  },
+  "assumptions": [
+    "Delta=60 (Kim Fig.3 'Delta=60 as in [5,Fig.13]'); Delta cancels in gamma (Kim Remark 3), so it does not affect the reduction factor.",
+    "eps=1e-3 for the i>=1+eps floor (Kim introduces eps>0, value unspecified; gamma is insensitive to eps for eps<<1).",
+    "Per-position importance weight w_b is the ONLY thing that differs between Kim's setting (w_b=4^b, a value-weighted B-bit word) and ours (w_b=1, equi-important binary p-bit cells). This is the faithful mapping of a single-significance sMTJ p-bit array.",
+    "Energy budget E=3*2B(B-1)log2 is chosen above Kim's Theorem-21 validity floor 2B(B-1)log2 so the closed-form gamma applies; the conclusion (gain present for 4^b, absent for w_b=1) is budget-independent.",
+    "Duals nu' (Thm 15) and mu (Thm 17) are found by bisection to bind the energy budget, as Kim states ('obtained by the bisection method as in [33]').",
+    "We do NOT map Kim's normalized (i,t) onto our applied write voltage: the committed device is a single fixed-duration (0.75 ns) voltage pulse, so i and t are not independent knobs on our model. Reporting an (i,t)<->voltage identification would be fabrication; we report only the dimensionless energy-reduction factor Kim's algorithm yields in its own normalized space."
+  ],
+  "_kim_40pct_provenance": "Kim's headline '40% write energy reduction for a given classification accuracy' (their abstract; Sec. VII Fig.10, lines 883-886) is an MNIST experiment: 8-bit quantized DNN weights (784-512-512-512-10 MLP) stored in MRAM; to hold 90% accuracy the optimized allocation needs 11 vs 18 normalized energy units/bit -> 1-11/18=38.9%~=40%. It is matched on downstream CLASSIFICATION ACCURACY (more error-tolerant than MSE) and rests on the 4^b value-weighting of the stored multi-bit weights. Our matched-MSE energy factors (1.19-1.27x, i.e. 16-21%) are stricter than their accuracy-matched 40% and are NOT the same metric; we do not claim to reproduce the 40% number, only the underlying water-filling mechanism and its closed-form gamma (Thm 21), which we match exactly.",
+  "conclusion": "Kim's iterative water-filling was implemented verbatim (Eqs.(1),(3),(4),(7),(9)-(10),(14), Theorems 15/17, Algorithm 2). Faithfulness is verified against their OWN closed-form Theorem 21: for the value-weighted 8-bit word (w_b=4^b) the numerically converged MSE-reduction gamma=0.04688 matches the closed form 0.04688 (ratio 1.000) -- i.e. the ~21x MSE reduction underlying their ~40% accuracy-matched write-energy headline, which is a bit-SIGNIFICANCE effect (the 4^b place-value weighting of multi-bit DNN weights). Run on OUR setting -- a binary-P_sw sMTJ p-bit array where every cell is equi-important (w_b=1) -- the SAME optimizer collapses to UNIFORM allocation: matched-fidelity energy-reduction factor = 1.0000x (gamma=1.0000). With equal weights every bit's water-filling ground level log(i^2/[2 w_b (i-1)]) is identical, so Theorem 15 assigns identical durations = uniform allocation: the gain is mathematically zero, not merely small. FAITHFUL OUTCOME: Kim's method is reproducible and correct, but its write-energy lever is ABSENT in our single-significance p-bit array; there is no energy advantage to migrate into D.3 against our IR-aware write-DAC. The D.5 'write-energy' cell should stay qualitative (and the 'binary P_sw' cell remains ~): it cannot be promoted to a same-flow quantitative point without fabricating a bit-significance structure our cells do not have."
+}

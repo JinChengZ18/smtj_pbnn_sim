@@ -1,0 +1,141 @@
+{
+  "_about": "External-validation overlay of the Andrulis et al. (arXiv:2404.06553) ADC energy/area-vs-ENOB model, with OUR transient-measured sky130 SAR energy points placed on it. Runnable script: andrulis_adc_model.py. Migrates the 'Andrulis ADC model' row out of the D.5 capability matrix into a quantitative lower-bound sanity-check of the D.4 SAR energy numbers.",
+  "model_source": "github.com/Accelergy-Project/accelergy-adc-plug-in @ main (headers.py, model.py, adc_data/model.yaml); paper arXiv:2404.06553.",
+  "method_quotes": {
+    "source": "github.com/Accelergy-Project/accelergy-adc-plug-in @ main (headers.py, model.py, adc_data/model.yaml); paper arXiv:2404.06553.",
+    "bits2sndr": "headers.py: return bits * 20 * math.log(2, 10) + 10 * math.log(1.5, 10)  (== ideal SNDR = 6.02*N + 1.76 dB).",
+    "foms_sndr2energy": "model.py: return 1 / ((10 ** ((foms - sndr) / 10)) * 2)  (inverts Schreier FOM_S = SNDR + 10*log10(f_s/P) for E[pJ/op]).",
+    "get_energy": "model.py: foms = sum(params[k]*model[FOMS][k] for k in [INTERCEPT, FREQ]); foms = min(foms, foms_max_by_enob[ceil(ENOB)]); energy = foms_sndr2energy(foms, bits2sndr(ENOB)) * exp(TECH_INTERCEPT + TECH_SLOPE*params[TECH] + ENOB_SLOPE*log(ENOB) + ENRG_RESIDUAL); params[TECH]=ln(tech_nm), params[FREQ]=ln(freq_Hz).",
+    "get_area_eq1": "paper Eq.1: Area(um^2) = 21.1 * Tech(nm)^1.0 * Throughput^0.2 * (Energy(pJ)/Convert)^0.3; model.yaml exponents = tech 0.9933, freq 0.1807, energy 0.2991 (log-space intercept 1.3462).",
+    "tech_and_throughput": "model.yaml comments: 'Tech node, area, and frequency are log-base-e-scaled.' Reference/visualization node 32 nm; the model takes tech_nm as a free log-scaled input, evaluated here at 130 nm."
+  },
+  "model_coefficients_verbatim_from_model_yaml": {
+    "FOMS_freq_coeff": -2.8719030399529957,
+    "FOMS_intercept": 213.7806687348118,
+    "FOMS_max": 164.7143258245858,
+    "FOMS_tech_intercept": 26.0496215686518,
+    "FOMS_tech_slope": 1.8800369206815004,
+    "FOMS_enob_slope": -2.8291256050594527,
+    "FOMS_enrg_residual": -1.4702022133784405,
+    "freq_max_ln": 23.025850929940457,
+    "area_tech": 0.9932794744745022,
+    "area_freq": 0.18071538424508238,
+    "area_enrg": 0.29912426192653485,
+    "area_intercept": 1.3461916439910742
+  },
+  "our_inputs": {
+    "tech_nm": 130.0,
+    "TSTEP_s_per_bit": 5e-09,
+    "E_comp_fJ_per_decision": 48.0,
+    "E_total_per_conversion": "cap-DAC transient switching (sky130) + b*48 fJ comparator, read verbatim from sar_capdac_tran_summary.json rows."
+  },
+  "comparison": [
+    {
+      "b": 6,
+      "scheme": "conventional",
+      "E_capdac_fJ_measured": 247.315,
+      "E_comp_fJ": 288.0,
+      "E_total_fJ_ours": 535.3,
+      "implied_f_s_Hz": 33333333.33333333,
+      "andrulis_pred_E_fJ_full_ADC": 14857.356648879762,
+      "andrulis_pred_area_um2": 24799.117051340265,
+      "ratio_ours_over_andrulis": 0.03602928923701655,
+      "consistent_as_lower_bound": true
+    },
+    {
+      "b": 6,
+      "scheme": "monotonic",
+      "E_capdac_fJ_measured": 70.955,
+      "E_comp_fJ": 288.0,
+      "E_total_fJ_ours": 359.0,
+      "implied_f_s_Hz": 33333333.33333333,
+      "andrulis_pred_E_fJ_full_ADC": 14857.356648879762,
+      "andrulis_pred_area_um2": 24799.117051340265,
+      "ratio_ours_over_andrulis": 0.024163113835398736,
+      "consistent_as_lower_bound": true
+    },
+    {
+      "b": 7,
+      "scheme": "conventional",
+      "E_capdac_fJ_measured": 338.603,
+      "E_comp_fJ": 336.0,
+      "E_total_fJ_ours": 674.6,
+      "implied_f_s_Hz": 28571428.57142857,
+      "andrulis_pred_E_fJ_full_ADC": 18304.147726644944,
+      "andrulis_pred_area_um2": 25670.89107019927,
+      "ratio_ours_over_andrulis": 0.036855034720791706,
+      "consistent_as_lower_bound": true
+    },
+    {
+      "b": 7,
+      "scheme": "monotonic",
+      "E_capdac_fJ_measured": 84.246,
+      "E_comp_fJ": 336.0,
+      "E_total_fJ_ours": 420.2,
+      "implied_f_s_Hz": 28571428.57142857,
+      "andrulis_pred_E_fJ_full_ADC": 18304.147726644944,
+      "andrulis_pred_area_um2": 25670.89107019927,
+      "ratio_ours_over_andrulis": 0.022956545493146567,
+      "consistent_as_lower_bound": true
+    },
+    {
+      "b": 8,
+      "scheme": "conventional",
+      "E_capdac_fJ_measured": 457.382,
+      "E_comp_fJ": 384.0,
+      "E_total_fJ_ours": 841.4,
+      "implied_f_s_Hz": 25000000.0,
+      "andrulis_pred_E_fJ_full_ADC": 23905.170760819994,
+      "andrulis_pred_area_um2": 27142.01418967709,
+      "ratio_ours_over_andrulis": 0.035197405967876814,
+      "consistent_as_lower_bound": true
+    },
+    {
+      "b": 8,
+      "scheme": "monotonic",
+      "E_capdac_fJ_measured": 140.574,
+      "E_comp_fJ": 384.0,
+      "E_total_fJ_ours": 524.6,
+      "implied_f_s_Hz": 25000000.0,
+      "andrulis_pred_E_fJ_full_ADC": 23905.170760819994,
+      "andrulis_pred_area_um2": 27142.01418967709,
+      "ratio_ours_over_andrulis": 0.021945042988766553,
+      "consistent_as_lower_bound": true
+    }
+  ],
+  "throughput_sensitivity_pred_fJ": [
+    {
+      "f_s_Hz": 1000000.0,
+      "pred_fJ_b6": 14857.356648879762,
+      "pred_fJ_b7": 18304.147726644944,
+      "pred_fJ_b8": 23905.170760819994
+    },
+    {
+      "f_s_Hz": 10000000.0,
+      "pred_fJ_b6": 14857.356648879762,
+      "pred_fJ_b7": 18304.147726644944,
+      "pred_fJ_b8": 23905.170760819994
+    },
+    {
+      "f_s_Hz": 100000000.0,
+      "pred_fJ_b6": 14857.356648879762,
+      "pred_fJ_b7": 18304.147726644944,
+      "pred_fJ_b8": 23905.170760819994
+    },
+    {
+      "f_s_Hz": 1000000000.0,
+      "pred_fJ_b6": 14857.356648879762,
+      "pred_fJ_b7": 18304.147726644944,
+      "pred_fJ_b8": 23905.170760819994
+    }
+  ],
+  "figure": "D:\\Documents\\Graduation Project-2026\\04PBNNSim\\smtj_pbnn_sim\\article\\figs\\AppendixD_06.png",
+  "assumptions": [
+    "ENOB := nominal resolution b (6,7,8). We did NOT measure a code-density/FFT ENOB; the Andrulis ENOB axis is filled with our nominal b. This OVER-states our ENOB if real ENOB < b, which makes the Andrulis prediction an UPPER estimate and our partial energy even more comfortably below it -- it does not threaten the one-sided lower-bound test.",
+    "tech_nm = 130 (sky130). Andrulis calibrate/visualize at 32 nm but expose tech as a free log-scaled input (tech slope 1.88 on ln(nm)); 130 nm is an EXTRAPOLATION above their 32 nm reference but within the survey's historical node range, so it is in-model, not invented.",
+    "Throughput f_s := 1/(b*TSTEP) with TSTEP=5 ns from sar_capdac_tran.py (per-bit settling window of OUR energy transient), NOT a designed conversion-rate target. Because the Andrulis energy law is throughput-dependent, a throughput-sensitivity band (1e6..1e9 Hz) is reported so the conclusion can be read independent of this single under-specified input.",
+    "Our energy is PARTIAL: transient cap-DAC switching (sky130) + extracted comparator (b*48 fJ) ONLY. It excludes SAR control logic, sample/hold, and reference buffer. The Andrulis number is a COMPLETE-ADC best-case. The comparison is therefore one-sided (partial <= full), not an equality match."
+  ],
+  "integrity_caveats": "This is a LOWER-BOUND sanity check, not a like-for-like reproduction. (1) Domain mismatch: the Andrulis law predicts a COMPLETE ADC's energy from a survey of complete ADCs; our points are a PARTIAL energy (cap-DAC switching + comparator only), so they can only be tested as 'must not exceed' the full-ADC optimistic bound, not equated to it. (2) ENOB is nominal b, not measured. (3) Throughput is an implied settling-window rate, not a designed f_s; hence the sensitivity band. (4) 130 nm is an extrapolation above their 32 nm calibration node. Within those bounds the test is faithful: if our partial energy already exceeded their full-ADC best case, our numbers would be suspect; the script reports whether each point passes that test. Reproduce: rerun this script (pure-python; matplotlib only for the figure).",
+  "verdict": "6/6 of our SAR points pass the one-sided lower-bound test (our partial energy <= Andrulis full-ADC best case). ours/Andrulis ratio range [0.0219, 0.0369]. All points consistent: our measured SAR energy sits below the optimistic full-ADC law, as a partial energy must -- the D.4 numbers are sane against the cited model."
+}
