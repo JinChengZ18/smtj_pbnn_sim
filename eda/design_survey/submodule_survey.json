@@ -327,7 +327,7 @@
             "qualitative": "Targets MRAM write ENERGY (our exact pain point): ~40% write-energy cut at fixed MNIST accuracy, MSE down ~21x for 8-bit words via importance-weighted non-uniform write effort. But pure algorithm/coding-theory on a digital-storage MSE objective: no IR/line-resistance model, no positional pre-distortion (so remote-row droop unaddressed = full 148mV), no circuit, no DAC/rail. Complements the energy-budget half of our design."
           },
           {
-            "option": "Cassuto 1S1R 2019: high-line-resistance write channel model (V/2 vs V/3 biasing)",
+            "option": "Chen–Dolecek 1S1R 2019: high-line-resistance write channel model",
             "is_ours": false,
             "metric_axis_1": {
               "name": "Residual remote-row write-voltage error (N=256 tall column)",
@@ -427,11 +427,11 @@
             "relevance_to_our_task": "Component-level precedent for our comparator choice and for treating offset (not TMR margin) as the binding constraint. Note: published StrongARM offsets without calibration are often tens of mV (1-sigma), i.e. comparable to or larger than our 23mV window -- this paper's emphasis on offset reduction underlines why our SA needs an explicit offset/auto-zero budget."
           },
           {
-            "name": "Memristor fully-analog reservoir computing -- ADC at the readout boundary",
+            "name": "Memristor fully-analogue reservoir computing (no digitization in the demonstrated system)",
             "citation": "Y. Zhong, J. Tang, ... H. Wu et al., \"A memristor-based analogue reservoir computing system for real-time and power-efficient signal processing,\" Nature Electronics 5, 672-681, 2022. DOI:10.1038/s41928-022-00838-3. (Full text paywalled; metrics below from abstract/open summaries -- flagged.)",
-            "approach": "Reservoir computing where dynamic memristors form the reservoir and non-volatile memristors form the readout weights; an ADC quantizes the memristor read currents to produce the digital reservoir/readout values. Motivation explicitly states that ADCs convert reservoir read currents and 'incur extra energy and latency,' which is the cost our column-shared SAR amortizes.",
+            "approach": "Fully-analogue reservoir computing: dynamic memristors form the reservoir and non-volatile memristors form the readout weights, with the MAC readout performed in the analogue domain -- the demonstrated system does NOT digitize the reservoir state. By contrast it motivates why a digital-readout PBNN/CIM such as ours must pay an ADC's energy/latency, which our column-shared SAR amortizes.",
             "key_metrics": "Claims ~3 orders-of-magnitude lower power than digital hardware for spatiotemporal processing; 96.6% (arrhythmia) and 97.9% (gesture) task accuracy. ADC type/resolution and per-node-vs-shared breakdown NOT extractable from the open abstract -- flagged as unconfirmed. Offset/IR-drop not addressed.",
-            "pros": "Independent confirmation, in the SAME reservoir-computing context as our RC use-case, that the ADC sits at the analog/digital boundary and is a recognized energy/latency cost to be amortized; supports the orders-of-magnitude analog advantage our ~30-35x claim lives within.",
+            "pros": "Independent demonstration, in the SAME reservoir-computing context as our RC use-case, of the orders-of-magnitude advantage of staying analogue; by contrast it locates the ADC energy/latency cost our design amortizes precisely where reservoir states must be digitized (as in our PBNN/CIM readout), not in a fully-analogue system.",
             "cons": "Paywalled, so ADC architecture, resolution, and whether the ADC is per-node or shared could not be verified from the open record (flagged); memristor device, not sMTJ; no 23mV-window or write-line-IR analysis.",
             "relevance_to_our_task": "Anchors the RC-readout half of our submodule: a leading RC hardware paper that names ADC conversion of node currents as the cost. Our contribution over it is making that ADC explicitly column-shared/time-muxed and budgeting the comparator energy, which this paper leaves as an unquantified system overhead."
           },
@@ -480,7 +480,7 @@
             "qualitative": "Closest published analog: shares one comparator + one cap-DAC across columns and a global ramp across all columns, reconfigurable 2-8b -- validates our sharing-is-the-lever and 'mid-resolution affordable' claims at thin column pitch. Differs by using a SAR/SS hybrid (extra global ramp block we avoid) and a pure FoM (44.8 fJ/conv-step is whole-converter, not a comparator-only b-linear term). 55 nm. No offset budget against a 23 mV window (axis-2 reported as 0 = not provided); SNDR 40.93 dB at 8b implies ~6.5 ENOB only."
           },
           {
-            "option": "PICO-RAM charge-domain CIM SRAM, time-domain ADC + comparator power-gating (Zhang 2024)",
+            "option": "PICO-RAM charge-domain CIM SRAM, time-domain ADC + comparator power-gating (Z. Chen 2024)",
             "is_ours": false,
             "metric_axis_1": {
               "name": "Comparator-amortization energy saving (local ADC, from gating expensive comparator)",
