@@ -87,8 +87,9 @@ def sar_adc():
 def main():
     res = dict(
         _about="Phase-4 aggregation of same-flow reproduction results (revision plan). Numbers are read "
-               "verbatim from committed *_summary.json; nothing is invented. The capability matrix "
-               "(gen_supplement_figs.py CAPS) remains the qualitative view; this is the quantitative one.",
+               "verbatim from committed *_summary.json; nothing is invented. The qualitative "
+               "capability matrix lives in appendix D (article/appendix_D_circuit_comparison.md); "
+               "this is the quantitative same-flow view.",
         readout_sa=readout_sa(), write_dac=write_dac(), sar_adc=sar_adc())
     OUT.write_text(json.dumps(res, indent=2))
     print("=== readout SA (same-flow offset) ===")
