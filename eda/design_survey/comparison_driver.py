@@ -66,13 +66,22 @@ def write_dac():
 
 
 def sar_adc():
-    """SAR readout: comparator energy is sky130-extracted but the converter energy is still ANALYTIC
-    (no transient SAR sim yet) -- flagged pending the Phase-3 SAR transient testbench."""
-    d = jload(TB / "sar_capdac_energy_summary.json")
-    return dict(metric="comparator + cap-DAC energy per conversion (fJ)",
-                flow="ANALYTIC (E_comp from extracted StrongARM SA + cap-DAC switching formula)",
-                status="pending: needs an ngspice transient SAR testbench for a true same-flow comparison",
-                E_comp_fJ=(d or {}).get("E_comp_fJ"), C_u_fF=(d or {}).get("C_u_fF"))
+    """SAR readout: cap-DAC switching energy is now TRANSIENT-measured in sky130
+    (sar_capdac_tran.py); the comparator is the extracted StrongARM SA, added analytically."""
+    d = jload(TB / "sar_capdac_tran_summary.json")
+    if not d:
+        return dict(metric="SAR energy per conversion (fJ)", status="pending: run sar_capdac_tran.py")
+    rows = [r for r in d["rows"] if r.get("b") == 8] or d["rows"]
+    designs = [dict(scheme=r["scheme"], b=r["b"], E_capdac_fJ=r["E_capdac_fJ_measured"],
+                    E_comp_fJ=r["E_comp_fJ"], E_total_fJ=r["E_total_fJ"]) for r in rows]
+    return dict(metric="SAR energy per conversion (fJ): transient cap-DAC + extracted comparator",
+                flow="sky130 transient charge-integration (sar_capdac_tran.py); comparator = extracted StrongARM SA 48 fJ",
+                designs=designs,
+                finding="Cap-DAC switching energy is transient-measured (not the analytic series): monotonic "
+                        "switching cuts the cap-DAC term ~3x vs conventional (b=8: 141 vs 457 fJ), less than "
+                        "the analytic /10 estimate; the comparator (b*48 fJ) dominates total SAR energy, "
+                        "confirming comparator-sharing (not bit reduction) as the energy lever.",
+                caveat="representative run; regenerate sar_capdac_tran.py to verify; SS-hybrid not done.")
 
 
 def main():
@@ -88,7 +97,12 @@ def main():
     print("=== write DAC (same-flow into 776 ohm) ===")
     for r in res["write_dac"]["designs"]:
         print(f"  {'*' if r['is_ours'] else ' '} {r['topology']:<16} monotonic={r['monotonic']!s:<5} INL={r['INL_LSB']:.2f} LSB")
-    print(f"=== SAR ADC: {res['sar_adc']['status']} ===")
+    sar = res["sar_adc"]
+    print("=== SAR ADC (transient cap-DAC + extracted comparator) ===")
+    for r in sar.get("designs", []):
+        print(f"    b{r['b']} {r['scheme']:<12} capdac={r['E_capdac_fJ']:.0f}fJ comp={r['E_comp_fJ']:.0f}fJ total={r['E_total_fJ']:.0f}fJ")
+    if sar.get("status"):
+        print(f"    {sar['status']}")
     print(f"\nwrote {OUT.relative_to(REPO)}")
 
 

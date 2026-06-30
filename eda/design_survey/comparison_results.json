@@ -60,10 +60,25 @@
     "finding": "Into the low-impedance 776 ohm write load only the voltage-mode resistor-string is monotonic (INL 0.48 LSB); current-steering (INL 1.71, PMOS Vsd compliance) and R-2R (INL 2.62, switch Ron at major carry) are non-monotonic -> resistor-string is the correct write-DAC, now measured not asserted."
   },
   "sar_adc": {
-    "metric": "comparator + cap-DAC energy per conversion (fJ)",
-    "flow": "ANALYTIC (E_comp from extracted StrongARM SA + cap-DAC switching formula)",
-    "status": "pending: needs an ngspice transient SAR testbench for a true same-flow comparison",
-    "E_comp_fJ": 48.0,
-    "C_u_fF": 1.5
+    "metric": "SAR energy per conversion (fJ): transient cap-DAC + extracted comparator",
+    "flow": "sky130 transient charge-integration (sar_capdac_tran.py); comparator = extracted StrongARM SA 48 fJ",
+    "designs": [
+      {
+        "scheme": "conventional",
+        "b": 8,
+        "E_capdac_fJ": 457.382,
+        "E_comp_fJ": 384.0,
+        "E_total_fJ": 841.4
+      },
+      {
+        "scheme": "monotonic",
+        "b": 8,
+        "E_capdac_fJ": 140.574,
+        "E_comp_fJ": 384.0,
+        "E_total_fJ": 524.6
+      }
+    ],
+    "finding": "Cap-DAC switching energy is transient-measured (not the analytic series): monotonic switching cuts the cap-DAC term ~3x vs conventional (b=8: 141 vs 457 fJ), less than the analytic /10 estimate; the comparator (b*48 fJ) dominates total SAR energy, confirming comparator-sharing (not bit reduction) as the energy lever.",
+    "caveat": "representative run; regenerate sar_capdac_tran.py to verify; SS-hybrid not done."
   }
 }
