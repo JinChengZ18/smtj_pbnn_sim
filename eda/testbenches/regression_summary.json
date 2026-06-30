@@ -1,0 +1,11 @@
+{
+  "kind": "tool_self_consistency_regression",
+  "note": "OSDI-compiled smtj_sot.va vs numpy golden (same closed form); not a physical validation.",
+  "points": 86,
+  "max_abs_err": 0.000350977177344336,
+  "r2_ngspice_vs_golden": 0.9999997164807045,
+  "pass": true,
+  "openvaf": "E:\\EDA\\openvaf-reloaded-20260616-2-gc592eed6\\openvaf.EXE",
+  "ngspice": "E:\\EDA\\ngspice-46\\Spice64\\bin\\ngspice_con.EXE",
+  "ran_at_utc": "2026-06-29T18:50:34+00:00"
+}

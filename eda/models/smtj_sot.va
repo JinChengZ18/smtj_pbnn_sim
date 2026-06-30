@@ -7,7 +7,10 @@
 //   * Neel-Brown escape rate                  neel_brown_rate(V; Delta, Vc0, tau0)
 //   * telegraph knobs                         tau(V) = 1/(r_up+r_dn),  <s> = tanh(Delta*V/Vc0)
 //
-// Provenance: authored independently from the calibrated formulas. 
+// Provenance: hand-written Verilog-A transcription of the Chapter 2.3 calibrated
+//   formulas. Parameter defaults are LOCKED to the simulator calibration (errata N1),
+//   so agreement with the Python golden is by construction (a port-consistency check),
+//   not independent corroboration.
 //
 // ---------------------------------------------------------------------------
 // DESIGN NOTE (open-source / OpenVAF target):
