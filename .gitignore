@@ -24,3 +24,7 @@ article/ppt/*.pptx.bak
 
 # MS Office lock/temp files (e.g. ~$chapter04.docx) -- never commit
 ~$*
+# per-run scratch of the design-survey reproduction scripts (regenerable; aggregate records are committed)
+eda/design_survey/repro/_yoon_*.csv
+eda/design_survey/repro/_flash_runs/mc_s*.json
+eda/design_survey/repro/.spiceinit

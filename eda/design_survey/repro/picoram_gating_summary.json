@@ -1,0 +1,1019 @@
+{
+  "design": "PICO-RAM comparator power-gating",
+  "reference": {
+    "paper": "Zhiyu Chen et al., PICO-RAM ... 6T Thin-Cell-Compatible Layout, IEEE JSSC 60(1):308, 2025",
+    "open_preprint": "arXiv:2407.12829",
+    "mechanism_quotes": [
+      "A second low-power comparator (Cmp2) is added to power gate Cmp1 and TSPCs.",
+      "It has a slightly higher threshold (set by Vref) than Cmp1 to disable the main path of ADC most of the time.",
+      "Cmp2 is auto-zeroed by SAZ before conversion, allowing it to maintain a low-power profile with near-minimum sizing while achieving minimal offset.",
+      "leading to a 55.8% energy reduction of the local ADCs without compromising accuracy."
+    ]
+  },
+  "flow": "sky130A tt, ngspice (WSL), schematic-level (non-extracted), VDD=1.8 V, 27C; per-decision energy = -VDD*INTEG(i(Vsupply)) over one 12 ns decision window (evaluation + precharge recovery); Cmp1-fired is MEASURED as MAX v(cclk1).",
+  "mapping": {
+    "cmp1": "committed StrongARM, exact sizing of eda/hero/comparators/strongarm.spice (28 um total W), nominal",
+    "cmp2": "near-minimum StrongARM, all devices W=0.42/L=0.15 um (sky130 01v8 minimum width), ~6.1x less device width than Cmp1",
+    "one_sided_vs_window": "PICO-RAM uses ONE Cmp2 (its ADC input is a monotonic time-domain ramp; a single higher threshold is crossed before Cmp1's). Our primitive is a STATIC comparison, so the ambiguity band needs both edges: the same near-minimum Cmp2 is instantiated TWICE at +-V_g (their dual threshold becomes a symmetric window).",
+    "gating": "real in-netlist clock gating: amb=INV(NAND(outn_a,outp_b)); cclk1=INV(NAND(clk_raw,amb)); baseline uses a matched 2-stage buffer on the same counted logic supply, so clock-driver energy is charged to both modes",
+    "offset_reference": "ideal series DC sources at the Cmp2 input-pair gates (in silicon: reference-ladder tap; in PICO-RAM: 'set by Vref')"
+  },
+  "gating_threshold": {
+    "V_g_mV": 23.414,
+    "choice": "V_g = V_T = 23.414 mV, the committed PBNN sigmoid scale: only decisions inside the inherently near-random +-V_T band strobe the precise comparator"
+  },
+  "ensemble": {
+    "grid": "60 midpoints, uniform over +-10*V_T (+-234.14 mV differential, 0.9 V common mode)",
+    "primary": "uniform +-5*V_T (30 inner points)",
+    "note": "the headline ratio DEPENDS on the ensemble width (wider range -> more gated-off easy decisions -> larger saving); three widths reported"
+  },
+  "headline": {
+    "measured_energy_ratio_gated_over_ungated": 0.7562369689286514,
+    "measured_saving_pct": 24.376303107134856,
+    "ensemble": "uniform +-5*V_T",
+    "p_fire_cmp1_measured": 0.2,
+    "decision_error_rate_nominal": 0.0
+  },
+  "ensembles": {
+    "uniform_pm2VT": {
+      "range_mV": 46.828,
+      "n_points": 12,
+      "E_base_fJ": 142.9677,
+      "E_gated_fJ": 149.201536995,
+      "ratio_gated_over_ungated": 1.043603114514677,
+      "saving_pct": -4.360311451467691,
+      "p_fire_measured": 0.5,
+      "p_fire_analytic_uniform": 0.5,
+      "error_rate": 0.0
+    },
+    "uniform_pm5VT": {
+      "range_mV": 117.07000000000001,
+      "n_points": 30,
+      "E_base_fJ": 141.15126,
+      "E_gated_fJ": 106.74380102286001,
+      "ratio_gated_over_ungated": 0.7562369689286514,
+      "saving_pct": 24.376303107134856,
+      "p_fire_measured": 0.2,
+      "p_fire_analytic_uniform": 0.19999999999999998,
+      "error_rate": 0.0
+    },
+    "uniform_pm10VT": {
+      "range_mV": 234.14000000000001,
+      "n_points": 60,
+      "E_base_fJ": 140.729748,
+      "E_gated_fJ": 90.01723080513,
+      "ratio_gated_over_ungated": 0.6396460740136478,
+      "saving_pct": 36.03539259863522,
+      "p_fire_measured": 0.1,
+      "p_fire_analytic_uniform": 0.09999999999999999,
+      "error_rate": 0.0
+    }
+  },
+  "per_point": [
+    {
+      "vd_mV": -230.238,
+      "E_base_fJ": 140.66892,
+      "E_gated_fJ": 73.99888145999999,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 0.0032754600000000004,
+        "cmp2a": 17.27793,
+        "cmp2b": 16.973676,
+        "logic": 39.744
+      }
+    },
+    {
+      "vd_mV": -222.433,
+      "E_base_fJ": 140.61636000000001,
+      "E_gated_fJ": 73.909514934,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.009861066,
+        "cmp2a": 17.274636,
+        "cmp2b": 16.96968,
+        "logic": 39.67506
+      }
+    },
+    {
+      "vd_mV": -214.62800000000001,
+      "E_base_fJ": 140.56686000000002,
+      "E_gated_fJ": 74.08063314,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.02164086,
+        "cmp2a": 17.271144,
+        "cmp2b": 16.96923,
+        "logic": 39.861900000000006
+      }
+    },
+    {
+      "vd_mV": -206.824,
+      "E_base_fJ": 140.51754,
+      "E_gated_fJ": 74.398036554,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.015385446,
+        "cmp2a": 17.266194000000002,
+        "cmp2b": 16.970508,
+        "logic": 40.17672
+      }
+    },
+    {
+      "vd_mV": -199.019,
+      "E_base_fJ": 140.46552,
+      "E_gated_fJ": 74.58638329800002,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 0.0036352980000000003,
+        "cmp2a": 17.25966,
+        "cmp2b": 16.983468000000002,
+        "logic": 40.339620000000004
+      }
+    },
+    {
+      "vd_mV": -191.214,
+      "E_base_fJ": 140.4099,
+      "E_gated_fJ": 74.567839554,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 0.004765554,
+        "cmp2a": 17.256384,
+        "cmp2b": 17.02125,
+        "logic": 40.28544
+      }
+    },
+    {
+      "vd_mV": -183.41,
+      "E_base_fJ": 140.35248,
+      "E_gated_fJ": 74.45345643,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.01092357,
+        "cmp2a": 17.254584,
+        "cmp2b": 17.084196,
+        "logic": 40.1256
+      }
+    },
+    {
+      "vd_mV": -175.60500000000002,
+      "E_base_fJ": 140.30154,
+      "E_gated_fJ": 74.76408594,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.020550060000000002,
+        "cmp2a": 17.252424,
+        "cmp2b": 17.162892,
+        "logic": 40.36932
+      }
+    },
+    {
+      "vd_mV": -167.8,
+      "E_base_fJ": 140.25564,
+      "E_gated_fJ": 75.257376588,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.005375412,
+        "cmp2a": 17.251416,
+        "cmp2b": 17.253936,
+        "logic": 40.757400000000004
+      }
+    },
+    {
+      "vd_mV": -159.996,
+      "E_base_fJ": 140.20632,
+      "E_gated_fJ": 75.36644735399999,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 0.003165354,
+        "cmp2a": 17.259966,
+        "cmp2b": 17.356175999999998,
+        "logic": 40.74714
+      }
+    },
+    {
+      "vd_mV": -152.191,
+      "E_base_fJ": 140.15448,
+      "E_gated_fJ": 75.37464342,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.01142658,
+        "cmp2a": 17.288532,
+        "cmp2b": 17.471538000000002,
+        "logic": 40.626
+      }
+    },
+    {
+      "vd_mV": -144.386,
+      "E_base_fJ": 140.10065999999998,
+      "E_gated_fJ": 75.87807966,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.01856034,
+        "cmp2a": 17.341524000000003,
+        "cmp2b": 17.600616,
+        "logic": 40.954499999999996
+      }
+    },
+    {
+      "vd_mV": -136.58200000000002,
+      "E_base_fJ": 140.04954,
+      "E_gated_fJ": 76.344615954,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 0.003141954,
+        "cmp2a": 17.407746,
+        "cmp2b": 17.740008,
+        "logic": 41.19372
+      }
+    },
+    {
+      "vd_mV": -128.77700000000002,
+      "E_base_fJ": 140.00202,
+      "E_gated_fJ": 76.39461549,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.00931851,
+        "cmp2a": 17.493570000000002,
+        "cmp2b": 17.896103999999998,
+        "logic": 41.01426
+      }
+    },
+    {
+      "vd_mV": -120.972,
+      "E_base_fJ": 139.95576,
+      "E_gated_fJ": 77.01868648799999,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.016597512000000002,
+        "cmp2a": 17.592264,
+        "cmp2b": 18.06768,
+        "logic": 41.375339999999994
+      }
+    },
+    {
+      "vd_mV": -113.168,
+      "E_base_fJ": 139.9095,
+      "E_gated_fJ": 77.5223753832,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 0.0007853831999999999,
+        "cmp2a": 17.698230000000002,
+        "cmp2b": 18.25434,
+        "logic": 41.56902
+      }
+    },
+    {
+      "vd_mV": -105.363,
+      "E_base_fJ": 139.86522000000002,
+      "E_gated_fJ": 77.859690696,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.016571304000000002,
+        "cmp2a": 17.823041999999997,
+        "cmp2b": 18.46206,
+        "logic": 41.59116
+      }
+    },
+    {
+      "vd_mV": -97.5583,
+      "E_base_fJ": 139.8231,
+      "E_gated_fJ": 78.6377252466,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.0017007534,
+        "cmp2a": 17.952606,
+        "cmp2b": 18.68832,
+        "logic": 41.9985
+      }
+    },
+    {
+      "vd_mV": -89.75370000000001,
+      "E_base_fJ": 139.79124000000002,
+      "E_gated_fJ": 78.96170115000001,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.013298850000000003,
+        "cmp2a": 18.10458,
+        "cmp2b": 18.939780000000003,
+        "logic": 41.930640000000004
+      }
+    },
+    {
+      "vd_mV": -81.949,
+      "E_base_fJ": 139.77846000000002,
+      "E_gated_fJ": 79.89513075,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.00290925,
+        "cmp2a": 18.26334,
+        "cmp2b": 19.21608,
+        "logic": 42.41862
+      }
+    },
+    {
+      "vd_mV": -74.1443,
+      "E_base_fJ": 139.80438,
+      "E_gated_fJ": 80.456420988,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.017079012,
+        "cmp2a": 18.4455,
+        "cmp2b": 19.523880000000002,
+        "logic": 42.50412
+      }
+    },
+    {
+      "vd_mV": -66.33970000000001,
+      "E_base_fJ": 139.90068000000002,
+      "E_gated_fJ": 81.35261442,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.0034255799999999997,
+        "cmp2a": 18.637919999999998,
+        "cmp2b": 19.86462,
+        "logic": 42.853500000000004
+      }
+    },
+    {
+      "vd_mV": -58.535,
+      "E_base_fJ": 140.11938,
+      "E_gated_fJ": 82.552716504,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.006443496,
+        "cmp2a": 18.8514,
+        "cmp2b": 20.24766,
+        "logic": 43.4601
+      }
+    },
+    {
+      "vd_mV": -50.7303,
+      "E_base_fJ": 140.47074,
+      "E_gated_fJ": 83.785248342,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.015011658,
+        "cmp2a": 19.08846,
+        "cmp2b": 20.68758,
+        "logic": 44.02422
+      }
+    },
+    {
+      "vd_mV": -42.9257,
+      "E_base_fJ": 140.9283,
+      "E_gated_fJ": 85.68286882200002,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.014231178,
+        "cmp2a": 19.348920000000003,
+        "cmp2b": 21.21786,
+        "logic": 45.130320000000005
+      }
+    },
+    {
+      "vd_mV": -35.121,
+      "E_base_fJ": 141.45192,
+      "E_gated_fJ": 88.768172952,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.004407048,
+        "cmp2a": 19.63188,
+        "cmp2b": 21.94704,
+        "logic": 47.19366
+      }
+    },
+    {
+      "vd_mV": -27.316300000000002,
+      "E_base_fJ": 142.05222,
+      "E_gated_fJ": 96.33926961,
+      "cmp1_fired": false,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.00501039,
+        "cmp2a": 19.948320000000002,
+        "cmp2b": 23.43996,
+        "logic": 52.956
+      }
+    },
+    {
+      "vd_mV": -19.5117,
+      "E_base_fJ": 142.86366,
+      "E_gated_fJ": 213.46434000000002,
+      "cmp1_fired": true,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 55.540980000000005,
+        "cmp2a": 20.29824,
+        "cmp2b": 24.08382,
+        "logic": 113.5413
+      }
+    },
+    {
+      "vd_mV": -11.707,
+      "E_base_fJ": 144.1125,
+      "E_gated_fJ": 207.4221,
+      "cmp1_fired": true,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 56.638619999999996,
+        "cmp2a": 20.694960000000002,
+        "cmp2b": 22.470660000000002,
+        "logic": 107.61786000000001
+      }
+    },
+    {
+      "vd_mV": -3.90233,
+      "E_base_fJ": 146.39759999999998,
+      "E_gated_fJ": 207.99269999999999,
+      "cmp1_fired": true,
+      "ans_base": 0,
+      "ans_gated": 0,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 59.14134,
+        "cmp2a": 21.15126,
+        "cmp2b": 21.70206,
+        "logic": 105.99803999999999
+      }
+    },
+    {
+      "vd_mV": 3.90233,
+      "E_base_fJ": 146.39759999999998,
+      "E_gated_fJ": 207.99251999999998,
+      "cmp1_fired": true,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 59.14134,
+        "cmp2a": 21.703860000000002,
+        "cmp2b": 21.14928,
+        "logic": 105.99803999999999
+      }
+    },
+    {
+      "vd_mV": 11.707,
+      "E_base_fJ": 144.1125,
+      "E_gated_fJ": 207.4095,
+      "cmp1_fired": true,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 56.638619999999996,
+        "cmp2a": 22.4694,
+        "cmp2b": 20.69316,
+        "logic": 107.60831999999999
+      }
+    },
+    {
+      "vd_mV": 19.5117,
+      "E_base_fJ": 142.86366,
+      "E_gated_fJ": 213.27084000000002,
+      "cmp1_fired": true,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": 55.540980000000005,
+        "cmp2a": 24.050700000000003,
+        "cmp2b": 20.2959,
+        "logic": 113.38326
+      }
+    },
+    {
+      "vd_mV": 27.316300000000002,
+      "E_base_fJ": 142.05222,
+      "E_gated_fJ": 93.575938194,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.017401806000000002,
+        "cmp2a": 23.79672,
+        "cmp2b": 19.941840000000003,
+        "logic": 49.85478
+      }
+    },
+    {
+      "vd_mV": 35.121,
+      "E_base_fJ": 141.45192,
+      "E_gated_fJ": 85.83614838000001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.01899162,
+        "cmp2a": 22.24998,
+        "cmp2b": 19.62432,
+        "logic": 43.98084
+      }
+    },
+    {
+      "vd_mV": 42.9257,
+      "E_base_fJ": 140.9283,
+      "E_gated_fJ": 82.664045982,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.009774018,
+        "cmp2a": 21.50946,
+        "cmp2b": 19.33704,
+        "logic": 41.82732
+      }
+    },
+    {
+      "vd_mV": 50.7303,
+      "E_base_fJ": 140.47074,
+      "E_gated_fJ": 80.69865604200001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.009383958000000001,
+        "cmp2a": 20.97432,
+        "cmp2b": 19.07658,
+        "logic": 40.65714
+      }
+    },
+    {
+      "vd_mV": 58.535,
+      "E_base_fJ": 140.11938,
+      "E_gated_fJ": 79.193863692,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.011896308,
+        "cmp2a": 20.53188,
+        "cmp2b": 18.84078,
+        "logic": 39.8331
+      }
+    },
+    {
+      "vd_mV": 66.33970000000001,
+      "E_base_fJ": 139.90068000000002,
+      "E_gated_fJ": 78.11752266,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.02137734,
+        "cmp2a": 20.14704,
+        "cmp2b": 18.62658,
+        "logic": 39.36528
+      }
+    },
+    {
+      "vd_mV": 74.1443,
+      "E_base_fJ": 139.80438,
+      "E_gated_fJ": 77.37811498800001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.012705011999999998,
+        "cmp2a": 19.803060000000002,
+        "cmp2b": 18.430740000000004,
+        "logic": 39.15702
+      }
+    },
+    {
+      "vd_mV": 81.949,
+      "E_base_fJ": 139.77846000000002,
+      "E_gated_fJ": 76.314224088,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.013335912000000002,
+        "cmp2a": 19.49472,
+        "cmp2b": 18.2529,
+        "logic": 38.57993999999999
+      }
+    },
+    {
+      "vd_mV": 89.75370000000001,
+      "E_base_fJ": 139.79124000000002,
+      "E_gated_fJ": 75.79025892000001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.018361080000000002,
+        "cmp2a": 19.216440000000002,
+        "cmp2b": 18.090360000000004,
+        "logic": 38.50182
+      }
+    },
+    {
+      "vd_mV": 97.5583,
+      "E_base_fJ": 139.8231,
+      "E_gated_fJ": 74.93915163599999,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.012056364,
+        "cmp2a": 18.96426,
+        "cmp2b": 17.942328,
+        "logic": 38.044619999999995
+      }
+    },
+    {
+      "vd_mV": 105.363,
+      "E_base_fJ": 139.86522000000002,
+      "E_gated_fJ": 74.62163358,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.013962420000000001,
+        "cmp2a": 18.735660000000003,
+        "cmp2b": 17.808696,
+        "logic": 38.09124
+      }
+    },
+    {
+      "vd_mV": 113.168,
+      "E_base_fJ": 139.9095,
+      "E_gated_fJ": 73.81853765999999,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.01960434,
+        "cmp2a": 18.52902,
+        "cmp2b": 17.688042,
+        "logic": 37.62108
+      }
+    },
+    {
+      "vd_mV": 120.972,
+      "E_base_fJ": 139.95576,
+      "E_gated_fJ": 73.52368614000001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.0056298599999999996,
+        "cmp2a": 18.33876,
+        "cmp2b": 17.578296,
+        "logic": 37.61226
+      }
+    },
+    {
+      "vd_mV": 128.77700000000002,
+      "E_base_fJ": 140.00202,
+      "E_gated_fJ": 73.02621006000001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.02299194,
+        "cmp2a": 18.1683,
+        "cmp2b": 17.482122,
+        "logic": 37.39878
+      }
+    },
+    {
+      "vd_mV": 136.58200000000002,
+      "E_base_fJ": 140.04954,
+      "E_gated_fJ": 72.43001523,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.016276770000000003,
+        "cmp2a": 18.011160000000004,
+        "cmp2b": 17.397972,
+        "logic": 37.03716
+      }
+    },
+    {
+      "vd_mV": 144.386,
+      "E_base_fJ": 140.10065999999998,
+      "E_gated_fJ": 72.320643,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.005373,
+        "cmp2a": 17.869014,
+        "cmp2b": 17.329122,
+        "logic": 37.12788
+      }
+    },
+    {
+      "vd_mV": 152.191,
+      "E_base_fJ": 140.15448,
+      "E_gated_fJ": 72.0334026,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.0181134,
+        "cmp2a": 17.740638,
+        "cmp2b": 17.279657999999998,
+        "logic": 37.031220000000005
+      }
+    },
+    {
+      "vd_mV": 159.996,
+      "E_base_fJ": 140.20632,
+      "E_gated_fJ": 71.5417983,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.024131700000000002,
+        "cmp2a": 17.625546,
+        "cmp2b": 17.253324,
+        "logic": 36.68706
+      }
+    },
+    {
+      "vd_mV": 167.8,
+      "E_base_fJ": 140.25564,
+      "E_gated_fJ": 71.28193152600001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.009732474,
+        "cmp2a": 17.520336,
+        "cmp2b": 17.245008000000002,
+        "logic": 36.526320000000005
+      }
+    },
+    {
+      "vd_mV": 175.60500000000002,
+      "E_base_fJ": 140.30154,
+      "E_gated_fJ": 71.345287872,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.003256128,
+        "cmp2a": 17.42823,
+        "cmp2b": 17.245674,
+        "logic": 36.674640000000004
+      }
+    },
+    {
+      "vd_mV": 183.41,
+      "E_base_fJ": 140.35248,
+      "E_gated_fJ": 71.16032934,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.01887066,
+        "cmp2a": 17.351567999999997,
+        "cmp2b": 17.249472000000004,
+        "logic": 36.578160000000004
+      }
+    },
+    {
+      "vd_mV": 191.214,
+      "E_base_fJ": 140.4099,
+      "E_gated_fJ": 70.76343114000001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.02749086,
+        "cmp2a": 17.28891,
+        "cmp2b": 17.253432,
+        "logic": 36.24858
+      }
+    },
+    {
+      "vd_mV": 199.019,
+      "E_base_fJ": 140.46552,
+      "E_gated_fJ": 70.52330397600001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.016428024,
+        "cmp2a": 17.246448,
+        "cmp2b": 17.256384,
+        "logic": 36.0369
+      }
+    },
+    {
+      "vd_mV": 206.824,
+      "E_base_fJ": 140.51754,
+      "E_gated_fJ": 70.607004858,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.005033142,
+        "cmp2a": 17.231562,
+        "cmp2b": 17.260056,
+        "logic": 36.12042
+      }
+    },
+    {
+      "vd_mV": 214.62800000000001,
+      "E_base_fJ": 140.56686000000002,
+      "E_gated_fJ": 70.722154692,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.0031033080000000004,
+        "cmp2a": 17.232084,
+        "cmp2b": 17.264754000000003,
+        "logic": 36.22842
+      }
+    },
+    {
+      "vd_mV": 222.433,
+      "E_base_fJ": 140.61636000000001,
+      "E_gated_fJ": 70.675572924,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.014171076,
+        "cmp2a": 17.23473,
+        "cmp2b": 17.269434,
+        "logic": 36.18558
+      }
+    },
+    {
+      "vd_mV": 230.238,
+      "E_base_fJ": 140.66892,
+      "E_gated_fJ": 70.37174970000001,
+      "cmp1_fired": false,
+      "ans_base": 1,
+      "ans_gated": 1,
+      "err": 0,
+      "gated_parts_fJ": {
+        "cmp1": -0.0268443,
+        "cmp2a": 17.237718,
+        "cmp2b": 17.273016,
+        "logic": 35.887859999999996
+      }
+    }
+  ],
+  "accuracy_vs_coarse_offset": {
+    "measured_nominal_error_rate": 0.0,
+    "analytic_model_LABELED": {
+      "formula": "P_err = 2*E[(delta-V_g)^+]/(2*V_r), E[(d-c)^+] = s*pdf(c/s)-c*Q(c/s), delta~N(0,s^2) per coarse comparator; error requires a coarse threshold to cross zero, i.e. |delta| > V_g",
+      "sigma2_no_autozero_mV": 19.9204768222399,
+      "sigma2_no_autozero_note": "Pelgrom AVT=5.0 mV.um / sqrt(0.42*0.15) -- near-minimum Cmp2 WITHOUT auto-zero (ASSUMED AVT, same as run_offset_mc.py)",
+      "P_err_no_autozero_pm5VT": 0.010038627476815104,
+      "sigma2_autozero_target_mV": 1.5,
+      "P_err_autozero_pm5VT": 2.5604112910630584e-58,
+      "conclusion": "near-minimum sizing alone (sigma ~ 0.85*V_g) would break the no-accuracy-loss claim; the auto-zero the paper applies to Cmp2 ('auto-zeroed by SAZ') is what makes near-minimum sizing safe -- consistent with their design choice"
+    },
+    "measured_spot_checks_delta_b": [
+      {
+        "delta_b_mV": 19.9204768222399,
+        "delta_b_sigma": 1.0,
+        "coarse_threshold_b_mV": -3.4935231777601037,
+        "error_rate_pm5VT": 0.0,
+        "p_fire_pm5VT": 0.1,
+        "ratio_pm5VT": 0.6771950137558814
+      },
+      {
+        "delta_b_mV": 29.880715233359847,
+        "delta_b_sigma": 1.5,
+        "coarse_threshold_b_mV": 6.466715233359847,
+        "error_rate_pm5VT": 0.03333333333333333,
+        "p_fire_pm5VT": 0.06666666666666667,
+        "ratio_pm5VT": 0.6459615788114111
+      }
+    ]
+  },
+  "comparison_to_paper": {
+    "picoram_claim": "55.8% energy reduction of the local ADCs, no accuracy loss",
+    "scope_difference": "PICO-RAM's number is for their WHOLE local time-domain ADC (Cmp1 + TSPC counters power-gated, monotonic-ramp input, one Cmp2, auto-zeroed); ours is the comparator-pair PRIMITIVE (StrongARM Cmp1 clock-gated by a near-minimum window pair) on a static input ensemble -- qualitatively comparable, not the same scope",
+    "our_measured_saving_pct_primary": 24.376303107134856
+  },
+  "assumptions": [
+    "schematic-level, non-extracted: RATIOS are the deliverable; absolute fJ are schematic-level",
+    "ideal differential input sources (comparator kickback does not disturb the source)",
+    "offset references +-V_g are ideal DC sources in series with the input-pair gates",
+    "tt corner, 27C, nominal devices except the labeled offset spot checks",
+    "uniform input ensemble (stated widths); the ratio transfers only with the ensemble stated",
+    "coarse strobe leads the main strobe by 3 ns in a 12 ns window (single-cycle primitive; PICO-RAM's time-domain ADC amortizes the coarse decision differently)",
+    "AVT=5.0 mV.um is a sky130-class assumption (not the PDK mismatch model), reused from run_offset_mc.py for consistency"
+  ],
+  "reproduce": "wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd <repo> && python3 eda/design_survey/repro/picoram_gating.py'"
+}
