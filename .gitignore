@@ -28,3 +28,4 @@ article/ppt/*.pptx.bak
 eda/design_survey/repro/_yoon_*.csv
 eda/design_survey/repro/_flash_runs/mc_s*.json
 eda/design_survey/repro/.spiceinit
+eda/design_survey/repro/_*.log

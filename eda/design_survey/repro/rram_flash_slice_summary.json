@@ -58,62 +58,62 @@
   ],
   "offset_mc": {
     "method": "Pelgrom Vth offsets (AVT=5 mV*um assumption, same as run_offset_mc.py) on input pair + latch pair of each of the 7 comparators (28 draws/sample); all 7 comparators + ladder + mux simulated together; per-edge offset = source sweep value where that comparator's decision flips minus the ideal tap. Sweep +-40 mV in 4 mV steps (quantization adds <1% to a ~9 mV sigma, in quadrature).",
-    "N_samples": 13,
-    "N_note": "N=40+ was planned; the run is time-bound by host throughput (~0.4 sky130 transients/s aggregate on this machine), so the committed result is the largest COMPLETED subset. Rerun with more samples: wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd <repo> && OMP_NUM_THREADS=1 python3 eda/design_survey/repro/rram_flash_slice.py mc <N> <workers>' then `summarize`. Per-edge sigma SE ~ sigma/sqrt(2(N-1)); pooled sigma uses 7N edge measurements.",
+    "N_samples": 40,
+    "N_note": "N_samples reflects the records present in _flash_runs/ (the first pass was time-bound at N=13; the committed N=40 rerun reproduced those 13 seeded samples bit-identically). Extend with more samples: wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd <repo> && OMP_NUM_THREADS=1 python3 eda/design_survey/repro/rram_flash_slice.py mc <N> <workers>' then `summarize`. Per-edge sigma SE ~ sigma/sqrt(2(N-1)); pooled sigma uses 7N edge measurements.",
     "edges_lost_to_sweep_range": 0,
     "per_edge": {
       "1": {
         "tap_V": 0.675,
-        "N": 13,
-        "mean_mV": 0.41805811221822936,
-        "sigma_mV": 11.705026657525236
+        "N": 40,
+        "mean_mV": -2.339331554247459,
+        "sigma_mV": 10.222067514257688
       },
       "2": {
         "tap_V": 0.75,
-        "N": 13,
-        "mean_mV": -1.6923068832293766,
-        "sigma_mV": 5.2818023156939065
+        "N": 40,
+        "mean_mV": -0.599999241136645,
+        "sigma_mV": 7.608362456326412
       },
       "3": {
         "tap_V": 0.825,
-        "N": 13,
-        "mean_mV": 3.5384616979525005,
-        "sigma_mV": 7.0310665767919
+        "N": 40,
+        "mean_mV": 3.2000001663445468,
+        "sigma_mV": 11.175063772321389
       },
       "4": {
         "tap_V": 0.9,
-        "N": 13,
-        "mean_mV": 0.4615383252399937,
-        "sigma_mV": 9.1707449847506
+        "N": 40,
+        "mean_mV": 1.1999998668074496,
+        "sigma_mV": 9.680008455833434
       },
       "5": {
         "tap_V": 0.975,
-        "N": 13,
-        "mean_mV": 4.153845920369372,
-        "sigma_mV": 10.407098172028483
+        "N": 40,
+        "mean_mV": 2.199999764926783,
+        "sigma_mV": 8.872891593972902
       },
       "6": {
         "tap_V": 1.05,
-        "N": 13,
-        "mean_mV": -0.461538648733559,
-        "sigma_mV": 9.734948949302115
+        "N": 40,
+        "mean_mV": -2.7000001905434337,
+        "sigma_mV": 10.675156890154717
       },
       "7": {
         "tap_V": 1.125,
-        "N": 13,
-        "mean_mV": 3.2307691481917673,
-        "sigma_mV": 11.35894542714814
+        "N": 40,
+        "mean_mV": 1.2999999150632433,
+        "sigma_mV": 10.559234636000097
       }
     },
-    "sigma_pooled_mV_about_edge_means": 9.169122896349762,
-    "sigma_raw_all_edges_mV": 9.405355451933511,
-    "sigma_over_VT_pooled": 0.39160856309685493,
+    "sigma_pooled_mV_about_edge_means": 9.78638068113154,
+    "sigma_raw_all_edges_mV": 10.008031036030513,
+    "sigma_over_VT_pooled": 0.417971328313468,
     "single_comparator_wall_mV": 9.21,
     "single_comparator_wall_over_VT": 0.393,
-    "edge_sigma_in_flash_LSB": 0.12225497195133016,
-    "edge_sigma_in_popcounts": 1.467059663415962,
-    "DNL_sigma_LSB_measured": 0.17523439729869433,
-    "DNL_mean_LSB_measured": 0.0062504689688300825
+    "edge_sigma_in_flash_LSB": 0.13048507574842053,
+    "edge_sigma_in_popcounts": 1.5658209089810464,
+    "DNL_sigma_LSB_measured": 0.1872826774081356,
+    "DNL_mean_LSB_measured": 0.008087403265134895
   },
   "energy": {
     "level": "SCHEMATIC-LEVEL (no extraction) -- house norm: ratios headline",

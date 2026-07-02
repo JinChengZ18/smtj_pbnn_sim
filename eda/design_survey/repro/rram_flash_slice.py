@@ -634,11 +634,11 @@ def summarize():
                        "(quantization adds <1% to a ~9 mV sigma, in quadrature)."),
             "N_samples": sum(1 for r in mc
                              if any(v == v for v in r["edges_mV"].values())),
-            "N_note": ("N=40+ was planned; the run is time-bound by host throughput "
-                       "(~0.4 sky130 transients/s aggregate on this machine), so the "
-                       "committed result is the largest COMPLETED subset. Rerun with "
-                       "more samples: wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd <repo> "
-                       "&& OMP_NUM_THREADS=1 python3 eda/design_survey/repro/"
+            "N_note": ("N_samples reflects the records present in _flash_runs/ (the "
+                       "first pass was time-bound at N=13; the committed N=40 rerun "
+                       "reproduced those 13 seeded samples bit-identically). Extend "
+                       "with more samples: wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd "
+                       "<repo> && OMP_NUM_THREADS=1 python3 eda/design_survey/repro/"
                        "rram_flash_slice.py mc <N> <workers>' then `summarize`. "
                        "Per-edge sigma SE ~ sigma/sqrt(2(N-1)); pooled sigma uses "
                        "7N edge measurements."),
