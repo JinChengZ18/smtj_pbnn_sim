@@ -1,0 +1,56 @@
+* Current-sampling sense amplifier (small-cell-current NVM SA lineage,
+* Chang et al., IEEE JSSC 48(3):864-877, 2013), sky130.
+* Reproduction-comparison netlist for run_offset_mc.py's netlist factory.
+* Shared interface (harness preamble): nodes vdd vss clk vinp vinn -> outp outn.
+* Phase 1 (clk low, SAMPLE): each V-to-I input NMOS sinks its branch current
+* through a PMOS sampling device that is diode-connected via a clkb-gated NMOS
+* switch; the PMOS Vgs needed to carry that current is stored on hold node
+* sp1/sp2 (explicit cap + gate cap). Because the diode loop stores the Vgs for
+* the ACTUAL current, the sampling device's own Vth mismatch is absorbed during
+* sampling and cancels to first order at hold (the CSSA offset-tolerance
+* mechanism; the residual is channel-length modulation as Vds moves between the
+* sample and evaluate operating points).
+* Phase 2 (clk high, EVALUATE): the sample/diode NMOS switches open (currents
+* held); transmission gates steer the two held currents into a precharged-LOW
+* charge-up latch (clkb-gated reset NMOS, clkb-gated PMOS head, cross-coupled
+* inverter pair). The latch compares CURRENTS: the side receiving the larger
+* held current charges up faster and latches high (vinp > vinn -> outp high).
+* The low precharge keeps the outputs near the sampled diode-node voltage at
+* switch-on, so charge sharing from the m nodes stays small and the decision is
+* made in the current domain rather than by sampled-node charge dumping.
+* META n_off=6 meas_t=2.9n win_default=4.0 wl=win*0.15,win*0.15,8.0,8.0,0.30,0.30 desc=Current-sampling-SA-Chang2013
+* offset-injection: V-to-I input pair (g1,g2) + sampling PMOS pair (gp1,gp2)
+* + latch race PMOS pair (g5,g6)
+Vo1 g1 vinp DC {os0:.6f}
+Vo2 g2 vinn DC {os1:.6f}
+Vo3 gp1 sp1 DC {os2:.6f}
+Vo4 gp2 sp2 DC {os3:.6f}
+Vo5 g5 outp DC {os4:.6f}
+Vo6 g6 outn DC {os5:.6f}
+* local inverted clock for the sample-phase switches / evaluate TGs / reset
+Xinvp clkb clk vdd vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+Xinvn clkb clk vss vss sky130_fd_pr__nfet_01v8 W=1 L=0.15
+* ---- side 1: vinp -> V-to-I -> sampled/held current I1 -> outp ----
+XMin1 d1 g1 vss vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XMps1 m1 gp1 vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.5
+Xswd1 sp1 clkb m1 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+Xsws1 m1 clkb d1 vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+Xswep1 outp clkb m1 vdd sky130_fd_pr__pfet_01v8 W=4 L=0.15
+Xswen1 outp clk m1 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+Ch1 sp1 vdd 25f
+* ---- side 2: vinn -> V-to-I -> sampled/held current I2 -> outn ----
+XMin2 d2 g2 vss vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XMps2 m2 gp2 vdd vdd sky130_fd_pr__pfet_01v8 W=16 L=0.5
+Xswd2 sp2 clkb m2 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+Xsws2 m2 clkb d2 vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+Xswep2 outn clkb m2 vdd sky130_fd_pr__pfet_01v8 W=4 L=0.15
+Xswen2 outn clk m2 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+Ch2 sp2 vdd 25f
+* ---- current-comparison charge-up latch (precharged low, clkb-gated head) ----
+XMhd  th   clkb vdd vdd sky130_fd_pr__pfet_01v8 W=4 L=0.15
+XMcp1 outn g5   th  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMcp2 outp g6   th  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMcn1 outn outp vss vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XMcn2 outp outn vss vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XMr1  outp clkb vss vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XMr2  outn clkb vss vss sky130_fd_pr__nfet_01v8 W=2 L=0.15

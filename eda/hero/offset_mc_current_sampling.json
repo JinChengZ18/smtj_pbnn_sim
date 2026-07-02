@@ -1,0 +1,22 @@
+{
+  "design": "current_sampling",
+  "desc": "Current sampling SA Chang2013",
+  "N": 4,
+  "scale": 1.0,
+  "Win_um": 4.0,
+  "AVT_N_mV_um": 5.0,
+  "sigma_Vth_mV": [
+    6.454972243679028,
+    6.454972243679028,
+    1.7677669529663687,
+    1.7677669529663687,
+    9.12870929175277,
+    9.12870929175277
+  ],
+  "offset_mean_mV": -6.999947069329819,
+  "offset_sigma_mV": 7.483313746079016,
+  "VT_mV": 23.414,
+  "sigma_offset_over_VT": 0.319608513969378,
+  "three_sigma_over_VT": 0.958825541908134,
+  "note": "AVT is a sky130-class assumption (not PDK mismatch model); 130nm/1.8V -> ratio sigma_offset/V_T transfers, not absolute mV. Same-flow reproduction comparison: all designs share this harness."
+}

@@ -1,0 +1,75 @@
+* Single-cap-per-side auto-zeroed (offset-cancelled) StrongARM sense amplifier
+* (Dong et al., ISSCC 2018 30.2 / JSSC, DOI 10.1109/JSSC.2018.2872584 lineage:
+* offset sampled onto storage capacitance in a pre-decision phase, then
+* subtracted from the input during the decision), sky130.
+* Reproduction-comparison netlist for run_offset_mc.py's netlist factory.
+* Shared interface (harness preamble): nodes vdd vss clk vinp vinn -> outp outn.
+*
+* Phase AZ (t = 0 .. 0.88 ns, local az pulse high, harness clk still low):
+*   input pair + local AZ tail + azb-switched PMOS diode loads form a
+*   finite-gain amplifier; NMOS feedback switches close unity feedback from the
+*   pair drains (da/db) onto the floating storage nodes gi1/gi2, while the cap
+*   input plates (tp1/tp2) sit at a local vcm = 0.9 V. The pair Vth mismatch is
+*   stored on Cc1/Cc2 and cancels to 1/(1+A), A = gmN/gmP (finite sampling
+*   gain, NOT an ideal null). The latch is isolated from da/db by clk-gated
+*   series switches during AZ, otherwise the precharged latch would clamp the
+*   pair drains and destroy the sampling gain.
+* Handover (0.88 .. 1.0 ns): az falls (feedback opens, offset held), azb rises
+*   (inputs connect to the cap plates), a 70 ps local pcn pulse precharges
+*   da/db high so the decision starts from the standard StrongARM reset state.
+* Phase DECIDE (clk high from 1 ns, measured at meas_t): normal StrongARM
+*   evaluation; the stored correction rides in series with the inputs.
+*
+* Residual-offset mechanisms exercised by the declared Vo sources:
+*   os0/os1 input pair   -> sampled, residual = 1/(1+A) of injected value
+*   os2/os3 latch NMOS   -> NOT in the AZ loop (isolated during AZ) = residual
+*   os4/os5 AZ fb switch -> differential charge injection onto the 60 fF caps
+*   os6/os7 latch isolation switch -> decision discharge-path mismatch
+* NOT modeled: kT/C sampling noise, transient noise, geometric (current-factor)
+* mismatch, gate leakage droop -- Vth-mismatch-only, like the other designs.
+* META n_off=8 meas_t=2.9n win_default=4.0 wl=win*0.15,win*0.15,0.30,0.30,0.30,0.30,0.90,0.90 desc=Dong-auto-zeroed-offset-cancelled-SA
+* offset-injection: input pair (g1,g2), latch NMOS (g3,g4), AZ feedback switches (fg1,fg2), latch isolation switches (ig1,ig2)
+Vo1 g1 gi1 DC {os0:.6f}
+Vo2 g2 gi2 DC {os1:.6f}
+Vo3 g3 outp DC {os2:.6f}
+Vo4 g4 outn DC {os3:.6f}
+Vo5 fg1 az DC {os4:.6f}
+Vo6 fg2 az DC {os5:.6f}
+Vo7 ig1 clk DC {os6:.6f}
+Vo8 ig2 clk DC {os7:.6f}
+* local phase sources: az high 0-0.88n, azb high from 0.90n, pcn low 0.92-0.99n
+Vaz  az  vss PULSE(1.8 0 0.88n 20p 20p 19.1n 40n)
+Vazb azb vss PULSE(0 1.8 0.90n 20p 20p 19.1n 40n)
+Vpc  pcn vss PULSE(1.8 0 0.92n 20p 20p 0.05n 40n)
+Vcmr vcm vss DC 0.9
+* offset-storage capacitors (60 fF per side)
+Cc1 tp1 gi1 60f
+Cc2 tp2 gi2 60f
+* front-end switches: inputs to cap plates during decision, vcm during AZ
+XSi1 vinp azb tp1 vss sky130_fd_pr__nfet_01v8 W=8 L=0.15
+XSi2 vinn azb tp2 vss sky130_fd_pr__nfet_01v8 W=8 L=0.15
+XSc1 vcm  az  tp1 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XSc2 vcm  az  tp2 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+* AZ unity-feedback switches (offset-storage loop), mismatch on their gates
+XSf1 da fg1 gi1 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XSf2 db fg2 gi2 vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+* AZ finite-gain load: PMOS diodes switched in only while azb is low
+XPz  m1s azb vdd vdd sky130_fd_pr__pfet_01v8 W=4 L=0.15
+XPd1 da  da  m1s vdd sky130_fd_pr__pfet_01v8 W=3 L=0.15
+XPd2 db  db  m1s vdd sky130_fd_pr__pfet_01v8 W=3 L=0.15
+* AZ tail (on only during the AZ phase)
+XMtz ntail az vss vss sky130_fd_pr__nfet_01v8 W=1 L=0.15
+* ---- StrongARM core (latch isolated from da/db while clk is low) ----
+XMtail ntail clk vss vss sky130_fd_pr__nfet_01v8 W=4 L=0.15
+XM1  da   g1  ntail vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XM2  db   g2  ntail vss sky130_fd_pr__nfet_01v8 W={win} L=0.15
+XI1  s3   ig1 da    vss sky130_fd_pr__nfet_01v8 W=6 L=0.15
+XI2  s4   ig2 db    vss sky130_fd_pr__nfet_01v8 W=6 L=0.15
+XM3  outn g3  s3    vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM4  outp g4  s4    vss sky130_fd_pr__nfet_01v8 W=2 L=0.15
+XM5  outn outp vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XM6  outp outn vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp1 outp clk  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp2 outn clk  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp3 da   pcn  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15
+XMp4 db   pcn  vdd  vdd sky130_fd_pr__pfet_01v8 W=2 L=0.15

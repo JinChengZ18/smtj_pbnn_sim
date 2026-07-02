@@ -1,0 +1,24 @@
+{
+  "design": "dong_autozero",
+  "desc": "Dong auto zeroed offset cancelled SA",
+  "N": 60,
+  "scale": 1.0,
+  "Win_um": 4.0,
+  "AVT_N_mV_um": 5.0,
+  "sigma_Vth_mV": [
+    6.454972243679028,
+    6.454972243679028,
+    9.12870929175277,
+    9.12870929175277,
+    9.12870929175277,
+    9.12870929175277,
+    5.270462766947299,
+    5.270462766947299
+  ],
+  "offset_mean_mV": -0.9999999002657823,
+  "offset_sigma_mV": 3.633180186259873,
+  "VT_mV": 23.414,
+  "sigma_offset_over_VT": 0.15517127301015943,
+  "three_sigma_over_VT": 0.4655138190304783,
+  "note": "AVT is a sky130-class assumption (not PDK mismatch model); 130nm/1.8V -> ratio sigma_offset/V_T transfers, not absolute mV. Same-flow reproduction comparison: all designs share this harness."
+}
