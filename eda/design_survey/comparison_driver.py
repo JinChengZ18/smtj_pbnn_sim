@@ -84,10 +84,11 @@ def sar_adc():
                 flow="sky130 transient charge-integration (sar_capdac_tran.py); comparator = extracted StrongARM SA 48 fJ",
                 designs=designs,
                 finding="Cap-DAC switching energy is transient-measured (not the analytic series): monotonic "
-                        "switching cuts the cap-DAC term ~3x vs conventional (b=8: 141 vs 457 fJ), less than "
+                        "switching cuts the cap-DAC term ~4.3x vs conventional (b=8: 92 vs 395 fJ), less than "
                         "the analytic /10 estimate; the comparator (b*48 fJ) dominates total SAR energy, "
                         "confirming comparator-sharing (not bit reduction) as the energy lever.",
-                caveat="representative run; regenerate sar_capdac_tran.py to verify; SS-hybrid not done.")
+                caveat="regenerated 2026-07-01 from the committed script (the earlier 'representative run' "
+                       "predated the script's final tweak and read 11-34% high; superseded); SS-hybrid not done.")
 
 
 def main():

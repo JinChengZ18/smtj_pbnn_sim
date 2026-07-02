@@ -12,7 +12,7 @@
 
 The figure is purely illustrative of WHY monotonic dissipates less switching energy; the only
 quantitative claims are the transient-measured b=8 cap-DAC switching energies, taken verbatim from
-eda/testbenches/sar_capdac_tran_summary.json (conventional 457.4 fJ, monotonic 140.6 fJ).
+eda/testbenches/sar_capdac_tran_summary.json (b=8 rows, read at runtime).
 
 Headless render to article/figs/AppendixD_07.{png,svg}.
 """
@@ -30,9 +30,14 @@ LILAC  = "#C99FD4"
 GOLD   = "#D4A017"
 SLATE  = "#9580BD"
 
-# ---- measured b=8 cap-DAC switching energies (verbatim, sar_capdac_tran_summary.json) ----
-E_CONV_fJ = 457.4
-E_MONO_fJ = 140.6
+# ---- measured b=8 cap-DAC switching energies: read from the committed summary at
+# runtime (never hardcode -- a stale copy of these numbers once survived a re-run) ----
+import json
+_SUMMARY = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                        "..", "..", "testbenches", "sar_capdac_tran_summary.json")
+_rows = {r["scheme"]: r for r in json.load(open(_SUMMARY, encoding="utf-8"))["rows"] if r["b"] == 8}
+E_CONV_fJ = round(_rows["conventional"]["E_capdac_fJ_measured"], 1)
+E_MONO_fJ = round(_rows["monotonic"]["E_capdac_fJ_measured"], 1)
 NBITS = 4   # bottom-plate trajectories drawn for the four highest-weight (MSB..) caps; illustrative
 
 plt.rcParams.update({
