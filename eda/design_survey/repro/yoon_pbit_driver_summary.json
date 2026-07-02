@@ -1,0 +1,313 @@
+{
+  "_about": "Faithful reproduction of the Yoon/Cacoilo sMTJ p-bit driver (sMTJ/NMOS divider -> variable-threshold inverter -> output inverter) in our sky130/ngspice flow with our committed calibrated device model. All numbers computed by yoon_pbit_driver.py.",
+  "_paper": "J.-Y. Yoon, N. Cacoilo, A. Madhavan, J. J. McClelland, S. Kanai, H. Ohno, S. Fukami, W. A. Borders, 'CMOS-integrated superparamagnetic tunnel junction-based p-bit', arXiv:2604.14446 (2026); IEEE Electron Device Letters. 130 nm CMOS, VDD=1.8 V.",
+  "_paper_quotes": [
+    "sMTJ in series with an n-channel MOS (NMOS) transistor whose drain output is fed into an inverter",
+    "The output feeds to the input of a variable threshold controller (VTC), containing two pull-up and two pull-down transistors, that collectively represent threshold voltages from 0.7 V to 1.1 V with a 100-mV step.",
+    "The VTC stage output feeds into a final inverter which produces voltage fluctuations between 0 V and 1.8 V",
+    "the transistors are designed with channel widths of 1, 3, 9, 27 um, producing currents from hundreds of uA to tens of mA",
+    "their sMTJ: resistance range 2.5-8 kOhm, TMR 50-100%, 'fluctuations with ms dwell times'"
+  ],
+  "device_usage": {
+    "model": "eda/models/smtj_sot.va compiled to OSDI (committed calibrated model), MTJ read branch as the divider element",
+    "how": "STATIC TWO-STATE: the committed model keeps the RNG in the harness by design; its read branch is a two-state resistor set by control node st (0=P, 1=AP). The divider is characterized at st=0 and st=1 (DC), matching the paper's ms-dwell regime. No stochastic transient was simulated.",
+    "R_P_ohm": 4900.0,
+    "R_AP_ohm": 9800.0,
+    "TMR": 1.0,
+    "Vth_V": 0.895783,
+    "V_T_V": 0.023414,
+    "SOT_branch": "unbiased (wr tied to com): V_wr=0"
+  },
+  "vtc_design_ours": {
+    "leg_count": "2 pull-up + 2 pull-down INPUT transistors (per the paper)",
+    "enable_mapping": "each leg gated by a series enable device of 2x the leg width; 5 codes = 5 enable patterns (paper does not disclose its select mechanism -- OUR mapping)",
+    "widths_um": {
+      "wp1": 0.42,
+      "wp2": 13.0,
+      "wn1": 0.42,
+      "wn2": 2.1,
+      "L": 0.15
+    },
+    "codes": [
+      {
+        "code": 0,
+        "combo": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "ratio_PUeff_over_PDeff": 0.167
+      },
+      {
+        "code": 1,
+        "combo": [
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "ratio_PUeff_over_PDeff": 1.0
+      },
+      {
+        "code": 2,
+        "combo": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "ratio_PUeff_over_PDeff": 5.159
+      },
+      {
+        "code": 3,
+        "combo": [
+          [
+            1,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "ratio_PUeff_over_PDeff": 6.39
+      },
+      {
+        "code": 4,
+        "combo": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "ratio_PUeff_over_PDeff": 31.952
+      }
+    ],
+    "all_9_combos_measured_V": {
+      "((1, 0), (1, 1))": 0.7247,
+      "((1, 0), (0, 1))": 0.7338,
+      "((1, 0), (1, 0))": 0.8227,
+      "((0, 1), (1, 1))": 0.9464,
+      "((1, 1), (1, 1))": 0.9482,
+      "((0, 1), (0, 1))": 0.9599,
+      "((1, 1), (0, 1))": 0.9616,
+      "((0, 1), (1, 0))": 1.0737,
+      "((1, 1), (1, 0))": 1.0751
+    },
+    "output_inverter_um": {
+      "wp": 2.0,
+      "wn": 0.84,
+      "L": 0.15
+    }
+  },
+  "measured_vtc_thresholds": {
+    "_label": "MEASURED, ngspice DC, sky130 tt, schematic-level",
+    "definition": "chain-referred trip: divider-node voltage at which the final (buffered) output crosses VDD/2; vm_vtc = VTC-stage output crossing VDD/2",
+    "per_code_V": [
+      0.7251,
+      0.8231,
+      0.9471,
+      0.9623,
+      1.0759
+    ],
+    "vtc_stage_V": [
+      0.7247,
+      0.8227,
+      0.9464,
+      0.9616,
+      1.0751
+    ],
+    "steps_mV": [
+      98.0,
+      124.0,
+      15.2,
+      113.6
+    ],
+    "mean_step_mV": 87.7,
+    "range_V": [
+      0.7251,
+      1.0759
+    ],
+    "span_mV": 350.8,
+    "monotonic": true,
+    "paper_claim": "0.7 to 1.1 V in 100 mV steps (5 levels)",
+    "targets_V": [
+      0.7,
+      0.8,
+      0.9,
+      1.0,
+      1.1
+    ],
+    "rms_error_to_paper_targets_mV": 32.8,
+    "n_levels_separated_by_gt_30mV": 4,
+    "structural_finding": "with 2 PU + 2 PD input legs the 9 enable combos give strength ratios {p1,p2,p1+p2}x{1/n1,1/n2,1/(n1+n2)}; spanning 0.7-1.1 V in sky130 needs a ~2-orders-of-magnitude ratio span, and at such spans {p1,p2,p1+p2} degenerates to ~2 usable levels per side, so the combos cluster into ~4 well-separated thresholds and one code pair is nearly degenerate (the measured 15-mV step). A uniform 5-level 100-mV row like the paper's claim would need a third leg or an undisclosed select mechanism -- the paper does not describe its VTC interconnection."
+  },
+  "measured_divider": {
+    "_label": "MEASURED, ngspice DC, sky130 tt, schematic-level; sMTJ = committed OSDI two-state read branch",
+    "per_W": [
+      {
+        "W_um": 1,
+        "sep_max_mV": 570.5,
+        "vb_at_sepmax": 1.258,
+        "vdiv_P_V": 0.9185,
+        "vdiv_AP_V": 0.348,
+        "midpoint_V": 0.6332
+      },
+      {
+        "W_um": 3,
+        "sep_max_mV": 528.3,
+        "vb_at_sepmax": 1.006,
+        "vdiv_P_V": 0.8147,
+        "vdiv_AP_V": 0.2864,
+        "midpoint_V": 0.5505
+      },
+      {
+        "W_um": 9,
+        "sep_max_mV": 463.4,
+        "vb_at_sepmax": 0.874,
+        "vdiv_P_V": 0.724,
+        "vdiv_AP_V": 0.2606,
+        "midpoint_V": 0.4923
+      },
+      {
+        "W_um": 27,
+        "sep_max_mV": 401.1,
+        "vb_at_sepmax": 0.778,
+        "vdiv_P_V": 0.7316,
+        "vdiv_AP_V": 0.3305,
+        "midpoint_V": 0.5311
+      }
+    ],
+    "selected_W_um": 1,
+    "sep_ideal_resistor_bound_mV": 308.8,
+    "sep_ideal_formula": "S_ideal = VDD*(R_AP-R_P)/(sqrt(R_P)+sqrt(R_AP))^2 (ANALYTIC, labeled; ideal-resistor pulldown at the geometric-mean operating point)"
+  },
+  "measured_chain": {
+    "_label": "MEASURED, ngspice DC, sky130 tt, schematic-level",
+    "per_code": [
+      {
+        "code": 0,
+        "vm_vtc_V": 0.7247188574683714,
+        "vm_chain_V": 0.7251027818178476,
+        "digitize_window_vb_V": [
+          1.122,
+          1.356
+        ],
+        "window_width_mV": 234.0,
+        "best_margin_mV": 275.9594778178476,
+        "vb_at_best_margin": 1.214,
+        "pred_vs_meas_tripP_mV": 0.013226284413914158
+      },
+      {
+        "code": 1,
+        "vm_vtc_V": 0.822722886369023,
+        "vm_chain_V": 0.8231353815500835,
+        "digitize_window_vb_V": [
+          1.09,
+          1.304
+        ],
+        "window_width_mV": 213.99999999999997,
+        "best_margin_mV": 258.06925844991645,
+        "vb_at_best_margin": 1.174,
+        "pred_vs_meas_tripP_mV": 0.007532262787046662
+      },
+      {
+        "code": 2,
+        "vm_vtc_V": 0.9464434412105378,
+        "vm_chain_V": 0.9471404806591711,
+        "digitize_window_vb_V": [
+          1.052,
+          1.238
+        ],
+        "window_width_mV": 185.99999999999994,
+        "best_margin_mV": 230.66930934082885,
+        "vb_at_best_margin": 1.124,
+        "pred_vs_meas_tripP_mV": 0.009176164071922344
+      },
+      {
+        "code": 3,
+        "vm_vtc_V": 0.9616312551620568,
+        "vm_chain_V": 0.9623377947510128,
+        "digitize_window_vb_V": [
+          1.046,
+          1.23
+        ],
+        "window_width_mV": 183.99999999999994,
+        "best_margin_mV": 227.2304657510128,
+        "vb_at_best_margin": 1.116,
+        "pred_vs_meas_tripP_mV": 0.007970949958080453
+      },
+      {
+        "code": 4,
+        "vm_vtc_V": 1.0750802693947294,
+        "vm_chain_V": 1.075887910176146,
+        "digitize_window_vb_V": [
+          1.01,
+          1.172
+        ],
+        "window_width_mV": 161.99999999999991,
+        "best_margin_mV": 201.2718198238539,
+        "vb_at_best_margin": 1.072,
+        "pred_vs_meas_tripP_mV": 0.012446372648522441
+      }
+    ],
+    "best_code": 0,
+    "vb_star_V": 1.214,
+    "separation_at_vb_star_mV": 554.5,
+    "static_supply_current_uA_P": 164.64,
+    "static_supply_current_uA_AP": 137.88,
+    "static_power_uW_P": 296.36,
+    "static_power_uW_AP": 248.18,
+    "static_power_label": "SCHEMATIC-LEVEL (not extracted); full chain divider+VTC+buffer at vb_star"
+  },
+  "headline_ratios": {
+    "_label": "ratios are the transferable headline (house norm)",
+    "trim_step_over_V_T": 3.75,
+    "separation_over_trim_step": 6.32,
+    "trim_span_over_separation": 0.63,
+    "worstcase_centering_margin_mV": 215.2,
+    "worstcase_centering_margin_over_V_T": 9.19
+  },
+  "model_derived": {
+    "_label": "MODEL-DERIVED from committed formulas (NOT simulated noise)",
+    "p_AP_at_operating_point": 0.5,
+    "p_AP_formula": "<s> = tanh(Delta*V_wr/Vc0), p_AP = (1+<s>)/2; SOT branch unbiased (V_wr = 0) => p_AP = 0.5",
+    "delta_Psw_if_one_step_on_sigmoid_axis": 0.734,
+    "delta_Psw_formula": "P_sw(Vth+step/2) - P_sw(Vth-step/2) with the committed sigmoid P_sw(V)=1/(1+exp(-(V-Vth)/V_T)); shows one trim step commands ~the whole probability window if used as a probability knob",
+    "interpretation": "the VTC trim is a comparator-CENTERING knob (needs resolution << divider separation), not a probability trim (which would need resolution << V_T)"
+  },
+  "mapping_adaptations": [
+    "LEG COUNT KEPT: 2 pull-up + 2 pull-down input transistors, exactly the paper's stated VTC content; the paper does not disclose interconnection or select mechanism, so each leg is gated by a series enable device (2x leg width) and a threshold code = an enable pattern (OUR mapping).",
+    "SIZING OURS: the paper gives no VTC transistor sizes; leg widths were chosen by a measured sizing survey in the same flow to approach the paper's 0.7-1.1 V targets, then the achieved thresholds were MEASURED and reported as-is (errors to target kept visible).",
+    "DEVICE OURS: their sMTJ (2.5-8 kOhm, TMR 50-100%) is replaced by OUR committed calibrated device (R_P=4.9k, R_AP=9.8k, TMR=1.0) -- the point of the repro is their circuit on our device.",
+    "STATIC TWO-STATE: our committed model exposes the state as a control node (harness-owned RNG by design); with ms dwell times (paper) each state is a DC operating point, so the divider/VTC are characterized statically per state; no stochastic transient is claimed.",
+    "DIVIDER NMOS: the paper's 1/3/9/27-um width options are all instantiated and measured; the reported chain uses the width whose max-separation midpoint falls nearest the trim-range center.",
+    "NODE: sky130 (130 nm, 1.8 V) matches the paper's 130-nm/1.8-V class; absolute mV numbers remain schematic-level (no extraction)."
+  ],
+  "assumptions": [
+    "sky130 tt corner, 27C default, VDD=1.8 V, L=0.15 um everywhere (house style, strongarm core).",
+    "Enable devices at 2x leg width so leg strength is dominated by the input transistor; all widths built from proven bins (W in {0.42,1,2} um with instance multiplier m).",
+    "Threshold definition: input (divider-node) voltage where the buffered output crosses VDD/2 in DC.",
+    "Digitization window: vb range where final(P) > 0.9*VDD and final(AP) < 0.1*VDD simultaneously.",
+    "Worst-case centering error taken as step/2 (uniform step grid).",
+    "The committed model's read-branch two-state resistances stand in for the fluctuating sMTJ; read-branch bias dependence of R (TMR rolloff) is not in the committed model and therefore not claimed."
+  ],
+  "conclusion": "Yoon's p-bit driver maps cleanly onto sky130 with our device. The 2PU+2PD variable-threshold stage, trimmed by enable patterns, achieves 5 monotone chain-referred thresholds [0.725, 0.823, 0.947, 0.962, 1.076] V (span 351 mV, steps 15-124 mV, mean 88 mV, RMS error to the paper's 0.7-1.1 V targets 32.8 mV; the steps are NOT uniform -- only 4 levels are separated by more than 30 mV, a structural limit of 2PU+2PD enable combos at this span). The committed two-state divider (R_P=4.9k/R_AP=9.8k, W=1 um NMOS) gives a measured max state separation of 571 mV (ideal-resistor bound 309 mV, analytic), i.e. 6.3x the trim step at the operating point -- the trim CAN center the threshold inside the state separation with 215 mV worst-case margin (9.2 V_T). On the task-relevant axis, one trim step is 3.7x our V_T=23.4 mV window (a single step would command 73% of the probability range if referred to the device sigmoid), so Yoon-style VTC trimming is a state-discrimination centering mechanism, not a probability-resolution mechanism, on our device."
+}
