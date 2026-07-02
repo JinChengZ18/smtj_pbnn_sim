@@ -22,7 +22,7 @@
 | **A1=C1** 斜率匹配 p-bit 读出 | SA 失调按 V_T 预算；σ=0.39·V_T(N=120)；plain SA 帕累托最优 | ✅ 建模/电路级 |
 | **A2=C2** 摊销写-DAC 微调 | 3–4 trim-bit、<1% 写能 | ✅ 建模 |
 | **A3=C3** RC 等能量套利 | {N,M,b} 前沿 + 地标 ADC；诚实 ~30–35× | ✅ 建模 |
-| **B1** 校准 .va + 双仿真器 + **LLG 验证** | R²=1.0 回归 + LLG 阈值 0.01·V_T 吻合 | ✅ |
+| **B1** 校准 .va + 双仿真器 + **LLG 验证** | R²=1.0 回归 + LLG 阈值 0.01·V_T 吻合 | ✅ (2026-06-30 FL-SOT 修正+θ_SH=0.066 重标定后阈值差=0.40·V_T，斜率差为预期 η_c 亚畴效应，见 STATUS.md 与 llg_validate_summary.json) |
 | **B2/B4/B5/B6** 写驱动/差分读/ADC/IR | 端到端写 1.6pJ、SA 23–74fJ、IR vs N | ◑ first-cut（电路级数已出） |
 | **B7/B8** 三位一体/自适应-T | 受限可行性包络 / ~50% 少写 | ✅（B7 仅可行性） |
 
@@ -108,7 +108,7 @@
 |3.3| 差分列失配残余（已 first-cut）整理为 B4 证据 | — | ◑ `diff_column.py` |
 |3.4| 自适应-T 早退控制器（B8）量化省写能量 | T-甜点省能数 | ✅ `testbenches/adaptive_t.py`（SPRT 早退：iso-精度下 E[T]≈9.6 vs 固定 T=22 → **~57% 少写**，~50% 跨前沿）|
 |3.5| 三位一体可调势垒 mode-MUX **仅受限架构可行性包络**（B7）| 可行性 + 势垒冲突登记 | ✅ `testbenches/trinity_barrier.py`（ΔΔ=1.11=22.6%·E_b → VCMA ~0.56V/+88K；时分互斥+势垒冲突=限制；关 R7）|
-|3.6| **双模型策略（指令②）**：行为级为主力迭代 + LLG（vgsot-sim）做验证 | Python | LLG↔行为 sigmoid 一致性（R²/阈值）| ✅ `testbenches/llg_validate.py`（自热ON：阈值 LLG 0.896V vs 行为 0.8958V 差 0.01·V_T；R²=0.92；高压过驱平台为已知 LLG 特征）|
+|3.6| **双模型策略（指令②）**：行为级为主力迭代 + LLG（vgsot-sim）做验证 | Python | LLG↔行为 sigmoid 一致性（R²/阈值）| ✅ `testbenches/llg_validate.py`（自热ON；2026-06-30 FL-SOT 修正+θ_SH=0.066 重标定后：阈值 LLG 0.886V vs 行为 0.896V 差 0.40·V_T＝阈值 PASS，LLG 斜率较实测更缓＝预期 η_c 亚畴效应而非标定误差；旧记录 0.01·V_T/R²=0.92 系符号 bug 掩盖斜率差；高压过驱平台为已知 LLG 特征）|
 
 > **设备模型策略（指令② 2026-06-26）**：保留两套器件模型。**主力 = 标定行为级**（`eda/models/smtj_sot.va` + `gen_golden.py`，便宜、用于全工作流迭代）；**验证 = LLG 宏自旋求解器**（`eda/vendor/vgsot-sim`，计算量大，物理一手核对）。`llg_validate.py` 是桥：定期用 LLG 复核行为级 sigmoid/阈值。**可选**：vgsot-sim 亦可转写 Verilog-A 直接进 ngspice 共仿（重；非当前主线，记为后续）。
 

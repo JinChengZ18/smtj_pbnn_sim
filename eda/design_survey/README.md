@@ -26,7 +26,7 @@ Every "ours" number (used in the capability matrix, in panels (a)/(b), and in th
 | Write-line IR drop | ~16.5% of R_SOT @ N=256 (met2) | `eda/extraction/writeline/run_extresist.sh` | `eda/extraction/writeline/ir_drop_summary.json` |
 | Write-DAC topology choice (R-string; current-steering INL ~1.7 LSB) | resistor-string, 6–7 bit | `eda/hero/write_dac_trim.py` | `eda/hero/write_dac_summary.json` |
 | SAR cap-DAC switching energy (transient; supersedes the analytic `sar_capdac_energy.py`) | b=8: conv 394.7 / mono 92.3 fJ (regenerated 2026-07-01) | `eda/testbenches/sar_capdac_tran.py` | `eda/testbenches/sar_capdac_tran_summary.json` |
-| Device dual-model agreement (behavioral vs LLG) | ΔV_th ≈ 0.2 mV | `eda/testbenches/llg_validate.py` | `eda/testbenches/llg_validate_summary.json` |
+| Device dual-model agreement (behavioral vs LLG) | ΔV_th ≈ 9.4 mV (0.40 V_T; threshold PASS, slope gap = single-macrospin vs C2C-narrowed slope) | `eda/testbenches/llg_validate.py` | `eda/testbenches/llg_validate_summary.json` |
 
 Pure-Python scripts (`pareto_offset_cancellation.py`, `ir_aware_writedac.py`, `readout_mapping.py`, `write_dac_trim.py`) run with the repo's Python directly. The extraction/transistor-level ones (`sa_postlayout.py`, `run_extresist.sh`, `sar_capdac_energy.py`, `llg_validate.py`) need the open-source sky130 + ngspice/Magic environment described in [`../README.md`](../README.md) and [`../hero/layout/README.md`](../hero/layout/README.md).
 
