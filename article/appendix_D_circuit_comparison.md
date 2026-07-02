@@ -122,5 +122,3 @@ sMTJ 经二端 SOT 栅写入,有效负载约 $$776\ \Omega$$;写电流流经此�
 ## D.6 小结
 
 同流程复现把三处选型从引文断言转为同口径的测量结论,其优势均源于本任务的约束本身——阻性 MTJ 负载、$$23.4\ \mathrm{mV}$$ 判决窗口、按 $$b$$ 线性的比较器。以 130 nm sky130 给出的比值,在更先进的商用 22–28 nm MRAM CMOS 上为保守下界。对体量过大、未在本地复现的更广文献,定性能力对照标明了本方案在 sMTJ 专有约束上的覆盖,其逐格判定均可经所附引文与核验记录复核。
-
-复现入口:读出失调 `eda/hero/run_offset_mc.py --design {strongarm,double_tail,dsa}` (结果写入 `eda/hero/offset_mc_*.json`);写入DAC `eda/hero/run_write_dac.py` (结果写入 `eda/hero/write_dac_*.json`);SAR 暂态 `eda/testbenches/sar_capdac_tran.py` (结果写入 `eda/testbenches/sar_capdac_tran_summary.json`);同口径汇总与作图 `eda/design_survey/comparison_driver.py` 与 `eda/design_survey/plot_comparison.py` (结果写入 `eda/design_survey/comparison_results.json`);对比电路的 Xschem 生成脚本见 `eda/hero/schematics/gen_*_sch.py`。
