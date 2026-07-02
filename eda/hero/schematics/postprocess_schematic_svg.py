@@ -50,12 +50,22 @@ GROUPS = {
         (20, 55.7, 396.2, 364.1, "#5E3F8C", "stage-1 StrongARM"),
         (421.2, 55.7, 396.2, 364.1, "#1A6B5A", "stage-2 StrongARM"),
     ]),
-    "current_steering_dac": ("AppendixD_03", [
+    "current_sampling": ("AppendixD_03", [
+        (70.8, 242.4, 517.2, 147.5, "#5E3F8C", "current sampling + hold"),
+        (152, 400.1, 322.4, 53.3, "#1A6B5A", "V-to-I input pair"),
+        (595, 242.4, 296.9, 218, "#C77A0A", "charge-up latch"),
+    ]),
+    "dong_autozero": ("AppendixD_04", [
+        (12, 45, 165, 320, "#5E3F8C", "offset caps + input switches"),
+        (200, 55, 195, 292, "#1A6B5A", "auto-zero loop"),
+        (430, 55, 448, 412, "#C77A0A", "StrongARM core + isolation"),
+    ]),
+    "current_steering_dac": ("AppendixD_05", [
         (10.4, 127.3, 93.3, 374.2, "#5E3F8C", "reference current mirror"),
         (200, 153.6, 560.5, 202.4, "#1A6B5A", "binary-weighted PMOS current-source array"),
         (790.9, 153.6, 80.2, 347.8, "#C77A0A", "776 Ω write load"),
     ]),
-    "r2r_dac": ("AppendixD_04", [
+    "r2r_dac": ("AppendixD_06", [
         (58, 58, 584, 266, "#5E3F8C", "R-2R resistor ladder (R=400, 2R=800)"),
         (8, 342, 664, 156, "#1A6B5A", "per-bit CMOS transmission-gate switches (→ Vref/gnd)"),
         (678, 130, 200, 368, "#C77A0A", "unity-gain buffer driving the 776 Ω load"),

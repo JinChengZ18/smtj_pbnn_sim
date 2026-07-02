@@ -14,7 +14,7 @@ The figure is purely illustrative of WHY monotonic dissipates less switching ene
 quantitative claims are the transient-measured b=8 cap-DAC switching energies, taken verbatim from
 eda/testbenches/sar_capdac_tran_summary.json (conventional 457.4 fJ, monotonic 140.6 fJ).
 
-Headless render to article/figs/AppendixD_05.{png,svg}.
+Headless render to article/figs/AppendixD_07.{png,svg}.
 """
 from __future__ import annotations
 import os
@@ -173,8 +173,8 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     out_dir = os.path.normpath(os.path.join(here, "..", "..", "..", "article", "figs"))
     os.makedirs(out_dir, exist_ok=True)
-    png = os.path.join(out_dir, "AppendixD_05.png")
-    svg = os.path.join(out_dir, "AppendixD_05.svg")
+    png = os.path.join(out_dir, "AppendixD_07.png")
+    svg = os.path.join(out_dir, "AppendixD_07.svg")
     fig.savefig(png, dpi=200)
     fig.savefig(svg)
     plt.close(fig)

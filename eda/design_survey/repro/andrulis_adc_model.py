@@ -229,7 +229,7 @@ def make_figure(results):
             transform=ax.transAxes, ha="right", va="bottom", fontsize=6.3, color="0.35")
     fig.tight_layout()
     FIGDIR.mkdir(parents=True, exist_ok=True)
-    out = FIGDIR / "AppendixD_06.png"
+    out = FIGDIR / "AppendixD_08.png"
     fig.savefig(out, dpi=160)
     plt.close(fig)
     return str(out)

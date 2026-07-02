@@ -58,3 +58,7 @@
   - This Codex thread still opened with old cwd `D:\Documents\毕业设计-2026年5月10日\04PBNN仿真\smtj_pbnn_sim`, which no longer existed and made shell startup fail before any command could run.
   - Added a Windows junction at that old cwd pointing to `D:\Documents\Graduation Project-2026\04PBNNSim\smtj_pbnn_sim`.
   - Treat the English path as canonical; the old CJK path is only a compatibility entry for stale tool/session metadata.
+
+- 2026-07-01: **P3 Tier-1 done — comparator matrix now 5 designs; AppendixD figs renumbered.**
+  - Same-flow offset-MC additions (N=120): `current_sampling` sigma/V_T=0.391 (input-pair-limited, sampling-mismatch cancellation observed); `dong_autozero` sigma/V_T=**0.167** (3.91 mV, ~58% below plain StrongARM — offset cancellation reproducibly works; StrongARM stays Pareto-optimal at the nominal point, AZ = validated conditional option). Netlists in `eda/hero/comparators/`, results `offset_mc_*.json`.
+  - **AppendixD figure renumber**: schematics for the two new comparators inserted as `AppendixD_03/04`; old 03→05 (current-steering DAC), 04→06 (R-2R), 05→07 (SAR switching), 06→08 (Andrulis check). Generators + `postprocess_schematic_svg.py` GROUPS updated to match. Appendix D tables/prose + ch4 fig4.15(c) caption updated (5 designs); Dong/current-sampling rows migrated OUT of the qualitative D.5 readout table.

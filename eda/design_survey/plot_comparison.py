@@ -39,17 +39,19 @@ def plot_readout_sa(ax):
     vals = [r["sigma_offset_over_VT"] for r in rows]
     se = [v / (2 * (r["N"] - 1)) ** 0.5 for v, r in zip(vals, rows)]
     xs = list(range(len(rows)))
+    short = {"double_tail": "double\ntail", "current_sampling": "current\nsampling",
+             "dong_autozero": "auto-zero\n(single-cap)"}
     for i, r in enumerate(rows):
         ours = r.get("is_ours")
         ax.errorbar(i, vals[i], yerr=se[i], fmt=("D" if ours else "o"),
-                    color=_ours_color(ours), ms=11, capsize=6, elinewidth=1.6,
+                    color=_ours_color(ours), ms=10, capsize=5, elinewidth=1.5,
                     mec="black", mew=0.8, zorder=3)
         ax.annotate(f"{vals[i]:.3f}", (i, vals[i]), textcoords="offset points",
-                    xytext=(13, 0), va="center", fontsize=9,
+                    xytext=(0, 11), ha="center", fontsize=8.5,
                     fontweight="bold" if ours else "normal")
     ax.set_xticks(xs)
-    ax.set_xticklabels([r["design"] for r in rows])
-    ax.set_xlim(-0.5, len(rows) - 0.1)
+    ax.set_xticklabels([short.get(r["design"], r["design"]) for r in rows], fontsize=8.5)
+    ax.set_xlim(-0.5, len(rows) - 0.5)
     lo, hi = min(v - s for v, s in zip(vals, se)), max(v + s for v, s in zip(vals, se))
     pad = (hi - lo) * 0.55
     ax.set_ylim(lo - pad, hi + pad)

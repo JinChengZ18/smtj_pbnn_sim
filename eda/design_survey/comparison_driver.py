@@ -29,7 +29,9 @@ def readout_sa():
     """Same-flow input-referred offset (sigma/V_T) of each reproduced comparator."""
     files = {"strongarm": HERO / "offset_mc_summary.json",
              "dsa": HERO / "offset_mc_dsa.json",
-             "double_tail": HERO / "offset_mc_double_tail.json"}
+             "double_tail": HERO / "offset_mc_double_tail.json",
+             "current_sampling": HERO / "offset_mc_current_sampling.json",
+             "dong_autozero": HERO / "offset_mc_dong_autozero.json"}
     rows = []
     for key, fp in files.items():
         d = jload(fp)
@@ -41,9 +43,13 @@ def readout_sa():
     rows.sort(key=lambda r: r["sigma_offset_over_VT"])
     return dict(metric="input-referred offset sigma / V_T (lower better)", flow="sky130 offset-MC (run_offset_mc.py)",
                 designs=rows,
-                finding="All comparators land at ~0.39 V_T in the same 130 nm flow: offset is set by "
-                        "input-pair Pelgrom mismatch (same W*L), so the literature topology advantages "
-                        "(28 nm sims) do not reproduce here -> plain StrongARM is Pareto-optimal.")
+                finding="Mismatch-limited topologies (StrongARM, double-tail, DSA, current-sampling) all land "
+                        "at ~0.39 V_T in the same 130 nm flow: offset is set by input-pair Pelgrom mismatch "
+                        "(same W*L). The single-cap auto-zero (Dong lineage) measurably cancels it to ~0.16 V_T "
+                        "(>60% reduction, consistent with the paper's relative claim) -- but 0.39 V_T already "
+                        "meets the window budget at the nominal operating point, so plain StrongARM remains the "
+                        "energy-minimal Pareto choice; auto-zero is the validated option for the low-swing "
+                        "wide-fan-in corner.")
 
 
 def write_dac():

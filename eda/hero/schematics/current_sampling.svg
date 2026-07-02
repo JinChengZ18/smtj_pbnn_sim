@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="905.9" height="314.16" viewBox="6.863 191.294 905.9 314.16" version="1.1">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="503" version="1.1">
 <style type="text/css">
 .l0{
  fill: #ffffff;
@@ -802,12 +802,4 @@ text {font-family: Sans-Serif;}
 <circle class="l1" cx="787.464" cy="376.937" r="1.85547"/>
 <circle class="l1" cx="787.464" cy="474.349" r="1.85547"/>
 <circle class="l1" cx="787.464" cy="376.937" r="1.85547"/>
-<g id="module-groups">
-<rect x="70.8" y="242.4" width="517.2" height="147.5" rx="6" fill="none" stroke="#5E3F8C" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="73.8" y="239.4" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#5E3F8C" font-weight="bold" text-anchor="start">current sampling + hold</text>
-<rect x="152" y="400.1" width="322.4" height="53.3" rx="6" fill="none" stroke="#1A6B5A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="155" y="397.1" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#1A6B5A" font-weight="bold" text-anchor="start">V-to-I input pair</text>
-<rect x="595" y="242.4" width="296.9" height="218" rx="6" fill="none" stroke="#C77A0A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="598" y="239.4" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#C77A0A" font-weight="bold" text-anchor="start">charge-up latch</text>
-</g>
 </svg>

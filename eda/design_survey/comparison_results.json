@@ -5,10 +5,24 @@
     "flow": "sky130 offset-MC (run_offset_mc.py)",
     "designs": [
       {
+        "design": "dong_autozero",
+        "is_ours": false,
+        "sigma_offset_over_VT": 0.16698474896296844,
+        "sigma_offset_mV": 3.9097809122189435,
+        "N": 120
+      },
+      {
         "design": "dsa",
         "is_ours": false,
         "sigma_offset_over_VT": 0.38615483622783886,
         "sigma_offset_mV": 9.04142933543862,
+        "N": 120
+      },
+      {
+        "design": "current_sampling",
+        "is_ours": false,
+        "sigma_offset_over_VT": 0.3907056789741596,
+        "sigma_offset_mV": 9.147982767500974,
         "N": 120
       },
       {
@@ -26,7 +40,7 @@
         "N": 120
       }
     ],
-    "finding": "All comparators land at ~0.39 V_T in the same 130 nm flow: offset is set by input-pair Pelgrom mismatch (same W*L), so the literature topology advantages (28 nm sims) do not reproduce here -> plain StrongARM is Pareto-optimal."
+    "finding": "Mismatch-limited topologies (StrongARM, double-tail, DSA, current-sampling) all land at ~0.39 V_T in the same 130 nm flow: offset is set by input-pair Pelgrom mismatch (same W*L). The single-cap auto-zero (Dong lineage) measurably cancels it to ~0.16 V_T (>60% reduction, consistent with the paper's relative claim) -- but 0.39 V_T already meets the window budget at the nominal operating point, so plain StrongARM remains the energy-minimal Pareto choice; auto-zero is the validated option for the low-swing wide-fan-in corner."
   },
   "write_dac": {
     "metric": "monotonicity + INL (LSB) into the 776 ohm write load",

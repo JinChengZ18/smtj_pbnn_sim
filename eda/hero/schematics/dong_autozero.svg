@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="886" height="509.6" viewBox="2 -4.15 886 509.6" version="1.1">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="503" version="1.1">
 <style type="text/css">
 .l0{
  fill: #ffffff;
@@ -844,12 +844,4 @@ text {font-family: Sans-Serif;}
 <circle class="l1" cx="778.932" cy="42.9374" r="2.24714"/>
 <circle class="l1" cx="694.664" cy="42.9374" r="2.24714"/>
 <circle class="l1" cx="694.664" cy="318.212" r="2.24714"/>
-<g id="module-groups">
-<rect x="12" y="45" width="165" height="320" rx="6" fill="none" stroke="#5E3F8C" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="15" y="42" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#5E3F8C" font-weight="bold" text-anchor="start">offset caps + input switches</text>
-<rect x="200" y="55" width="195" height="292" rx="6" fill="none" stroke="#1A6B5A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="203" y="52" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#1A6B5A" font-weight="bold" text-anchor="start">auto-zero loop</text>
-<rect x="430" y="55" width="448" height="412" rx="6" fill="none" stroke="#C77A0A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="433" y="52" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#C77A0A" font-weight="bold" text-anchor="start">StrongARM core + isolation</text>
-</g>
 </svg>
