@@ -33,73 +33,73 @@
     {
       "b": 6,
       "scheme": "conventional",
-      "E_capdac_fJ_measured": 247.315,
+      "E_capdac_fJ_measured": 219.646,
       "E_comp_fJ": 288.0,
-      "E_total_fJ_ours": 535.3,
+      "E_total_fJ_ours": 507.6,
       "implied_f_s_Hz": 33333333.33333333,
       "andrulis_pred_E_fJ_full_ADC": 14857.356648879762,
       "andrulis_pred_area_um2": 24799.117051340265,
-      "ratio_ours_over_andrulis": 0.03602928923701655,
+      "ratio_ours_over_andrulis": 0.034164892988435655,
       "consistent_as_lower_bound": true
     },
     {
       "b": 6,
       "scheme": "monotonic",
-      "E_capdac_fJ_measured": 70.955,
+      "E_capdac_fJ_measured": 52.714,
       "E_comp_fJ": 288.0,
-      "E_total_fJ_ours": 359.0,
+      "E_total_fJ_ours": 340.7,
       "implied_f_s_Hz": 33333333.33333333,
       "andrulis_pred_E_fJ_full_ADC": 14857.356648879762,
       "andrulis_pred_area_um2": 24799.117051340265,
-      "ratio_ours_over_andrulis": 0.024163113835398736,
+      "ratio_ours_over_andrulis": 0.02293140079030738,
       "consistent_as_lower_bound": true
     },
     {
       "b": 7,
       "scheme": "conventional",
-      "E_capdac_fJ_measured": 338.603,
+      "E_capdac_fJ_measured": 287.997,
       "E_comp_fJ": 336.0,
-      "E_total_fJ_ours": 674.6,
+      "E_total_fJ_ours": 624.0,
       "implied_f_s_Hz": 28571428.57142857,
       "andrulis_pred_E_fJ_full_ADC": 18304.147726644944,
       "andrulis_pred_area_um2": 25670.89107019927,
-      "ratio_ours_over_andrulis": 0.036855034720791706,
+      "ratio_ours_over_andrulis": 0.03409063395460128,
       "consistent_as_lower_bound": true
     },
     {
       "b": 7,
       "scheme": "monotonic",
-      "E_capdac_fJ_measured": 84.246,
+      "E_capdac_fJ_measured": 68.387,
       "E_comp_fJ": 336.0,
-      "E_total_fJ_ours": 420.2,
+      "E_total_fJ_ours": 404.4,
       "implied_f_s_Hz": 28571428.57142857,
       "andrulis_pred_E_fJ_full_ADC": 18304.147726644944,
       "andrulis_pred_area_um2": 25670.89107019927,
-      "ratio_ours_over_andrulis": 0.022956545493146567,
+      "ratio_ours_over_andrulis": 0.022093353159039677,
       "consistent_as_lower_bound": true
     },
     {
       "b": 8,
       "scheme": "conventional",
-      "E_capdac_fJ_measured": 457.382,
+      "E_capdac_fJ_measured": 394.71,
       "E_comp_fJ": 384.0,
-      "E_total_fJ_ours": 841.4,
+      "E_total_fJ_ours": 778.7,
       "implied_f_s_Hz": 25000000.0,
       "andrulis_pred_E_fJ_full_ADC": 23905.170760819994,
       "andrulis_pred_area_um2": 27142.01418967709,
-      "ratio_ours_over_andrulis": 0.035197405967876814,
+      "ratio_ours_over_andrulis": 0.03257454246159458,
       "consistent_as_lower_bound": true
     },
     {
       "b": 8,
       "scheme": "monotonic",
-      "E_capdac_fJ_measured": 140.574,
+      "E_capdac_fJ_measured": 92.308,
       "E_comp_fJ": 384.0,
-      "E_total_fJ_ours": 524.6,
+      "E_total_fJ_ours": 476.3,
       "implied_f_s_Hz": 25000000.0,
       "andrulis_pred_E_fJ_full_ADC": 23905.170760819994,
       "andrulis_pred_area_um2": 27142.01418967709,
-      "ratio_ours_over_andrulis": 0.021945042988766553,
+      "ratio_ours_over_andrulis": 0.019924559617898418,
       "consistent_as_lower_bound": true
     }
   ],
@@ -129,7 +129,7 @@
       "pred_fJ_b8": 23905.170760819994
     }
   ],
-  "figure": "D:\\Documents\\Graduation Project-2026\\04PBNNSim\\smtj_pbnn_sim\\article\\figs\\AppendixD_06.png",
+  "figure": "D:\\Documents\\Graduation Project-2026\\04PBNNSim\\smtj_pbnn_sim\\article\\figs\\AppendixD_08.png",
   "assumptions": [
     "ENOB := nominal resolution b (6,7,8). We did NOT measure a code-density/FFT ENOB; the Andrulis ENOB axis is filled with our nominal b. This OVER-states our ENOB if real ENOB < b, which makes the Andrulis prediction an UPPER estimate and our partial energy even more comfortably below it -- it does not threaten the one-sided lower-bound test.",
     "tech_nm = 130 (sky130). Andrulis calibrate/visualize at 32 nm but expose tech as a free log-scaled input (tech slope 1.88 on ln(nm)); 130 nm is an EXTRAPOLATION above their 32 nm reference but within the survey's historical node range, so it is in-model, not invented.",
@@ -137,5 +137,5 @@
     "Our energy is PARTIAL: transient cap-DAC switching (sky130) + extracted comparator (b*48 fJ) ONLY. It excludes SAR control logic, sample/hold, and reference buffer. The Andrulis number is a COMPLETE-ADC best-case. The comparison is therefore one-sided (partial <= full), not an equality match."
   ],
   "integrity_caveats": "This is a LOWER-BOUND sanity check, not a like-for-like reproduction. (1) Domain mismatch: the Andrulis law predicts a COMPLETE ADC's energy from a survey of complete ADCs; our points are a PARTIAL energy (cap-DAC switching + comparator only), so they can only be tested as 'must not exceed' the full-ADC optimistic bound, not equated to it. (2) ENOB is nominal b, not measured. (3) Throughput is an implied settling-window rate, not a designed f_s; hence the sensitivity band. (4) 130 nm is an extrapolation above their 32 nm calibration node. Within those bounds the test is faithful: if our partial energy already exceeded their full-ADC best case, our numbers would be suspect; the script reports whether each point passes that test. Reproduce: rerun this script (pure-python; matplotlib only for the figure).",
-  "verdict": "6/6 of our SAR points pass the one-sided lower-bound test (our partial energy <= Andrulis full-ADC best case). ours/Andrulis ratio range [0.0219, 0.0369]. All points consistent: our measured SAR energy sits below the optimistic full-ADC law, as a partial energy must -- the D.4 numbers are sane against the cited model."
+  "verdict": "6/6 of our SAR points pass the one-sided lower-bound test (our partial energy <= Andrulis full-ADC best case). ours/Andrulis ratio range [0.0199, 0.0342]. All points consistent: our measured SAR energy sits below the optimistic full-ADC law, as a partial energy must -- the D.4 numbers are sane against the cited model."
 }

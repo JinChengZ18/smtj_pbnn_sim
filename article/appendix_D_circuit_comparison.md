@@ -70,24 +70,24 @@ sMTJ 经二端 SOT 栅写入,有效负载约 $$776\ \Omega$$;写电流流经此�
 
 ## D.4 SAR 电容DAC开关方案
 
-列共享 SAR 以二进制加权电荷再分配电容阵列在 $$b=8$$ 步内逼近模拟节点电压。本方案的 monotonic ("set-and-down":采样时全置 $$V_\mathrm{ref}$$,逼近时仅下拉) 较 conventional ("先试探置位、再按判决保持或回拉") 在同一暂态测度下把电容DAC开关能压低约 $$3.25$$ 倍 (两者的底极板轨迹与能耗对照见图D.7,数值见表D.3)。
+列共享 SAR 以二进制加权电荷再分配电容阵列在 $$b=8$$ 步内逼近模拟节点电压。本方案的 monotonic ("set-and-down":采样时全置 $$V_\mathrm{ref}$$,逼近时仅下拉) 较 conventional ("先试探置位、再按判决保持或回拉") 在同一暂态测度下把电容DAC开关能压低约 $$4.3$$ 倍 (两者的底极板轨迹与能耗对照见图D.7,数值见表D.3)。
 
 ![图D.7 SAR两种电容DAC开关方案的能耗对照](figs/AppendixD_07.png)
 
-**图D.7** conventional 与 monotonic 两种 SAR 电容DAC开关方案的底极板电压轨迹与单次转换能 ($$b=8$$):conventional 每位先充后可能回拉、浪费电荷,monotonic 仅作下拉,故开关能低约 $$3.25$$ 倍。
+**图D.7** conventional 与 monotonic 两种 SAR 电容DAC开关方案的底极板电压轨迹与单次转换能 ($$b=8$$):conventional 每位先充后可能回拉、浪费电荷,monotonic 仅作下拉,故开关能低约 $$4.3$$ 倍。
 
 **表D.3** 两种 SAR 开关方案在同一 sky130 暂态电荷积分下的单次转换能 ($$b=8$$,单位电容 $$1.5\ \mathrm{fF}$$,比较器为版图提取的 $$48\ \mathrm{fJ}$$/次)。
 
 | 方案 | 电容DAC开关能 (fJ) | 比较器能 (fJ) | 单次转换总能 (fJ) |
 |---|---|---|---|
-| 本方案:monotonic (set-and-down) | 140.6 | 384 | 525 |
-| conventional (试探置位) | 457.4 | 384 | 841 |
+| 本方案:monotonic (set-and-down) | 92.3 | 384 | 476 |
+| conventional (试探置位) | 394.7 | 384 | 779 |
 
-比较器能 ($$b\times 48\ \mathrm{fJ}$$) 与电容DAC开关能可比甚至更高,故 SAR 读出的能耗杠杆在于把按 $$b$$ 线性的比较器跨列摊薄,而非削减位数。monotonic 另控制更简 (无保持/回拉逻辑)、延迟与 conventional 相同,$$b=6,7$$ 同样保持约 $$3$$ 倍差距[^iter_sar]。本方案的 SAR 电路见正文图5.8。
+比较器能 ($$b\times 48\ \mathrm{fJ}$$) 与电容DAC开关能可比甚至更高 (monotonic 下占单次转换总能约八成),故 SAR 读出的能耗杠杆在于把按 $$b$$ 线性的比较器跨列摊薄,而非削减位数。monotonic 另控制更简 (无保持/回拉逻辑)、延迟与 conventional 相同,$$b=6,7$$ 同样保持约 $$4$$ 倍差距[^iter_sar]。本方案的 SAR 电路见正文图5.8。
 
-[^iter_sar]: 选型试错记录:文献中"约为 conventional 的 $$1/10$$"的 monotonic 估计因忽略真实 CMOS 传输门的导通电阻损耗而过于乐观;以含真实传输门的电容阵列作 ngspice 暂态,得 conventional $$457\ \mathrm{fJ}$$ (解析 $$509\ \mathrm{fJ}$$)、monotonic $$140.6\ \mathrm{fJ}$$ (解析 $$50.9\ \mathrm{fJ}$$),实测约为该解析估计的 $$2.8$$ 倍,故以实测暂态能作为电容DAC能耗依据。
+[^iter_sar]: 选型试错记录:文献中"约为 conventional 的 $$1/10$$"的 monotonic 估计因忽略真实 CMOS 传输门的导通电阻损耗而过于乐观;以含真实传输门的电容阵列作 ngspice 暂态,得 conventional $$395\ \mathrm{fJ}$$ (解析 $$509\ \mathrm{fJ}$$)、monotonic $$92.3\ \mathrm{fJ}$$ (解析 $$50.9\ \mathrm{fJ}$$),实测约为该解析估计的 $$1.8$$ 倍、低位时差距更大,故以实测暂态能作为电容DAC能耗依据。此处数值曾有一次修订:初次记录取自测试脚本定稿前的一轮运行、各点偏高 11%–34%,以定稿脚本重跑核验后以重跑值为准。
 
-为外部佐证 D.4 的能耗量级,将本方案 SAR 的六个工作点 ($$b=6,7,8$$ × conventional/monotonic) 按 Andrulis 等公开的 ADC 能耗-分辨率模型 (以其开源系数移植) 作下界自洽检验 (图D.8):六点均落在该完整-ADC 乐观下界的约 $$1/27$$–$$1/46$$。因本方案计入的是电容DAC开关与比较器的部分能耗,此处为"不超过完整-ADC下界"的单侧检验而非等值比对,六点全部通过,说明 D.4 的同流程能耗与公开模型一致。
+为外部佐证 D.4 的能耗量级,将本方案 SAR 的六个工作点 ($$b=6,7,8$$ × conventional/monotonic) 按 Andrulis 等公开的 ADC 能耗-分辨率模型 (以其开源系数移植) 作下界自洽检验 (图D.8):六点均落在该完整-ADC 乐观下界的约 $$1/29$$–$$1/50$$。因本方案计入的是电容DAC开关与比较器的部分能耗,此处为"不超过完整-ADC下界"的单侧检验而非等值比对,六点全部通过,说明 D.4 的同流程能耗与公开模型一致。
 
 ![图D.8 本方案SAR能耗与Andrulis完整-ADC下界的自洽检验](figs/AppendixD_08.png)
 
