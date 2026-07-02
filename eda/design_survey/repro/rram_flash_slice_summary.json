@@ -1,0 +1,219 @@
+{
+  "_about": "Same-flow (sky130+ngspice) reproduction of the flash-ADC readout slice of the RRAM XNOR-BNN macro (Yin et al., IEEE TED 67(10):4185, 2020; arXiv:1909.07514): one 3-bit flash ADC (7 StrongARM comparators, repo sizing) + resistor-ladder references + 8:1 TG input mux, measured on the same two axes as our column-shared SAR. Script: rram_flash_slice.py (subcommands mc/energy/ron/summarize).",
+  "design": "RRAM XNOR-BNN flash-ADC slice",
+  "citation": "S. Yin, X. Sun, S. Yu, J.-S. Seo, \"High-Throughput In-Memory Computing for Binary Deep Neural Networks with Monolithically Integrated RRAM and 90nm CMOS,\" IEEE Trans. Electron Devices 67(10):4185-4192, 2020. Open preprint arXiv:1909.07514 (quotes below are from the preprint full text).",
+  "architecture_confirmation_quotes": [
+    "\"the testchip design includes a 128x64 1T1R array, row decoder, level shifter, eight 8-to-1 column multiplexers, eight 3-bit flash ADCs, and two 64-to-1 column decoders for RRAM cell-level programming.\"",
+    "\"Eight ADCs (shared among 64 columns) and eight column multiplexers occupy 20% and 12% area of the XNOR-RRAM core, respectively\"",
+    "\"Each 3-bit flash ADC consists of seven voltage-mode sense amplifiers (VSAs), whose outputs generate seven thermometer-coded bits that represent eight levels.\"",
+    "\"Each VSA compares the read bitline (RBL) voltage of the selected column with a reference voltage. Seven reference voltages of an ADC are calibrated for the eight columns that the ADC is connected to.\"",
+    "\"To make a balance between area and throughput, we share one flash ADC by eight columns.\"",
+    "\"please note that our VSA and ADC design did not include offset compensation circuits or techniques.\""
+  ],
+  "mapping_to_our_flow": {
+    "input_range_V": [
+      0.6,
+      1.2
+    ],
+    "input_range_provenance": "readout_mapping.py law PC_FS=3*sqrt(F)=48 @ F=256, LSB_V=V_in/(2*PC_FS)=6.25 mV/pc with V_in=0.6 V -> TIA output 0.9+-0.3 V. F=256 is not a committed row of readout_mapping_summary.json; it is DERIVED from the committed law (stated range assumption).",
+    "taps_V": [
+      0.675,
+      0.75,
+      0.825,
+      0.9,
+      0.975,
+      1.05,
+      1.125
+    ],
+    "flash_LSB_mV": 75.0,
+    "flash_LSB_popcounts": 11.999999999999998,
+    "comparator": "StrongARM latch SA, sizing read verbatim from eda/hero/comparators/strongarm.spice (win=4.0 um)",
+    "sigma_Vth_per_device_mV": [
+      6.454972243679028,
+      6.454972243679028,
+      9.12870929175277,
+      9.12870929175277
+    ],
+    "ladder": {
+      "R_total_ohm": 17999.999999999996,
+      "R_segment_ohm": 749.9999999999999,
+      "R_end_ohm": 6749.999999999999,
+      "I_ladder_uA": 100.0,
+      "C_decap_per_tap_pF": 0.5,
+      "note": "uniform 7-tap string across the 1.8 V rail + 0.5 pF tap decaps. The stiffness is a MEASURED constraint, not a free choice: a first-cut 10 uA bare-tap string collapsed tap4 from 0.900 to 0.52 V under the StrongARM strobe kick (~4-5 fC) and railed every code edge -- a real flash failure mode this reproduction surfaced. E_ladder scales ~1/R_total down to that kickback-recovery bound."
+    },
+    "mux": {
+      "topology": "8:1 CMOS transmission gates, 1 selected + 7 off on the shared node",
+      "tg_sizing": "nfet 2/0.15, pfet 4/0.15 (repo TG, sar_capdac_tran.py)",
+      "source_model": "TIA as Thevenin source with R_out = R_TI = 1225 ohm (labeled assumption)",
+      "C_ADC_pF": 3.5,
+      "C_ADC_role": "kick-matching decap DIRECTLY on the shared flash input node, C_ADC = 7 x C_tap: the input is kicked by all 7 comparators while each tap takes one comparator's kick. Without it (or with the cap on the bitline side of the mux, where R_on isolates it) every code edge rails -- both intermediate states were measured in bring-up."
+    }
+  },
+  "fidelity_deviations": [
+    "Yin et al. references are per-ADC CALIBRATED over a CONFINED bitcount range (-13..11 of +-64; 'An automatic algorithm is employed to determine the reference voltages'); their generation circuit is not public. We use an UNCALIBRATED uniform resistor ladder across the full popcount-mapped range -- the plain-flash baseline their calibration then improves on.",
+    "Their comparator is a 90 nm 1.2 V 'voltage-mode sense amplifier' (schematic not public); ours is the repo 130 nm/1.8 V StrongARM SA -- the same-flow voltage-mode SA. Ratios, not absolute mV/fJ, are the transferable result.",
+    "Their mux is thick-oxide with 2-5 V gate drive ('the analog multiplexer gate voltage can be as high as 2-5V'); ours is a 1.8 V CMOS TG.",
+    "Schematic-level netlists (no layout extraction) for ALL flash-slice numbers; our SAR comparator anchor 48 fJ is extracted -- so flash-vs-SAR energy is quoted as a comparator-count RATIO x the SAME schematic-level per-strobe energy, plus labeled absolute schematic-level terms."
+  ],
+  "offset_mc": {
+    "method": "Pelgrom Vth offsets (AVT=5 mV*um assumption, same as run_offset_mc.py) on input pair + latch pair of each of the 7 comparators (28 draws/sample); all 7 comparators + ladder + mux simulated together; per-edge offset = source sweep value where that comparator's decision flips minus the ideal tap. Sweep +-40 mV in 4 mV steps (quantization adds <1% to a ~9 mV sigma, in quadrature).",
+    "N_samples": 13,
+    "N_note": "N=40+ was planned; the run is time-bound by host throughput (~0.4 sky130 transients/s aggregate on this machine), so the committed result is the largest COMPLETED subset. Rerun with more samples: wsl -d Ubuntu-24.04-EDA -- bash -lc 'cd <repo> && OMP_NUM_THREADS=1 python3 eda/design_survey/repro/rram_flash_slice.py mc <N> <workers>' then `summarize`. Per-edge sigma SE ~ sigma/sqrt(2(N-1)); pooled sigma uses 7N edge measurements.",
+    "edges_lost_to_sweep_range": 0,
+    "per_edge": {
+      "1": {
+        "tap_V": 0.675,
+        "N": 13,
+        "mean_mV": 0.41805811221822936,
+        "sigma_mV": 11.705026657525236
+      },
+      "2": {
+        "tap_V": 0.75,
+        "N": 13,
+        "mean_mV": -1.6923068832293766,
+        "sigma_mV": 5.2818023156939065
+      },
+      "3": {
+        "tap_V": 0.825,
+        "N": 13,
+        "mean_mV": 3.5384616979525005,
+        "sigma_mV": 7.0310665767919
+      },
+      "4": {
+        "tap_V": 0.9,
+        "N": 13,
+        "mean_mV": 0.4615383252399937,
+        "sigma_mV": 9.1707449847506
+      },
+      "5": {
+        "tap_V": 0.975,
+        "N": 13,
+        "mean_mV": 4.153845920369372,
+        "sigma_mV": 10.407098172028483
+      },
+      "6": {
+        "tap_V": 1.05,
+        "N": 13,
+        "mean_mV": -0.461538648733559,
+        "sigma_mV": 9.734948949302115
+      },
+      "7": {
+        "tap_V": 1.125,
+        "N": 13,
+        "mean_mV": 3.2307691481917673,
+        "sigma_mV": 11.35894542714814
+      }
+    },
+    "sigma_pooled_mV_about_edge_means": 9.169122896349762,
+    "sigma_raw_all_edges_mV": 9.405355451933511,
+    "sigma_over_VT_pooled": 0.39160856309685493,
+    "single_comparator_wall_mV": 9.21,
+    "single_comparator_wall_over_VT": 0.393,
+    "edge_sigma_in_flash_LSB": 0.12225497195133016,
+    "edge_sigma_in_popcounts": 1.467059663415962,
+    "DNL_sigma_LSB_measured": 0.17523439729869433,
+    "DNL_mean_LSB_measured": 0.0062504689688300825
+  },
+  "energy": {
+    "level": "SCHEMATIC-LEVEL (no extraction) -- house norm: ratios headline",
+    "T_cycle_ns": 10.0,
+    "E_7comp_per_conversion_fJ_schematic": 366.076575,
+    "E_per_comparator_strobe_fJ_schematic": 52.29665357142857,
+    "single_StrongARM_same_flow_fJ_schematic": 53.80749,
+    "E_clk_driver_per_conversion_fJ": 19.9013,
+    "E_ladder_per_conversion_fJ": 1800.3397500000003,
+    "P_ladder_uW_measured": 180.03397500000005,
+    "E_mux_select_transition_fJ": 0.439307,
+    "per_cycle_detail_fJ": {
+      "comp7": {
+        "1": 358.6194,
+        "2": 358.1532,
+        "3": 364.4532,
+        "4": 371.457,
+        "5": 362.1744,
+        "6": 364.869,
+        "7": 369.4662,
+        "8": 379.4202
+      },
+      "clk": {
+        "1": 19.6574,
+        "2": 19.675900000000002,
+        "3": 19.5301,
+        "4": 20.4081,
+        "5": 20.5519,
+        "6": 20.1982,
+        "7": 19.4516,
+        "8": 19.737199999999998
+      },
+      "single": {
+        "1": 53.85978000000001,
+        "2": 53.8425,
+        "3": 53.623259999999995,
+        "4": 53.71722,
+        "5": 53.71722,
+        "6": 53.95374,
+        "7": 53.85978000000001,
+        "8": 53.88642
+      }
+    },
+    "sar_anchor": {
+      "E_comp_extracted_fJ_per_strobe": 48.0,
+      "E_sar_b8_comparator_fJ": 384.0,
+      "source": "sar_capdac_tran_summary.json / sa_postlayout"
+    },
+    "architecture_ratios": {
+      "comparator_strobes_flash_3b": 7,
+      "comparator_strobes_sar_3b": 3,
+      "flash_over_sar_same_b3": 2.3333333333333335,
+      "comparator_strobes_flash_8b_would_be": 255,
+      "comparator_strobes_sar_8b": 8,
+      "flash_over_sar_same_b8": 31.875,
+      "note": "2^b-1 parallel comparators vs b sequential strobes; the per-strobe energy is the SAME measured StrongARM in both, so the ratio is exact and transfers across nodes"
+    }
+  },
+  "mux_insertion": {
+    "R_on_ohm": {
+      "R_on_min_ohm": 761.058,
+      "R_on_max_ohm": 5483.21,
+      "R_on_mid_ohm": 3505.04
+    },
+    "ladder_R_thevenin_ohm": {
+      "1": 4218.749999999999,
+      "2": 4374.999999999999,
+      "3": 4468.749999999999,
+      "4": 4499.999999999999,
+      "5": 4468.749999999999,
+      "6": 4374.999999999999,
+      "7": 4218.749999999998
+    },
+    "ladder_R_th_max_ohm": 4499.999999999999,
+    "R_on_vs_ladder_note": "mux R_on sits in the INPUT path in series with R_TI=1225 ohm; ladder R_th loads the REFERENCE path. Settling time constants: input (R_TI+R_on)*C_vin, reference R_th*C_tap -- both measured below via residuals in the transient.",
+    "kickback_measured": {
+      "tap4_min_V": 0.894606,
+      "tap4_max_V": 0.901175,
+      "tap4_at_29p9n_V": 0.900902,
+      "tap1_min_V": 0.670412,
+      "tap1_max_V": 0.676008,
+      "tap1_at_29p9n_V": 0.675787
+    },
+    "vin_settling_after_mux_switch": {
+      "measured_V": {
+        "at_51p9n": 0.860868,
+        "at_61p9n": 0.83562
+      },
+      "target_at_51p9n_V": 0.7125,
+      "target_at_61p9n_V": 0.8625,
+      "note": "mux ch0->ch1 switch at 46 ns; 51.9 ns is just before the next strobe (5.9 ns dwell), 61.9 ns one cycle later. tau = (R_TI+R_on)*C_ADC -- the kick-matching decap directly trades against channel-switch settling."
+    }
+  },
+  "assumptions": [
+    "AVT = 5 mV*um sky130-class Pelgrom coefficient (repo assumption, not the PDK mismatch model) -> sigma/V_T and flash-vs-SAR ratios transfer, absolute mV do not.",
+    "Input range [0.6, 1.2] V = popcount-mapped TIA swing for fan-in 256 derived from the committed readout_mapping law (F=256 is not a committed row).",
+    "Ladder standing current 100 uA (R_total = 18 kohm) + 0.5 pF tap decaps + 3.5 pF kick-matching input decap, sized by the measured StrongARM kickback (a bare 180 kohm string railed all code edges); ladder energy scales ~1/R_total down to that measured bound. Yin et al.'s VSA kickback and reference-driver power are not public.",
+    "TIA modeled as Thevenin source with R_out = R_TI = 1225 ohm.",
+    "T_cycle = 10 ns per conversion (strobe 2 ns + precharge 8 ns), matching the repo MC harness clk; Yin et al. report a 6.5 ns RBL-settling critical path.",
+    "All flash-slice energies are schematic-level (no extraction).",
+    "Their VSA schematic is not public; StrongARM (repo sizing) stands in as the same-flow voltage-mode SA without offset compensation, which matches their stated design."
+  ]
+}
