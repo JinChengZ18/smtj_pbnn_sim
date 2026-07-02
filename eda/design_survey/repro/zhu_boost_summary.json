@@ -1,0 +1,903 @@
+{
+  "_about": "Open-record-faithful reproduction of Zhu et al.'s line-resistance compensation (global voltage boost reading), run on OUR committed sMTJ write-path model. Numbers are computed by this script only (eda/design_survey/repro/zhu_boost.py).",
+  "_paper": "Xi Zhu, Zhiwei Li, Haijun Liu, Qingjiang Li, Sen Liu, Nan Li, Hui Xu, 'Solution to alleviate the impact of line resistance on the crossbar array,' IET Circuits, Devices & Systems 14(4):498-504, 2020, DOI 10.1049/iet-cds.2019.0313.",
+  "_open_record": {
+    "fulltext_access": "PAYWALLED at reproduction time (Wiley 402 / IET digital library 403)",
+    "abstract_quote_crossref": "The crossbar array implementing the weighted sum computation and weight update operation is a promising hardware accelerator for neuromorphic computing. However, the voltage drop caused by the current flowing through the access lines could be aggressive for the resistive crossbar array in a fully parallel fashion. In this study, the authors analysed the impact of the line resistance on the crossbar array based on the SPICE simulation. It implies that the scale of the crossbar array and the ratio of line resistance to resistive random access memory resistance bring great influence on the performance of the crossbar array. Also an scheme of optimisation has been proposed to diminish its influence.",
+    "citation_context_quote_semanticscholar": "Zhu et al. [35] linearly mapped the distorted current from the range of current of the extreme array with wire resistance to the range of current of the extreme array without wire resistance.",
+    "citation_context_source": "Qin et al., 'Design of High Robustness BNN Inference Accelerator Based on Binary Memristors,' 2020 (same NUDT group), via Semantic Scholar citation contexts"
+  },
+  "_granularity_assumption": "Per-position (per-row) granularity is NOT confirmable from the open record; the one substantive open description is a GLOBAL linear recalibration anchored at the array EXTREME. We therefore implement a GLOBAL write-voltage boost (one DAC code for all rows), evaluated at extreme-row and mid-row calibrations plus a full-code sweep that upper-bounds any global calibration. At a single write operating point a global linear map degenerates to a single offset, so the sweep covers the whole family. The node of application (input drive vs output current) is also not confirmable; we apply it to the only node our write path exposes, the shared drive voltage, and mark the crossbar-readout -> write-path transplant explicitly.",
+  "our_model_provenance": {
+    "source": "eda/hero/ir_aware_writedac.py + ir_aware_writedac_summary.json (committed)",
+    "VTH": 0.895783,
+    "VT": 0.023414,
+    "RSOT_ohm": 776.0,
+    "N": 256,
+    "p_target": 0.9,
+    "V_target": 0.9472,
+    "I_write_mA": 1.16,
+    "R_par_formula": "R_par(r) = 2*0.125 ohm/sq * (r*2.0um/1.0um)  [met2, Magic-extracted]",
+    "R_par_N_ohm": 128.0,
+    "IR_N_mV": 148.45,
+    "dac_lsb_mV": 3.0411,
+    "dac_nbits": 6,
+    "dac_lsb_source": "eda/hero/write_dac_resistor_string.json (measured sky130 sim)"
+  },
+  "selfcheck_vs_committed": {
+    "V_target_matches_committed": true,
+    "nopd_spread_matches_committed": true,
+    "nopd_rows_match_committed": true,
+    "committed_file": "eda/hero/ir_aware_writedac_summary.json",
+    "psw_spread_nopd_committed": 0.8844,
+    "psw_spread_nopd_recomputed": 0.8844
+  },
+  "metric_definition": "residual write error = statistics of |P_sw(row) - p_target| over rows r=0..N (257 positions), p_target=0.90; P_sw from the committed device sigmoid; V_cell(r) = V_target + boost(r) - I_wr*R_par(r)",
+  "schemes": [
+    {
+      "scheme": "no_comp",
+      "granularity": "none",
+      "calibration": "none",
+      "rms_p_err": 0.6181,
+      "max_abs_p_err": 0.8844,
+      "mean_abs_p_err": 0.5389,
+      "psw_min": 0.0156,
+      "psw_max": 0.9,
+      "psw_spread": 0.8844,
+      "max_v_err_mV": 148.45,
+      "max_v_err_over_VT": 6.34,
+      "mean_boost_mV": 0.0,
+      "max_boost_mV": 0.0,
+      "rows": [
+        {
+          "row": 0,
+          "boost_mV": 0.0,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 32,
+          "boost_mV": 0.0,
+          "v_cell": 0.9287,
+          "psw": 0.8029
+        },
+        {
+          "row": 64,
+          "boost_mV": 0.0,
+          "v_cell": 0.9101,
+          "psw": 0.6484
+        },
+        {
+          "row": 96,
+          "boost_mV": 0.0,
+          "v_cell": 0.8916,
+          "psw": 0.455
+        },
+        {
+          "row": 128,
+          "boost_mV": 0.0,
+          "v_cell": 0.873,
+          "psw": 0.2743
+        },
+        {
+          "row": 160,
+          "boost_mV": 0.0,
+          "v_cell": 0.8544,
+          "psw": 0.1461
+        },
+        {
+          "row": 192,
+          "boost_mV": 0.0,
+          "v_cell": 0.8359,
+          "psw": 0.0719
+        },
+        {
+          "row": 224,
+          "boost_mV": 0.0,
+          "v_cell": 0.8173,
+          "psw": 0.0339
+        },
+        {
+          "row": 256,
+          "boost_mV": 0.0,
+          "v_cell": 0.7988,
+          "psw": 0.0156
+        }
+      ]
+    },
+    {
+      "scheme": "zhu_boost_global_worst",
+      "granularity": "global (one code, all rows)",
+      "calibration": "extreme row r=N=256: dV=IR(N)=148.45 mV -> code 49 (149.01 mV)",
+      "rms_p_err": 0.0869,
+      "max_abs_p_err": 0.0998,
+      "mean_abs_p_err": 0.0837,
+      "psw_min": 0.9021,
+      "psw_max": 0.9998,
+      "psw_spread": 0.0977,
+      "max_v_err_mV": 149.01,
+      "max_v_err_over_VT": 6.36,
+      "mean_boost_mV": 149.01,
+      "max_boost_mV": 149.01,
+      "rows": [
+        {
+          "row": 0,
+          "boost_mV": 149.01,
+          "v_cell": 1.0962,
+          "psw": 0.9998
+        },
+        {
+          "row": 32,
+          "boost_mV": 149.01,
+          "v_cell": 1.0777,
+          "psw": 0.9996
+        },
+        {
+          "row": 64,
+          "boost_mV": 149.01,
+          "v_cell": 1.0591,
+          "psw": 0.9991
+        },
+        {
+          "row": 96,
+          "boost_mV": 149.01,
+          "v_cell": 1.0406,
+          "psw": 0.9979
+        },
+        {
+          "row": 128,
+          "boost_mV": 149.01,
+          "v_cell": 1.022,
+          "psw": 0.9955
+        },
+        {
+          "row": 160,
+          "boost_mV": 149.01,
+          "v_cell": 1.0035,
+          "psw": 0.99
+        },
+        {
+          "row": 192,
+          "boost_mV": 149.01,
+          "v_cell": 0.9849,
+          "psw": 0.9783
+        },
+        {
+          "row": 224,
+          "boost_mV": 149.01,
+          "v_cell": 0.9663,
+          "psw": 0.9532
+        },
+        {
+          "row": 256,
+          "boost_mV": 149.01,
+          "v_cell": 0.9478,
+          "psw": 0.9021
+        }
+      ],
+      "dac_code": 49
+    },
+    {
+      "scheme": "zhu_boost_global_mid",
+      "granularity": "global (one code, all rows)",
+      "calibration": "mid row r=128: dV=IR(N/2)=74.23 mV -> code 24 (72.99 mV)",
+      "rms_p_err": 0.2504,
+      "max_abs_p_err": 0.6361,
+      "mean_abs_p_err": 0.1767,
+      "psw_min": 0.2639,
+      "psw_max": 0.9951,
+      "psw_spread": 0.7312,
+      "max_v_err_mV": 75.47,
+      "max_v_err_over_VT": 3.22,
+      "mean_boost_mV": 72.99,
+      "max_boost_mV": 72.99,
+      "rows": [
+        {
+          "row": 0,
+          "boost_mV": 72.99,
+          "v_cell": 1.0202,
+          "psw": 0.9951
+        },
+        {
+          "row": 32,
+          "boost_mV": 72.99,
+          "v_cell": 1.0017,
+          "psw": 0.9892
+        },
+        {
+          "row": 64,
+          "boost_mV": 72.99,
+          "v_cell": 0.9831,
+          "psw": 0.9766
+        },
+        {
+          "row": 96,
+          "boost_mV": 72.99,
+          "v_cell": 0.9645,
+          "psw": 0.9496
+        },
+        {
+          "row": 128,
+          "boost_mV": 72.99,
+          "v_cell": 0.946,
+          "psw": 0.8951
+        },
+        {
+          "row": 160,
+          "boost_mV": 72.99,
+          "v_cell": 0.9274,
+          "psw": 0.7944
+        },
+        {
+          "row": 192,
+          "boost_mV": 72.99,
+          "v_cell": 0.9089,
+          "psw": 0.6363
+        },
+        {
+          "row": 224,
+          "boost_mV": 72.99,
+          "v_cell": 0.8903,
+          "psw": 0.4419
+        },
+        {
+          "row": 256,
+          "boost_mV": 72.99,
+          "v_cell": 0.8718,
+          "psw": 0.2639
+        }
+      ],
+      "dac_code": 24
+    },
+    {
+      "scheme": "zhu_boost_global_bestRMS",
+      "granularity": "global (one code, all rows)",
+      "calibration": "swept all 64 codes, min RMS p-error at code 43 (130.77 mV) -- upper bound of ANY global calibration",
+      "rms_p_err": 0.0815,
+      "max_abs_p_err": 0.0996,
+      "mean_abs_p_err": 0.0766,
+      "psw_min": 0.8087,
+      "psw_max": 0.9996,
+      "psw_spread": 0.1908,
+      "max_v_err_mV": 130.77,
+      "max_v_err_over_VT": 5.59,
+      "mean_boost_mV": 130.77,
+      "max_boost_mV": 130.77,
+      "rows": [
+        {
+          "row": 0,
+          "boost_mV": 130.77,
+          "v_cell": 1.078,
+          "psw": 0.9996
+        },
+        {
+          "row": 32,
+          "boost_mV": 130.77,
+          "v_cell": 1.0594,
+          "psw": 0.9991
+        },
+        {
+          "row": 64,
+          "boost_mV": 130.77,
+          "v_cell": 1.0409,
+          "psw": 0.998
+        },
+        {
+          "row": 96,
+          "boost_mV": 130.77,
+          "v_cell": 1.0223,
+          "psw": 0.9955
+        },
+        {
+          "row": 128,
+          "boost_mV": 130.77,
+          "v_cell": 1.0038,
+          "psw": 0.9902
+        },
+        {
+          "row": 160,
+          "boost_mV": 130.77,
+          "v_cell": 0.9852,
+          "psw": 0.9785
+        },
+        {
+          "row": 192,
+          "boost_mV": 130.77,
+          "v_cell": 0.9667,
+          "psw": 0.9538
+        },
+        {
+          "row": 224,
+          "boost_mV": 130.77,
+          "v_cell": 0.9481,
+          "psw": 0.9033
+        },
+        {
+          "row": 256,
+          "boost_mV": 130.77,
+          "v_cell": 0.9295,
+          "psw": 0.8087
+        }
+      ],
+      "dac_code": 43
+    },
+    {
+      "scheme": "ours_perrow_predistortion",
+      "granularity": "per-row (one code per row)",
+      "calibration": "code(r)=round(IR(r)/LSB), r=0..256; codes 0..49",
+      "rms_p_err": 0.0034,
+      "max_abs_p_err": 0.006,
+      "mean_abs_p_err": 0.0029,
+      "psw_min": 0.894,
+      "psw_max": 0.9057,
+      "psw_spread": 0.0116,
+      "max_v_err_mV": 1.52,
+      "max_v_err_over_VT": 0.06,
+      "mean_boost_mV": 74.23,
+      "max_boost_mV": 149.01,
+      "rows": [
+        {
+          "row": 0,
+          "boost_mV": 0.0,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 32,
+          "boost_mV": 18.25,
+          "v_cell": 0.9469,
+          "psw": 0.8988
+        },
+        {
+          "row": 64,
+          "boost_mV": 36.49,
+          "v_cell": 0.9466,
+          "psw": 0.8976
+        },
+        {
+          "row": 96,
+          "boost_mV": 54.74,
+          "v_cell": 0.9463,
+          "psw": 0.8964
+        },
+        {
+          "row": 128,
+          "boost_mV": 72.99,
+          "v_cell": 0.946,
+          "psw": 0.8951
+        },
+        {
+          "row": 160,
+          "boost_mV": 94.27,
+          "v_cell": 0.9487,
+          "psw": 0.9056
+        },
+        {
+          "row": 192,
+          "boost_mV": 112.52,
+          "v_cell": 0.9484,
+          "psw": 0.9044
+        },
+        {
+          "row": 224,
+          "boost_mV": 130.77,
+          "v_cell": 0.9481,
+          "psw": 0.9033
+        },
+        {
+          "row": 256,
+          "boost_mV": 149.01,
+          "v_cell": 0.9478,
+          "psw": 0.9021
+        }
+      ],
+      "dac_code_range": [
+        0,
+        49
+      ]
+    },
+    {
+      "scheme": "ours_perrow_ideal_unquantized",
+      "granularity": "per-row (continuous)",
+      "calibration": "dV(r)=IR(r) exactly (committed ideal; no DAC quantization)",
+      "rms_p_err": 0.0,
+      "max_abs_p_err": 0.0,
+      "mean_abs_p_err": 0.0,
+      "psw_min": 0.9,
+      "psw_max": 0.9,
+      "psw_spread": 0.0,
+      "max_v_err_mV": 0.0,
+      "max_v_err_over_VT": 0.0,
+      "mean_boost_mV": 74.23,
+      "max_boost_mV": 148.45,
+      "rows": [
+        {
+          "row": 0,
+          "boost_mV": 0.0,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 32,
+          "boost_mV": 18.56,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 64,
+          "boost_mV": 37.11,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 96,
+          "boost_mV": 55.67,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 128,
+          "boost_mV": 74.23,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 160,
+          "boost_mV": 92.78,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 192,
+          "boost_mV": 111.34,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 224,
+          "boost_mV": 129.9,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        },
+        {
+          "row": 256,
+          "boost_mV": 148.45,
+          "v_cell": 0.9472,
+          "psw": 0.9
+        }
+      ]
+    }
+  ],
+  "global_boost_code_sweep": [
+    {
+      "code": 0,
+      "boost_mV": 0.0,
+      "rms_p_err": 0.6181,
+      "max_abs_p_err": 0.8844
+    },
+    {
+      "code": 1,
+      "boost_mV": 3.04,
+      "rms_p_err": 0.605,
+      "max_abs_p_err": 0.8822
+    },
+    {
+      "code": 2,
+      "boost_mV": 6.08,
+      "rms_p_err": 0.5918,
+      "max_abs_p_err": 0.8798
+    },
+    {
+      "code": 3,
+      "boost_mV": 9.12,
+      "rms_p_err": 0.5784,
+      "max_abs_p_err": 0.8771
+    },
+    {
+      "code": 4,
+      "boost_mV": 12.16,
+      "rms_p_err": 0.5647,
+      "max_abs_p_err": 0.874
+    },
+    {
+      "code": 5,
+      "boost_mV": 15.21,
+      "rms_p_err": 0.5508,
+      "max_abs_p_err": 0.8705
+    },
+    {
+      "code": 6,
+      "boost_mV": 18.25,
+      "rms_p_err": 0.5367,
+      "max_abs_p_err": 0.8666
+    },
+    {
+      "code": 7,
+      "boost_mV": 21.29,
+      "rms_p_err": 0.5223,
+      "max_abs_p_err": 0.8621
+    },
+    {
+      "code": 8,
+      "boost_mV": 24.33,
+      "rms_p_err": 0.5077,
+      "max_abs_p_err": 0.8571
+    },
+    {
+      "code": 9,
+      "boost_mV": 27.37,
+      "rms_p_err": 0.4929,
+      "max_abs_p_err": 0.8514
+    },
+    {
+      "code": 10,
+      "boost_mV": 30.41,
+      "rms_p_err": 0.4779,
+      "max_abs_p_err": 0.845
+    },
+    {
+      "code": 11,
+      "boost_mV": 33.45,
+      "rms_p_err": 0.4626,
+      "max_abs_p_err": 0.8379
+    },
+    {
+      "code": 12,
+      "boost_mV": 36.49,
+      "rms_p_err": 0.4471,
+      "max_abs_p_err": 0.8299
+    },
+    {
+      "code": 13,
+      "boost_mV": 39.53,
+      "rms_p_err": 0.4314,
+      "max_abs_p_err": 0.8209
+    },
+    {
+      "code": 14,
+      "boost_mV": 42.58,
+      "rms_p_err": 0.4155,
+      "max_abs_p_err": 0.8109
+    },
+    {
+      "code": 15,
+      "boost_mV": 45.62,
+      "rms_p_err": 0.3993,
+      "max_abs_p_err": 0.7998
+    },
+    {
+      "code": 16,
+      "boost_mV": 48.66,
+      "rms_p_err": 0.383,
+      "max_abs_p_err": 0.7875
+    },
+    {
+      "code": 17,
+      "boost_mV": 51.7,
+      "rms_p_err": 0.3666,
+      "max_abs_p_err": 0.7738
+    },
+    {
+      "code": 18,
+      "boost_mV": 54.74,
+      "rms_p_err": 0.35,
+      "max_abs_p_err": 0.7588
+    },
+    {
+      "code": 19,
+      "boost_mV": 57.78,
+      "rms_p_err": 0.3334,
+      "max_abs_p_err": 0.7423
+    },
+    {
+      "code": 20,
+      "boost_mV": 60.82,
+      "rms_p_err": 0.3167,
+      "max_abs_p_err": 0.7243
+    },
+    {
+      "code": 21,
+      "boost_mV": 63.86,
+      "rms_p_err": 0.3,
+      "max_abs_p_err": 0.7046
+    },
+    {
+      "code": 22,
+      "boost_mV": 66.9,
+      "rms_p_err": 0.2833,
+      "max_abs_p_err": 0.6834
+    },
+    {
+      "code": 23,
+      "boost_mV": 69.95,
+      "rms_p_err": 0.2668,
+      "max_abs_p_err": 0.6606
+    },
+    {
+      "code": 24,
+      "boost_mV": 72.99,
+      "rms_p_err": 0.2504,
+      "max_abs_p_err": 0.6361
+    },
+    {
+      "code": 25,
+      "boost_mV": 76.03,
+      "rms_p_err": 0.2343,
+      "max_abs_p_err": 0.6101
+    },
+    {
+      "code": 26,
+      "boost_mV": 79.07,
+      "rms_p_err": 0.2186,
+      "max_abs_p_err": 0.5827
+    },
+    {
+      "code": 27,
+      "boost_mV": 82.11,
+      "rms_p_err": 0.2032,
+      "max_abs_p_err": 0.5539
+    },
+    {
+      "code": 28,
+      "boost_mV": 85.15,
+      "rms_p_err": 0.1884,
+      "max_abs_p_err": 0.524
+    },
+    {
+      "code": 29,
+      "boost_mV": 88.19,
+      "rms_p_err": 0.1742,
+      "max_abs_p_err": 0.493
+    },
+    {
+      "code": 30,
+      "boost_mV": 91.23,
+      "rms_p_err": 0.1608,
+      "max_abs_p_err": 0.4613
+    },
+    {
+      "code": 31,
+      "boost_mV": 94.27,
+      "rms_p_err": 0.1481,
+      "max_abs_p_err": 0.4292
+    },
+    {
+      "code": 32,
+      "boost_mV": 97.32,
+      "rms_p_err": 0.1364,
+      "max_abs_p_err": 0.3967
+    },
+    {
+      "code": 33,
+      "boost_mV": 100.36,
+      "rms_p_err": 0.1257,
+      "max_abs_p_err": 0.3643
+    },
+    {
+      "code": 34,
+      "boost_mV": 103.4,
+      "rms_p_err": 0.1161,
+      "max_abs_p_err": 0.3322
+    },
+    {
+      "code": 35,
+      "boost_mV": 106.44,
+      "rms_p_err": 0.1076,
+      "max_abs_p_err": 0.3006
+    },
+    {
+      "code": 36,
+      "boost_mV": 109.48,
+      "rms_p_err": 0.1005,
+      "max_abs_p_err": 0.2699
+    },
+    {
+      "code": 37,
+      "boost_mV": 112.52,
+      "rms_p_err": 0.0945,
+      "max_abs_p_err": 0.2402
+    },
+    {
+      "code": 38,
+      "boost_mV": 115.56,
+      "rms_p_err": 0.0898,
+      "max_abs_p_err": 0.2116
+    },
+    {
+      "code": 39,
+      "boost_mV": 118.6,
+      "rms_p_err": 0.0863,
+      "max_abs_p_err": 0.1845
+    },
+    {
+      "code": 40,
+      "boost_mV": 121.64,
+      "rms_p_err": 0.0839,
+      "max_abs_p_err": 0.1588
+    },
+    {
+      "code": 41,
+      "boost_mV": 124.69,
+      "rms_p_err": 0.0823,
+      "max_abs_p_err": 0.1347
+    },
+    {
+      "code": 42,
+      "boost_mV": 127.73,
+      "rms_p_err": 0.0816,
+      "max_abs_p_err": 0.1122
+    },
+    {
+      "code": 43,
+      "boost_mV": 130.77,
+      "rms_p_err": 0.0815,
+      "max_abs_p_err": 0.0996
+    },
+    {
+      "code": 44,
+      "boost_mV": 133.81,
+      "rms_p_err": 0.0819,
+      "max_abs_p_err": 0.0996
+    },
+    {
+      "code": 45,
+      "boost_mV": 136.85,
+      "rms_p_err": 0.0826,
+      "max_abs_p_err": 0.0997
+    },
+    {
+      "code": 46,
+      "boost_mV": 139.89,
+      "rms_p_err": 0.0835,
+      "max_abs_p_err": 0.0997
+    },
+    {
+      "code": 47,
+      "boost_mV": 142.93,
+      "rms_p_err": 0.0846,
+      "max_abs_p_err": 0.0998
+    },
+    {
+      "code": 48,
+      "boost_mV": 145.97,
+      "rms_p_err": 0.0858,
+      "max_abs_p_err": 0.0998
+    },
+    {
+      "code": 49,
+      "boost_mV": 149.01,
+      "rms_p_err": 0.0869,
+      "max_abs_p_err": 0.0998
+    },
+    {
+      "code": 50,
+      "boost_mV": 152.06,
+      "rms_p_err": 0.0881,
+      "max_abs_p_err": 0.0998
+    },
+    {
+      "code": 51,
+      "boost_mV": 155.1,
+      "rms_p_err": 0.0892,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 52,
+      "boost_mV": 158.14,
+      "rms_p_err": 0.0902,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 53,
+      "boost_mV": 161.18,
+      "rms_p_err": 0.0912,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 54,
+      "boost_mV": 164.22,
+      "rms_p_err": 0.0921,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 55,
+      "boost_mV": 167.26,
+      "rms_p_err": 0.093,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 56,
+      "boost_mV": 170.3,
+      "rms_p_err": 0.0937,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 57,
+      "boost_mV": 173.34,
+      "rms_p_err": 0.0944,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 58,
+      "boost_mV": 176.38,
+      "rms_p_err": 0.0951,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 59,
+      "boost_mV": 179.42,
+      "rms_p_err": 0.0956,
+      "max_abs_p_err": 0.0999
+    },
+    {
+      "code": 60,
+      "boost_mV": 182.47,
+      "rms_p_err": 0.0961,
+      "max_abs_p_err": 0.1
+    },
+    {
+      "code": 61,
+      "boost_mV": 185.51,
+      "rms_p_err": 0.0966,
+      "max_abs_p_err": 0.1
+    },
+    {
+      "code": 62,
+      "boost_mV": 188.55,
+      "rms_p_err": 0.097,
+      "max_abs_p_err": 0.1
+    },
+    {
+      "code": 63,
+      "boost_mV": 191.59,
+      "rms_p_err": 0.0973,
+      "max_abs_p_err": 0.1
+    }
+  ],
+  "comparison_table_D3": {
+    "metric": "residual write error: RMS (and max) |P_sw - 0.90| across the N=256 column",
+    "flow": "committed write-path model (ir_aware_writedac.py constants), boosts quantized to the measured 3.0411 mV resistor-string DAC LSB",
+    "designs": [
+      {
+        "scheme": "no compensation",
+        "is_ours": false,
+        "rms_p_err": 0.6181,
+        "max_abs_p_err": 0.8844,
+        "psw_spread": 0.8844,
+        "psw_min": 0.0156,
+        "mean_boost_mV": 0.0,
+        "max_boost_mV": 0.0
+      },
+      {
+        "scheme": "Zhu global voltage boost (extreme-row calibrated)",
+        "is_ours": false,
+        "rms_p_err": 0.0869,
+        "max_abs_p_err": 0.0998,
+        "psw_spread": 0.0977,
+        "psw_min": 0.9021,
+        "mean_boost_mV": 149.01,
+        "max_boost_mV": 149.01
+      },
+      {
+        "scheme": "ours: per-row IR pre-distortion (DAC-quantized)",
+        "is_ours": true,
+        "rms_p_err": 0.0034,
+        "max_abs_p_err": 0.006,
+        "psw_spread": 0.0116,
+        "psw_min": 0.894,
+        "mean_boost_mV": 74.23,
+        "max_boost_mV": 149.01
+      }
+    ]
+  },
+  "assumptions": [
+    "GLOBAL granularity (see _granularity_assumption): per-row granularity for Zhu is not in the open record; a per-row variant under Zhu's name would coincide with our own design and would be an over-attribution.",
+    "Context transplant: Zhu's paper compensates a crossbar weighted-sum READOUT; we apply the calibrated-global-IR-correction principle to our WRITE path's shared drive voltage (the only node the family can act on in our design).",
+    "Fixed-current linearization IR(r)=I_wr*R_par(r) with I_wr=1.16 mA, inherited from the committed benchmark and applied IDENTICALLY to all schemes (boost does not change I_wr in this linearization).",
+    "DAC quantization uses the measured resistor-string LSB (3.0411 mV) as an ideal uniform quantizer; INL (0.48 LSB measured) is neglected identically for all schemes.",
+    "Zhu's headline metric (MNIST accuracy of a crossbar MLP) is not reproducible on a write path; the shared same-flow metric is the residual write error defined above.",
+    "V_target places the near cell at p=0.90 (the committed benchmark's operating point)."
+  ],
+  "integrity_caveats": "Full text paywalled: the scheme is reconstructed from the abstract plus ONE citation context (quoted verbatim above); if the paper's actual scheme is finer-grained than global, the Zhu numbers here are a LOWER bound on its fidelity (and the full-code sweep shows the ceiling of any single-global-boost variant on this metric). The comparison is a principle-level transplant (crossbar readout -> write path), not a circuit-level reproduction of their SPICE testbench.",
+  "conclusion": "A global write-voltage boost (the defensible open-record reading of Zhu's scheme) cannot flatten a position error that spans 6.3 V_T: the sigmoid P_sw punishes any residual. Extreme-row calibration (code 49, 149.01 mV on every row) restores the far row exactly but overdrives every nearer row into saturation -- P_sw spread collapses from 0.8844 to 0.0977, but the residual write error floors at RMS 0.0869 (max 0.0998) because rows near the driver sit at P_sw~0.9998 instead of the 0.90 target. Mid-row calibration is far worse (RMS 0.2504: the sigmoid saturates benignly on overdrive but collapses on underdrive, so the far half of the column fails). The full DAC-code sweep confirms code 43 is the best ANY global calibration can do (RMS 0.0815) -- for a deterministic write, overdrive would be harmless and Zhu's extreme-anchored global boost would suffice; for OUR p-bit array, where P_sw IS the signal, overshoot is as much an error as undershoot. Our per-row pre-distortion, quantized to the SAME measured 3.04 mV DAC LSB, keeps every row within half an LSB of target: RMS residual 0.0034 (max 0.0060), 24x below the best global boost, at HALF the mean added drive (74.2 vs 149.0 mV/row). The residual-write-error D.3 point is therefore: no-comp 0.6181 / Zhu global boost 0.0869 / ours 0.0034 (RMS |P_sw - 0.90| over 257 rows)."
+}
