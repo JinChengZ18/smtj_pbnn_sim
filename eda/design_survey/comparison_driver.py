@@ -88,7 +88,9 @@ def sar_adc():
                         "the analytic /10 estimate; the comparator (b*48 fJ) dominates total SAR energy, "
                         "confirming comparator-sharing (not bit reduction) as the energy lever.",
                 caveat="regenerated 2026-07-01 from the committed script (the earlier 'representative run' "
-                       "predated the script's final tweak and read 11-34% high; superseded); SS-hybrid not done.")
+                       "predated the script's final tweak and read 11-34% high; superseded). SS-hybrid "
+                       "measured separately (sar_ss_hybrid_summary.json): worst-case strobing never beats "
+                       "pure SAR; average-case (6,2) wins only with the ramp shared across >=4 columns.")
 
 
 def main():

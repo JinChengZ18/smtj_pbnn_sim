@@ -1,0 +1,142 @@
+{
+  "design": "SAR/SS two-step hybrid",
+  "method": "SAR phase: ngspice transient charge-redistribution on truncated b_M-bit array (monotonic), same flow/builder as sar_capdac_tran.py; SS phase: labeled analytic terms from committed extracted/grounded priors",
+  "lineage": "Liu et al., AICAS 2023, DOI 10.1109/AICAS57966.2023.10168604 (reconfigurable SAR/SS for CIM, shared ramp); Zhang et al., IEICE Trans. Fundamentals E101.A(2):434-437, 2018 (two-step SAR/SS, image sensor)",
+  "b_total": 8,
+  "C_u_fF": 1.5,
+  "Vref": 1.0,
+  "E_comp_fJ_extracted": 48.0,
+  "e_dac_step_fJ_committed": 34.03,
+  "e_dac_step_analog_measured_fJ": 0.593,
+  "e_count_inc_fJ_committed": 19.44,
+  "M_shared": 64,
+  "headline_accounting": "worst-case SS strobes (2^b_L); average-case reported alongside",
+  "pure_SAR_baseline_committed": {
+    "b": 8,
+    "scheme": "monotonic",
+    "E_total_fJ": 476.3,
+    "E_capdac_fJ_measured": 92.308,
+    "E_comp_fJ": 384.0,
+    "source": "sar_capdac_tran_summary.json (regenerated 2026-07-01)"
+  },
+  "rows": [
+    {
+      "b_M": 6,
+      "b_L": 2,
+      "converged": true,
+      "n_codes": 64,
+      "n_bad": 0,
+      "E_capdac_fJ_measured": 52.714,
+      "E_capdac_fJ_measured_worstcode": 113.398,
+      "E_sample_fJ_excluded": 15.584,
+      "E_comp_SAR_fJ": 288.0,
+      "n_strobes_SS_worst": 4,
+      "n_strobes_SS_avg": 2,
+      "E_comp_SS_fJ_worst": 192.0,
+      "E_comp_SS_fJ_avg": 96.0,
+      "E_ramp_fJ_per_column_M1": 136.12,
+      "E_ramp_fJ_amortized_M64": 2.127,
+      "E_counter_fJ_M1_not_in_total": 77.76,
+      "E_counter_fJ_M64_not_in_total": 1.215,
+      "E_total_fJ_worstcase_M1": 668.8,
+      "E_total_fJ_worstcase_M64": 534.8,
+      "E_total_fJ_avgcase_M1": 572.8,
+      "E_total_fJ_avgcase_M64": 438.8,
+      "delta_vs_pureSAR_fJ_worstcase_M64": 58.5,
+      "delta_vs_pureSAR_fJ_avgcase_M64": -37.5
+    },
+    {
+      "b_M": 5,
+      "b_L": 3,
+      "converged": true,
+      "n_codes": 32,
+      "n_bad": 0,
+      "E_capdac_fJ_measured": 41.8,
+      "E_capdac_fJ_measured_worstcode": 87.498,
+      "E_sample_fJ_excluded": 12.335,
+      "E_comp_SAR_fJ": 240.0,
+      "n_strobes_SS_worst": 8,
+      "n_strobes_SS_avg": 4,
+      "E_comp_SS_fJ_worst": 384.0,
+      "E_comp_SS_fJ_avg": 192.0,
+      "E_ramp_fJ_per_column_M1": 272.24,
+      "E_ramp_fJ_amortized_M64": 4.254,
+      "E_counter_fJ_M1_not_in_total": 155.52,
+      "E_counter_fJ_M64_not_in_total": 2.43,
+      "E_total_fJ_worstcase_M1": 938.0,
+      "E_total_fJ_worstcase_M64": 670.1,
+      "E_total_fJ_avgcase_M1": 746.0,
+      "E_total_fJ_avgcase_M64": 478.1,
+      "delta_vs_pureSAR_fJ_worstcase_M64": 193.8,
+      "delta_vs_pureSAR_fJ_avgcase_M64": 1.8
+    },
+    {
+      "b_M": 4,
+      "b_L": 4,
+      "converged": true,
+      "n_codes": 16,
+      "n_bad": 0,
+      "E_capdac_fJ_measured": 31.412,
+      "E_capdac_fJ_measured_worstcode": 64.704,
+      "E_sample_fJ_excluded": 11.278,
+      "E_comp_SAR_fJ": 192.0,
+      "n_strobes_SS_worst": 16,
+      "n_strobes_SS_avg": 8,
+      "E_comp_SS_fJ_worst": 768.0,
+      "E_comp_SS_fJ_avg": 384.0,
+      "E_ramp_fJ_per_column_M1": 544.48,
+      "E_ramp_fJ_amortized_M64": 8.507,
+      "E_counter_fJ_M1_not_in_total": 311.04,
+      "E_counter_fJ_M64_not_in_total": 4.86,
+      "E_total_fJ_worstcase_M1": 1535.9,
+      "E_total_fJ_worstcase_M64": 999.9,
+      "E_total_fJ_avgcase_M1": 1151.9,
+      "E_total_fJ_avgcase_M64": 615.9,
+      "delta_vs_pureSAR_fJ_worstcase_M64": 523.6,
+      "delta_vs_pureSAR_fJ_avgcase_M64": 139.6
+    }
+  ],
+  "sanity_checks": {
+    "truncated_lt_full8bit": {
+      "b_M=6": {
+        "measured_fJ": 52.714,
+        "full_8bit_fJ": 92.308,
+        "passed": true
+      },
+      "b_M=5": {
+        "measured_fJ": 41.8,
+        "full_8bit_fJ": 92.308,
+        "passed": true
+      },
+      "b_M=4": {
+        "measured_fJ": 31.412,
+        "full_8bit_fJ": 92.308,
+        "passed": true
+      }
+    },
+    "bM6_vs_committed_b6_monotonic": {
+      "this_run_fJ": 52.714,
+      "committed_b6_fJ": 52.714,
+      "ratio": 1.0,
+      "passed": true,
+      "note": "identical netlist builder + exhaustive 64-code average -> should be ~1.00"
+    },
+    "scaling_with_bM": [
+      {
+        "b_M": 6,
+        "E_capdac_fJ": 52.714
+      },
+      {
+        "b_M": 5,
+        "E_capdac_fJ": 41.8
+      },
+      {
+        "b_M": 4,
+        "E_capdac_fJ": 31.412
+      }
+    ],
+    "scaling_monotone_increasing": true
+  },
+  "what_is_measured_vs_analytic": "MEASURED (ngspice transient, sky130, this script): truncated b_M-bit monotonic cap-DAC switching energy via the sar_capdac_tran.py netlist builder (real TG switches, E=-integral(v(vref)*i(Vref)), sample phase excluded), exhaustive average over all 2^b_M codes. EXTRACTED (prior, sa_postlayout): 48 fJ/strobe comparator, applied analytically as (b_M + SS strobes) x 48 fJ; SS strobes worst=2^b_L, avg=2^(b_L-1); HEADLINE totals use worst-case. ANALYTIC-TRANSFERRED (prior, dac_counter_energy_summary.json): ramp = 2^b_L x e_dac_step (34.03 fJ/code: 0.59 fJ analog transient-measured at the write-DAC span/load + 33.44 fJ one-hot-decode CV^2 analytic); the SS ramp's span (Vref/2^b_M) and load (comparator input) differ from the write DAC's, which shifts only the <2% analog sub-term. ANALYTIC, REPORTED OUTSIDE THE TOTAL: SS counter 2^b_L x 19.44 fJ (excluded because the pure-SAR baseline likewise excludes SAR control logic; also ramp-shared). NOT simulated: comparator, ramp analog node, control logic, residue coupling network, static-phase cap-DAC leakage.",
+  "comparison_verdict": "The comparator term is the crux: pure SAR strobes 8x48 fJ (b-linear); the hybrid strobes b_M + 2^b_L (worst) or b_M + 2^(b_L-1) (avg) -- the 2^b_L exponential means every split except (6,2)-average ADDS strobes. With the extracted 48 fJ StrongARM dominating the budget (81% of the pure-SAR 476.3 fJ), the hybrid can only win through the cap-DAC truncation saving (92.3 -> 52.7 fJ at b_M=6). RESULT: under WORST-CASE strobe accounting the hybrid NEVER beats pure SAR at any split or M (confirmed by the table). Under AVERAGE-case accounting (comparator gated once it fires) the (6,2) split strobes 6+2=8, exactly the pure-SAR count, and the hybrid wins by the cap-DAC saving minus the per-column ramp share: it beats pure SAR iff the ramp is shared across M >= 4 columns (at M=64: 438.8 vs 476.3 fJ, 7.9% lower). For OUR column-shared readout the hybrid is therefore a marginal average-case win at (6,2) only, and a loss everywhere else; the published SAR/SS gains presuppose a comparator much cheaper than the DAC (and area/ramp amortization), which our extracted 48 fJ comparator does not satisfy."
+}

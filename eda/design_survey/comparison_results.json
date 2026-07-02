@@ -93,6 +93,6 @@
       }
     ],
     "finding": "Cap-DAC switching energy is transient-measured (not the analytic series): monotonic switching cuts the cap-DAC term ~4.3x vs conventional (b=8: 92 vs 395 fJ), less than the analytic /10 estimate; the comparator (b*48 fJ) dominates total SAR energy, confirming comparator-sharing (not bit reduction) as the energy lever.",
-    "caveat": "regenerated 2026-07-01 from the committed script (the earlier 'representative run' predated the script's final tweak and read 11-34% high; superseded); SS-hybrid not done."
+    "caveat": "regenerated 2026-07-01 from the committed script (the earlier 'representative run' predated the script's final tweak and read 11-34% high; superseded). SS-hybrid measured separately (sar_ss_hybrid_summary.json): worst-case strobing never beats pure SAR; average-case (6,2) wins only with the ramp shared across >=4 columns."
   }
 }
