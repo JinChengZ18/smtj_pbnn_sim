@@ -1,0 +1,1657 @@
+{
+  "_about": "Faithful reproduction of Truong's parasitic-resistance-adapted programming (Materials 12:4097, 2019) mapped onto our committed sMTJ write path. Numbers are computed by this script only.",
+  "_paper": "S. N. Truong, 'A Parasitic Resistance-Adapted Programming Scheme for Memristor Crossbar-Based Neuromorphic Computing Systems,' Materials 12(24):4097, 2019, DOI 10.3390/ma12244097 (open access; PMC6947318).",
+  "_equations_implemented": [
+    "Eq.(4) 'R_1,i = ir + mr' (first-row equivalent wire resistance, superposition)",
+    "Eq.(5) 'R_j,i = ir + (m-j+1)r  where, m is the number of rows' (general cell)",
+    "Eq.(6) 'M'_j,i = M_j,i - R_j,i' (target memristance matrix minus the equivalent wire-resistance matrix, applied before programming)"
+  ],
+  "_paper_reported_results_quoted": [
+    "conventional: 'recognition rate ... is 99%, 95%, 81%, and 65% when wire resistance is set to be 1.5, 2.0, 2.5, and 3.0 Ohm'",
+    "proposed: 'can maintain the recognition as high as 100% when wire resistance is as high as 3.0 Ohm'",
+    "wire-model accuracy: 'discrepancy of the output voltages ... as low as 2.9%'"
+  ],
+  "selfchecks": {
+    "truong_eq5_eq6_on_his_geometry": {
+      "m": 64,
+      "n": 26,
+      "r_ohm": 3.0,
+      "eq4_R1i_matches_ir_plus_mr": true,
+      "eq6_identity_max_error_ohm": 0.0,
+      "R_range_ohm": [
+        6.0,
+        270.0
+      ],
+      "note": "Eq.(6) makes the in-circuit series total M'+R equal M exactly (algebraic identity); verifies the coded compensation is his subtraction, on his own m=64/n=26/r=3 example."
+    },
+    "nopd_spread_reproduces_committed_benchmark": {
+      "computed": 0.8844,
+      "committed": 0.8844,
+      "match": true
+    },
+    "dac_lsb_reproduces_committed": {
+      "computed_mV": 3.0411,
+      "committed_mV": 3.0411,
+      "match": true
+    },
+    "max_IR_matches_committed_extraction": {
+      "computed_mV": 148.4536,
+      "committed_mV": 148.4536,
+      "match": true
+    }
+  },
+  "our_model_provenance": {
+    "VTH": 0.895783,
+    "VT": 0.023414,
+    "RDEV_ohm": 776.0,
+    "I_write_mA": 1.1598,
+    "layer": "met2",
+    "sheet_R_ohm_sq": 0.125,
+    "pitch_um": 2.0,
+    "W_um": 1.0,
+    "r_seg_ohm_per_line": 0.25,
+    "R_par_row256_ohm": 128.0,
+    "dac": "committed measured 6-bit resistor-string transfer (eda/hero/write_dac_resistor_string.json)",
+    "dac_LSB_mV": 3.0411,
+    "dac_range_mV": 191.589,
+    "dac_INL_LSB": 0.4753
+  },
+  "mapping_adaptations": [
+    "PREDICTION KEPT, GEOMETRY OURS: Truong's superposition rule (sum the wire segments on the actual current path; his Eq. (5) family) instantiated on our committed one-hot column write (head-end drive + head-end return) gives R(row)=2*r_seg*row with r_seg=0.25 ohm from OUR extracted met2 sheet R -- identical to the committed R_par(row). His literal (m-j+1) return count belongs to his far-end-sensed column; applying it verbatim would compensate a circuit we do not have (a far-end-grounded return would instead make R(row)=N*r_seg, position-independent -- a different layout, not our committed one).",
+    "DOMAIN ADAPTED (required): his Eq. (6) pre-distorts the programmed MEMRISTANCE; our sMTJ has a fixed 776-ohm write load and a binary stochastic state, so nothing resistance-programmable exists. The compensation is moved to the write-voltage domain: V_head(row) = V_target*(R_dev+R_par(row))/R_dev, the exact image of 'restore the in-circuit operating point' under his own series-circuit algebra. This preserves his structure: the correction is PROPORTIONAL TO THE TARGET, whereas our committed scheme adds a FIXED-calibrated-current drop I_write*R_par(row).",
+    "GRANULARITY KEPT: like his connection-matrix update, the compensation is a static per-cell (here per-row) lookup computed once from nominal geometry; no write-verify feedback is added (the paper reports none).",
+    "DAC: both schemes' increments ride the SAME committed measured resistor-string transfer (nearest measured increment v(code)-v(0)); Truong's compensation is analog-continuous in the paper, so quantization is our platform's constraint, applied identically to both.",
+    "DELIVERY MODELS: primary ground truth is the committed linearized model V_del=V_head-I_write*R_par (ir_aware_writedac.py, the benchmark's model); the exact series divider V_del=V_head*R_dev/(R_dev+R_par) is reported alongside because a one-hot write is exactly a series circuit (which is also why no SPICE run is needed: there is a single conducting path, and the sneak-path complexity that motivates circuit simulation in Truong's inference crossbar is absent). Each compensation rule is exact under its own model; reporting only one would bias the comparison."
+  ],
+  "results": {
+    "P0.5": {
+      "V_target": 0.895783,
+      "models": {
+        "committed_linear": {
+          "nopd": {
+            "max_abs_dV_mV": 148.454,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 148.454,
+            "max_abs_dPsw": 0.4982,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.0018,
+            "psw_max": 0.5,
+            "psw_spread": 0.4982,
+            "max_code": 0,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89578,
+                "psw": 0.5
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.87723,
+                "psw": 0.3116
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.85867,
+                "psw": 0.1701
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.84011,
+                "psw": 0.0849
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.82156,
+                "psw": 0.0403
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.803,
+                "psw": 0.0187
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.78444,
+                "psw": 0.0085
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.76589,
+                "psw": 0.0039
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.74733,
+                "psw": 0.0018
+              }
+            ]
+          },
+          "ours_ir_aware": {
+            "max_abs_dV_mV": 1.538,
+            "worst_row_dV": 232,
+            "max_abs_dV_mV_ideal_rule": 0.0,
+            "max_abs_dPsw": 0.0164,
+            "worst_row_dPsw": 232,
+            "psw_min": 0.4836,
+            "psw_max": 0.5162,
+            "psw_spread": 0.0326,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89578,
+                "psw": 0.5
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 0.89441,
+                "psw": 0.4853
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.8968,
+                "psw": 0.5109
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 0.89645,
+                "psw": 0.5071
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 0.89621,
+                "psw": 0.5046
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 0.89604,
+                "psw": 0.5027
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 0.89591,
+                "psw": 0.5013
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 0.89581,
+                "psw": 0.5002
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 0.89573,
+                "psw": 0.4994
+              }
+            ]
+          },
+          "truong_adapted": {
+            "max_abs_dV_mV": 2.156,
+            "worst_row_dV": 249,
+            "max_abs_dV_mV_ideal_rule": 0.696,
+            "max_abs_dPsw": 0.023,
+            "worst_row_dPsw": 249,
+            "psw_min": 0.477,
+            "psw_max": 0.5136,
+            "psw_spread": 0.0366,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89578,
+                "psw": 0.5
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 0.89441,
+                "psw": 0.4853
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.8968,
+                "psw": 0.5109
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 0.89645,
+                "psw": 0.5071
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 0.89621,
+                "psw": 0.5046
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 0.89604,
+                "psw": 0.5027
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 0.89591,
+                "psw": 0.5013
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 0.89581,
+                "psw": 0.5002
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 0.89573,
+                "psw": 0.4994
+              }
+            ]
+          }
+        },
+        "exact_divider": {
+          "nopd": {
+            "max_abs_dV_mV": 126.837,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 126.837,
+            "max_abs_dPsw": 0.4956,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.0044,
+            "psw_max": 0.5,
+            "psw_spread": 0.4956,
+            "max_code": 0,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89578,
+                "psw": 0.5
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.87769,
+                "psw": 0.3159
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.86031,
+                "psw": 0.1802
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.8436,
+                "psw": 0.0972
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.82753,
+                "psw": 0.0514
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.81206,
+                "psw": 0.0272
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.79716,
+                "psw": 0.0146
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.7828,
+                "psw": 0.008
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.76895,
+                "psw": 0.0044
+              }
+            ]
+          },
+          "ours_ir_aware": {
+            "max_abs_dV_mV": 1.878,
+            "worst_row_dV": 248,
+            "max_abs_dV_mV_ideal_rule": 0.597,
+            "max_abs_dPsw": 0.02,
+            "worst_row_dPsw": 248,
+            "psw_min": 0.4852,
+            "psw_max": 0.52,
+            "psw_spread": 0.0348,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89578,
+                "psw": 0.5
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 0.89452,
+                "psw": 0.4865
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.89693,
+                "psw": 0.5122
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 0.89666,
+                "psw": 0.5093
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 0.8965,
+                "psw": 0.5076
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 0.89641,
+                "psw": 0.5067
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 0.89636,
+                "psw": 0.5061
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 0.89634,
+                "psw": 0.5059
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 0.89633,
+                "psw": 0.5059
+              }
+            ]
+          },
+          "truong_adapted": {
+            "max_abs_dV_mV": 1.443,
+            "worst_row_dV": 53,
+            "max_abs_dV_mV_ideal_rule": 0.0,
+            "max_abs_dPsw": 0.0154,
+            "worst_row_dPsw": 53,
+            "psw_min": 0.4846,
+            "psw_max": 0.5151,
+            "psw_spread": 0.0306,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89578,
+                "psw": 0.5
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 0.89452,
+                "psw": 0.4865
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.89693,
+                "psw": 0.5122
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 0.89666,
+                "psw": 0.5093
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 0.8965,
+                "psw": 0.5076
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 0.89641,
+                "psw": 0.5067
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 0.89636,
+                "psw": 0.5061
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 0.89634,
+                "psw": 0.5059
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 0.89633,
+                "psw": 0.5059
+              }
+            ]
+          }
+        }
+      }
+    },
+    "P0.9": {
+      "V_target": 0.947229,
+      "models": {
+        "committed_linear": {
+          "nopd": {
+            "max_abs_dV_mV": 148.454,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 148.454,
+            "max_abs_dPsw": 0.8844,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.0156,
+            "psw_max": 0.9,
+            "psw_spread": 0.8844,
+            "max_code": 0,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.94723,
+                "psw": 0.9
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.92867,
+                "psw": 0.8029
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.91012,
+                "psw": 0.6484
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89156,
+                "psw": 0.455
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.873,
+                "psw": 0.2743
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.85445,
+                "psw": 0.1461
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.83589,
+                "psw": 0.0719
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.81733,
+                "psw": 0.0339
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.79878,
+                "psw": 0.0156
+              }
+            ]
+          },
+          "ours_ir_aware": {
+            "max_abs_dV_mV": 1.538,
+            "worst_row_dV": 232,
+            "max_abs_dV_mV_ideal_rule": 0.0,
+            "max_abs_dPsw": 0.0061,
+            "worst_row_dPsw": 232,
+            "psw_min": 0.8939,
+            "psw_max": 0.9057,
+            "psw_spread": 0.0117,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.94723,
+                "psw": 0.9
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 0.94585,
+                "psw": 0.8946
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.94825,
+                "psw": 0.9038
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 0.9479,
+                "psw": 0.9025
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 0.94766,
+                "psw": 0.9016
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 0.94748,
+                "psw": 0.901
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 0.94735,
+                "psw": 0.9005
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 0.94725,
+                "psw": 0.9001
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 0.94718,
+                "psw": 0.8998
+              }
+            ]
+          },
+          "truong_adapted": {
+            "max_abs_dV_mV": 9.194,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 7.79,
+            "max_abs_dPsw": 0.0302,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.8955,
+            "psw_max": 0.9302,
+            "psw_spread": 0.0348,
+            "max_code": 52,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.94723,
+                "psw": 0.9
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 7,
+                "dv_applied_mV": 20.141,
+                "v_del": 0.94881,
+                "psw": 0.9059
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.94825,
+                "psw": 0.9038
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 20,
+                "dv_applied_mV": 59.385,
+                "v_del": 0.95094,
+                "psw": 0.9134
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 26,
+                "dv_applied_mV": 77.714,
+                "v_del": 0.95072,
+                "psw": 0.9126
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 33,
+                "dv_applied_mV": 99.175,
+                "v_del": 0.95362,
+                "psw": 0.922
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 39,
+                "dv_applied_mV": 117.612,
+                "v_del": 0.9535,
+                "psw": 0.9217
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 45,
+                "dv_applied_mV": 136.078,
+                "v_del": 0.95341,
+                "psw": 0.9214
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 52,
+                "dv_applied_mV": 157.648,
+                "v_del": 0.95642,
+                "psw": 0.9302
+              }
+            ]
+          }
+        },
+        "exact_divider": {
+          "nopd": {
+            "max_abs_dV_mV": 134.121,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 134.121,
+            "max_abs_dPsw": 0.8716,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.0284,
+            "psw_max": 0.9,
+            "psw_spread": 0.8716,
+            "max_code": 0,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.94723,
+                "psw": 0.9
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.92809,
+                "psw": 0.799
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.90971,
+                "psw": 0.6445
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89205,
+                "psw": 0.4602
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.87506,
+                "psw": 0.2921
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.8587,
+                "psw": 0.1703
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.84295,
+                "psw": 0.0948
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.82776,
+                "psw": 0.0519
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.81311,
+                "psw": 0.0284
+              }
+            ]
+          },
+          "ours_ir_aware": {
+            "max_abs_dV_mV": 7.819,
+            "worst_row_dV": 253,
+            "max_abs_dV_mV_ideal_rule": 6.687,
+            "max_abs_dPsw": 0.0343,
+            "worst_row_dPsw": 253,
+            "psw_min": 0.8657,
+            "psw_max": 0.9034,
+            "psw_spread": 0.0378,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.94723,
+                "psw": 0.9
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 0.94493,
+                "psw": 0.8908
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.94634,
+                "psw": 0.8965
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 0.94511,
+                "psw": 0.8915
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 0.94403,
+                "psw": 0.887
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 0.94304,
+                "psw": 0.8827
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 0.94214,
+                "psw": 0.8787
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 0.94129,
+                "psw": 0.8748
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 0.9405,
+                "psw": 0.871
+              }
+            ]
+          },
+          "truong_adapted": {
+            "max_abs_dV_mV": 1.45,
+            "worst_row_dV": 60,
+            "max_abs_dV_mV_ideal_rule": 0.0,
+            "max_abs_dPsw": 0.0057,
+            "worst_row_dPsw": 60,
+            "psw_min": 0.8943,
+            "psw_max": 0.9053,
+            "psw_spread": 0.0111,
+            "max_code": 52,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.94723,
+                "psw": 0.9
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 7,
+                "dv_applied_mV": 20.141,
+                "v_del": 0.94783,
+                "psw": 0.9023
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 0.94634,
+                "psw": 0.8965
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 20,
+                "dv_applied_mV": 59.385,
+                "v_del": 0.94798,
+                "psw": 0.9028
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 26,
+                "dv_applied_mV": 77.714,
+                "v_del": 0.94685,
+                "psw": 0.8985
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 33,
+                "dv_applied_mV": 99.175,
+                "v_del": 0.94861,
+                "psw": 0.9052
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 39,
+                "dv_applied_mV": 117.612,
+                "v_del": 0.94761,
+                "psw": 0.9015
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 45,
+                "dv_applied_mV": 136.078,
+                "v_del": 0.94667,
+                "psw": 0.8978
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 52,
+                "dv_applied_mV": 157.648,
+                "v_del": 0.94843,
+                "psw": 0.9045
+              }
+            ]
+          }
+        }
+      }
+    },
+    "P0.99": {
+      "V_target": 1.003373,
+      "models": {
+        "committed_linear": {
+          "nopd": {
+            "max_abs_dV_mV": 148.454,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 148.454,
+            "max_abs_dPsw": 0.8414,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.1486,
+            "psw_max": 0.99,
+            "psw_spread": 0.8414,
+            "max_code": 0,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 1.00337,
+                "psw": 0.99
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.98482,
+                "psw": 0.9782
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.96626,
+                "psw": 0.953
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.9477,
+                "psw": 0.9018
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.92915,
+                "psw": 0.8061
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.91059,
+                "psw": 0.653
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89203,
+                "psw": 0.46
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.87348,
+                "psw": 0.2783
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.85492,
+                "psw": 0.1486
+              }
+            ]
+          },
+          "ours_ir_aware": {
+            "max_abs_dV_mV": 1.538,
+            "worst_row_dV": 232,
+            "max_abs_dV_mV_ideal_rule": 0.0,
+            "max_abs_dPsw": 0.0007,
+            "worst_row_dPsw": 232,
+            "psw_min": 0.9893,
+            "psw_max": 0.9906,
+            "psw_spread": 0.0013,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 1.00337,
+                "psw": 0.99
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 1.002,
+                "psw": 0.9894
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 1.00439,
+                "psw": 0.9904
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 1.00404,
+                "psw": 0.9903
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 1.0038,
+                "psw": 0.9902
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 1.00363,
+                "psw": 0.9901
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 1.0035,
+                "psw": 0.9901
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 1.0034,
+                "psw": 0.99
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 1.00332,
+                "psw": 0.99
+              }
+            ]
+          },
+          "truong_adapted": {
+            "max_abs_dV_mV": 18.446,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 17.051,
+            "max_abs_dPsw": 0.0054,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.9895,
+            "psw_max": 0.9954,
+            "psw_spread": 0.0059,
+            "max_code": 55,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 1.00337,
+                "psw": 0.99
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 7,
+                "dv_applied_mV": 20.141,
+                "v_del": 1.00496,
+                "psw": 0.9906
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 14,
+                "dv_applied_mV": 41.156,
+                "v_del": 1.00742,
+                "psw": 0.9916
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 21,
+                "dv_applied_mV": 62.434,
+                "v_del": 1.01014,
+                "psw": 0.9925
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 28,
+                "dv_applied_mV": 83.839,
+                "v_del": 1.01299,
+                "psw": 0.9933
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 34,
+                "dv_applied_mV": 102.245,
+                "v_del": 1.01283,
+                "psw": 0.9933
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 41,
+                "dv_applied_mV": 123.765,
+                "v_del": 1.0158,
+                "psw": 0.9941
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 48,
+                "dv_applied_mV": 145.319,
+                "v_del": 1.0188,
+                "psw": 0.9948
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 55,
+                "dv_applied_mV": 166.9,
+                "v_del": 1.02182,
+                "psw": 0.9954
+              }
+            ]
+          }
+        },
+        "exact_divider": {
+          "nopd": {
+            "max_abs_dV_mV": 142.071,
+            "worst_row_dV": 256,
+            "max_abs_dV_mV_ideal_rule": 142.071,
+            "max_abs_dPsw": 0.8035,
+            "worst_row_dPsw": 256,
+            "psw_min": 0.1865,
+            "psw_max": 0.99,
+            "psw_spread": 0.8035,
+            "max_code": 0,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 1.00337,
+                "psw": 0.99
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.9831,
+                "psw": 0.9766
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.96364,
+                "psw": 0.9477
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.94492,
+                "psw": 0.8908
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.92693,
+                "psw": 0.7909
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.9096,
+                "psw": 0.6434
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.89291,
+                "psw": 0.4694
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.87682,
+                "psw": 0.3079
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 0.8613,
+                "psw": 0.1865
+              }
+            ]
+          },
+          "ours_ir_aware": {
+            "max_abs_dV_mV": 15.689,
+            "worst_row_dV": 253,
+            "max_abs_dV_mV_ideal_rule": 14.637,
+            "max_abs_dPsw": 0.0094,
+            "worst_row_dPsw": 253,
+            "psw_min": 0.9806,
+            "psw_max": 0.9903,
+            "psw_spread": 0.0097,
+            "max_code": 49,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 1.00337,
+                "psw": 0.99
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 6,
+                "dv_applied_mV": 17.18,
+                "v_del": 0.99994,
+                "psw": 0.9884
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 13,
+                "dv_applied_mV": 38.132,
+                "v_del": 1.00026,
+                "psw": 0.9886
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 19,
+                "dv_applied_mV": 56.338,
+                "v_del": 0.99798,
+                "psw": 0.9874
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 25,
+                "dv_applied_mV": 74.654,
+                "v_del": 0.99589,
+                "psw": 0.9863
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 31,
+                "dv_applied_mV": 93.037,
+                "v_del": 0.99394,
+                "psw": 0.9851
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 37,
+                "dv_applied_mV": 111.463,
+                "v_del": 0.9921,
+                "psw": 0.9839
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 43,
+                "dv_applied_mV": 129.92,
+                "v_del": 0.99036,
+                "psw": 0.9827
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 49,
+                "dv_applied_mV": 148.4,
+                "v_del": 0.98869,
+                "psw": 0.9814
+              }
+            ]
+          },
+          "truong_adapted": {
+            "max_abs_dV_mV": 1.451,
+            "worst_row_dV": 66,
+            "max_abs_dV_mV_ideal_rule": 0.0,
+            "max_abs_dPsw": 0.0006,
+            "worst_row_dPsw": 66,
+            "psw_min": 0.9894,
+            "psw_max": 0.9906,
+            "psw_spread": 0.0012,
+            "max_code": 55,
+            "rows": [
+              {
+                "row": 0,
+                "R_par_ohm": 0.0,
+                "code": 0,
+                "dv_applied_mV": 0.0,
+                "v_del": 1.00337,
+                "psw": 0.99
+              },
+              {
+                "row": 32,
+                "R_par_ohm": 16.0,
+                "code": 7,
+                "dv_applied_mV": 20.141,
+                "v_del": 1.00284,
+                "psw": 0.9898
+              },
+              {
+                "row": 64,
+                "R_par_ohm": 32.0,
+                "code": 14,
+                "dv_applied_mV": 41.156,
+                "v_del": 1.00316,
+                "psw": 0.9899
+              },
+              {
+                "row": 96,
+                "R_par_ohm": 48.0,
+                "code": 21,
+                "dv_applied_mV": 62.434,
+                "v_del": 1.00372,
+                "psw": 0.9901
+              },
+              {
+                "row": 128,
+                "R_par_ohm": 64.0,
+                "code": 28,
+                "dv_applied_mV": 83.839,
+                "v_del": 1.00438,
+                "psw": 0.9904
+              },
+              {
+                "row": 160,
+                "R_par_ohm": 80.0,
+                "code": 34,
+                "dv_applied_mV": 102.245,
+                "v_del": 1.00229,
+                "psw": 0.9895
+              },
+              {
+                "row": 192,
+                "R_par_ohm": 96.0,
+                "code": 41,
+                "dv_applied_mV": 123.765,
+                "v_del": 1.00305,
+                "psw": 0.9899
+              },
+              {
+                "row": 224,
+                "R_par_ohm": 112.0,
+                "code": 48,
+                "dv_applied_mV": 145.319,
+                "v_del": 1.00381,
+                "psw": 0.9902
+              },
+              {
+                "row": 256,
+                "R_par_ohm": 128.0,
+                "code": 55,
+                "dv_applied_mV": 166.9,
+                "v_del": 1.00457,
+                "psw": 0.9905
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "rule_difference_ours_vs_truong_at_row256_mV": {
+    "P0.5": 0.696,
+    "P0.9": 7.79,
+    "P0.99": 17.051
+  },
+  "headline_D2_point": {
+    "p_target": 0.9,
+    "committed_linear": {
+      "nopd_max_abs_dV_mV": 148.454,
+      "nopd_max_abs_dPsw": 0.8844,
+      "ours_max_abs_dV_mV": 1.538,
+      "ours_max_abs_dPsw": 0.0061,
+      "truong_max_abs_dV_mV": 9.194,
+      "truong_max_abs_dPsw": 0.0302
+    },
+    "exact_divider": {
+      "nopd_max_abs_dV_mV": 134.121,
+      "nopd_max_abs_dPsw": 0.8716,
+      "ours_max_abs_dV_mV": 7.819,
+      "ours_max_abs_dPsw": 0.0343,
+      "truong_max_abs_dV_mV": 1.45,
+      "truong_max_abs_dPsw": 0.0057
+    }
+  },
+  "assumptions": [
+    "Committed device constants VTH=0.895783 V, V_T=23.414 mV, R_dev=776 ohm and the calibrated I_write=0.9/776 A are taken from eda/hero/ir_aware_writedac.py / eda/extraction/writeline/ir_drop_summary.json (asserted at runtime).",
+    "Per-segment wire resistance r_seg=sheet_R*pitch/W=0.25 ohm per line per row (met2, pitch 2 um, W 1 um) -- our committed geometry, replacing Truong's uniform 0.5-3 ohm example values.",
+    "The fine sub-DAC increment for code c is the measured v_load(c)-v_load(0) from the committed transfer (riding the real DAC including its INL of 0.48 LSB); the coarse write level is assumed to sit at V_target exactly (per-column trim is a separate, orthogonal mechanism).",
+    "Rows are evaluated at k=0..256 inclusive, matching the committed benchmark's row range.",
+    "The committed benchmark (ir_aware_writedac_summary.json) reports our scheme UNQUANTIZED (psw_pd=0.9 exactly); in the comparison table here BOTH schemes are quantized to the same measured DAC, so 'ours' carries its honest quantization residual too."
+  ],
+  "conclusion": "Truong's method was implemented from his published equations (Eq. (4)/(5) superposition wire-resistance prediction, Eq. (6) subtract-the-parasitic pre-distortion) and verified as an exact identity on his own 64x26/r=3-ohm geometry. Mapped onto our committed one-hot column write, his prediction instantiates to exactly our extracted R_par(row)=0.5*row ohm, and his compensation -- adapted of necessity from the memristance domain to the write-voltage domain, because a binary sMTJ has no programmable resistance -- becomes a proportional-to-target head-voltage pre-distortion that differs from our fixed-current rule by (V_target/R_dev - I_write)*R_par, i.e. by 0.696/7.79/17.051 mV at the far row for P_target=0.5/0.9/0.99. On the committed linearized delivery model (the benchmark's), riding the same measured 3.04 mV DAC: no compensation leaves max|dV|=148.454 mV and max|dPsw|=0.8844 at P_target=0.9; our IR-aware rule leaves 1.538 mV / 0.0061; Truong-adapted leaves 9.194 mV / 0.0302. Under the exact series-divider model the ranking mirrors (ours 7.819 mV / 0.0343, Truong-adapted 1.45 mV / 0.0057), because each rule is exact under its own circuit model. FAITHFUL OUTCOME: Truong's parasitic-adapted programming transfers cleanly to our write path and flattens P_sw to within a few times the DAC quantization floor, essentially matching our scheme; the two schemes' residuals differ only through the compensation current (target-proportional vs fixed-calibrated) at the few-mV / few-LSB level, and which one is exactly zero-residual (pre-quantization) depends on the delivery model. The honest D.2 entry is therefore parity-at-the-quantization-floor, not a win for either scheme; the uncompensated column remains the catastrophic case."
+}
