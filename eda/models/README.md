@@ -1,11 +1,5 @@
 # `eda/models/` — Verilog-A 器件紧凑模型
 
-`smtj_sot.va`：三端 SOT-sMTJ 紧凑模型——SOT 写分支（$$R_\mathrm{SOT}=776\,\Omega$$）、MTJ 读分支
-（$$R_P=4.9\,\mathrm{k}\Omega$$ / $$R_\mathrm{AP}=9.8\,\mathrm{k}\Omega$$）、事件驱动且显式种子的随机
-切换（概率写与随机电报噪声两种模式）。暴露参数与第二章标定一致：`Vth=0.8958`、`VT=0.0234`、
-`Delta=4.91`、`Vc0=0.857`、`tau0=1e-9`、`seed`。
+`smtj_sot.va`：三端 SOT-sMTJ 紧凑模型——SOT 写分支（$$R_\mathrm{SOT}=776\,\Omega$$，欧姆）、MTJ 读分支（$$R_P=4.9\,\mathrm{k}\Omega$$ / $$R_\mathrm{AP}=9.8\,\mathrm{k}\Omega$$，由外部控制节点 `st`$$\in[0,1]$$ 在两态间作线性电导插值）。模型是**纯代数**的：把标定的工作点开关概率 $$P_\mathrm{sw}(V)=\sigma((V-V_\mathrm{th})/V_T)$$ 与随机电报噪声旋钮 $$\langle s\rangle=\tanh(\Delta V/V_\mathrm{c0})$$、$$\tau(V)=1/(r_\uparrow+r_\downarrow)$$ 作为观测节点 `psw`/`sinf`/`tau` 暴露，便于 DC 扫描直接对测量数据校核。**RNG、显式种子、伯努利抽样与时序状态机刻意留在 Python 测试台**（`testbenches/psw_mc_harness.py`），不在 `.va` 内——因为 OpenVAF/OSDI 路径下 `$random`/`@cross`/持久整型态不可靠。暴露参数与第二章标定一致：`Vth=0.8958`、`VT=0.0234`、`Delta=4.91`、`Vc0=0.857`、`tau0=1e-9`、`Rp=4900`、`TMR=1.0`、`Rsot=776`（**无 `seed` 参数**——随机性由测试台显式种子驱动）。
 
-编译与使用（详见 [`../SETUP_opensource.md`](../SETUP_opensource.md)）：用 OpenVAF 编译为 OSDI，由
-ngspice 经 `.spiceinit` 的 `osdi smtj_sot.osdi` 调用。对金标准的回归见
-[`../testbenches/run_regression.py`](../testbenches/run_regression.py)（$$R^2=1.0$$）。随机性由测试台
-的 Python 环以显式种子驱动，不使用裸模拟瞬态噪声。
+编译与使用（详见 [`../SETUP_opensource.md`](../SETUP_opensource.md)）：用 OpenVAF 编译为 OSDI，由 ngspice 经 `.spiceinit` 的 `osdi smtj_sot.osdi` 调用。[`../testbenches/run_regression.py`](../testbenches/run_regression.py) 是**工具自洽回归**——把 OSDI 编译后的 `.va` 与同一套 Python 闭式（`gen_golden.py` 镜像 `device/arrhenius.py`+`telegraph.py`）逐点比对：86 点 DC 扫描 `max|err|=3.5e-4`、$$R^2=1.0$$（已用 OpenVAF-Reloaded + ngspice-46 实跑复现，见 `testbenches/regression_summary.json`）。注意此 $$R^2=1.0$$ 仅证明 OSDI 与 numpy 在算同一条代数式（同式自洽），**不是**对测量、也不是对 LLG 物理的验证；模型的标定质量另由两件事给出：sigmoid 对实测 Device A P→AP 的拟合 $$R^2=0.992$$（`testbenches/golden_summary.json`），以及对宏自旋 LLG 求解器的独立交叉验证（[`../testbenches/llg_validate.py`](../testbenches/llg_validate.py)，阈值吻合 0.25 mV = 0.01·$$V_T$$，并诚实标注过驱区偏离）。

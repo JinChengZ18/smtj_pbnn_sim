@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Generate the golden reference for the smtj_sot.va regression (P1).
 
-Self-contained (numpy only). Mirrors the calibrated compact model in
-``src/smtj_pbnn_sim/device/arrhenius.py`` and ``device/telegraph.py`` so the
-Verilog-A model's observables (V(psw), V(sinf), V(tau)) can be checked against
-the SAME numbers the system-level simulator uses, and against the measured
-46-point data shipped in ``data/smtj_psw_curves/measured_0p75ns.csv``.
+Imports the calibrated compact model DIRECTLY from
+``src/smtj_pbnn_sim/device/arrhenius.py`` and ``device/telegraph.py`` (the single
+source of truth -- no formula duplication), so the Verilog-A model's observables
+(V(psw), V(sinf), V(tau)) are checked against the SAME functions the system-level
+simulator uses, and against the measured Device-A P->AP subset (12 points) of the
+46-row CSV ``data/smtj_psw_curves/measured_0p75ns.csv``.
 
 Outputs (next to this script):
   golden_psw.csv      dense V sweep: V, psw, sinf, tau_ns   (the ngspice target)
@@ -36,19 +37,32 @@ REPO = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 MEASURED = REPO / "data" / "smtj_psw_curves" / "measured_0p75ns.csv"
 
+# Single source of truth: import the calibrated formulas from the device layer
+# (numpy-only path; no torch needed) instead of re-implementing them here, so a
+# change to arrhenius/telegraph propagates to the golden and is caught by the
+# pin test (tests/test_golden_pins_device_source.py).
+import sys                                                                      # noqa: E402
+sys.path.insert(0, str(REPO / "src"))
+from smtj_pbnn_sim.device.arrhenius import psw_sigmoid as _psw_sigmoid          # noqa: E402
+from smtj_pbnn_sim.device.telegraph import (                                    # noqa: E402
+    stationary_mean as _stationary_mean,
+    relaxation_time as _relaxation_time,
+)
+
 
 def psw_sigmoid(V):
-    return 1.0 / (1.0 + np.exp(-(V - VTH) / VT))
+    """Operating-point logistic P_sw (device/arrhenius.py)."""
+    return _psw_sigmoid(V, VTH, VT)
 
 
 def sinf(V):
-    return np.tanh(DELTA * V / VC0)
+    """Telegraph stationary mean <s> (device/telegraph.py)."""
+    return _stationary_mean(V, Delta=DELTA, V_c0=VC0)
 
 
 def tau_ns(V):
-    rup = (1.0 / TAU0) * np.exp(-DELTA * (1.0 - V / VC0))
-    rdn = (1.0 / TAU0) * np.exp(-DELTA * (1.0 + V / VC0))
-    return 1.0e9 / (rup + rdn)
+    """Telegraph correlation time in ns (device/telegraph.py, s -> ns)."""
+    return 1.0e9 * _relaxation_time(V, tau_0=TAU0, Delta=DELTA, V_c0=VC0)
 
 
 def load_measured(device="A", direction="P->AP"):
@@ -80,7 +94,7 @@ def main():
         w.writerow(["V", "psw", "sinf", "tau_ns"])
         w.writerows(rows)
 
-    # validate the sigmoid against the measured 46-point data (Device A, P->AP)
+    # validate the sigmoid against the measured Device-A P->AP subset (12 of 46 CSV rows)
     Vm, Pm = load_measured("A", "P->AP")
     rsq = r2(Pm, psw_sigmoid(Vm)) if Vm.size else None
     rmse = float(np.sqrt(np.mean((Pm - psw_sigmoid(Vm)) ** 2))) if Vm.size else None

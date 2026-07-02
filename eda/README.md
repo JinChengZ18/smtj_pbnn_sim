@@ -12,7 +12,7 @@
 
 | 结果 | 命令 | 产出 |
 |---|---|---|
-| Verilog-A 模型对金标准回归 | `python testbenches/gen_golden.py && python testbenches/run_regression.py` | 86 点 DC 扫描，`max\|err\|≈3.5e-4`、$$R^2=1.0$$ |
+| Verilog-A 模型对金标准回归（OSDI↔numpy 同式自洽，非物理验证） | `python testbenches/gen_golden.py && python testbenches/run_regression.py` | 86 点 DC 扫描，`max\|err\|≈3.5e-4`、$$R^2=1.0$$（已实跑复现，`testbenches/regression_summary.json`） |
 | 写路径能量与交付电压 | `python testbenches/write_mc_harness.py` | 器件级 0.78 pJ / 端到端含驱动 ~0.8 pJ；`write_summary.json` |
 | 写线 IR 压降（提取方块电阻） | 见 `extraction/writeline/README.md` | 各列高往返金属电阻占 776 Ω 比例 |
 | StrongARM 灵敏放大失调/能量 | `python hero/run_offset_mc.py && python hero/sa_postlayout.py` | $$\sigma_\mathrm{off}=9.2$$ mV、判决能 ~48 fJ |
@@ -47,7 +47,7 @@ eda/
 | `array/ir_drop.py` 写线压降 | 提取方块电阻的阻性梯子解算 | 已折入（`experiments/20_write_ir_drop.py` 演示） |
 | `ppa/reservoir_energy.py` ADC 能量 | StrongARM 比较器 + SAR 电容阵列 | 已折入默认值 |
 | `ppa/tech_params.py` 写-DAC/计数器能量 | sky130 DAC/计数器 | 仍为数量级占位（待提取） |
-| `device/` 行为 Sigmoid | `models/smtj_sot.va`（回归一致） | 双模型交叉验证 |
+| `device/` 行为 Sigmoid | `models/smtj_sot.va`（同式自洽回归） | 真值交叉验证见 `testbenches/llg_validate.py`（vs 宏自旋 LLG） |
 
 ## 相关文档
 

@@ -1,0 +1,216 @@
+diff --git a/README.md b/README.md
+index a6e6724..b542d3c 100644
+--- a/README.md
++++ b/README.md
+@@ -161,7 +161,7 @@ vgsot-sim ser_sot_no_vcma_thermal
+ > [process-variability sweep](#5-process-variability-sweep-built-in-analysis-api)
+ > remains available as a Python-only API via `vgsot_sim.ser_cases.variability_sweep`.
+ 
+-> **Calibration note (2026-05).** Default `theta_SH = 0.04` (chapter §2.3.4
++> **Calibration note (2026-05).** Default `theta_SH = 0.066` (chapter §2.3.4
+ > calibration to Device A P→AP, V_th @ 0.75 ns ≈ 894 mV). With this default the
+ > deterministic switching threshold sits around `|I_SOT| ≈ 1.1 mA`, so the
+ > default `i_sot_list` brackets `0.7 – 1.5 mA` — not the µA range used by
+@@ -204,7 +204,7 @@ in the chapter.
+ | `plot_single_trajectory.py` | `Chapter02_local_08.png` | Single-trajectory `(m_z, R_MTJ, I_SOT)` for sub-/just-above/super-threshold I_SOT, **self-heating ON**, with `M_s(T)` / `K_i(T)` feedback |
+ | `plot_3d_trajectory.py` | `Chapter02_local_09.png` | Magnetisation vector `m(t)` traced on the unit sphere + time-encoded colour, plus `m_x, m_y, m_z` time series |
+ | `plot_ser_mc.py` | `Chapter02_local_10.png` | Monte-Carlo P_sw vs `|I_SOT|` sweep at 0.75 ns with Wilson 95% CI, self-heating OFF/ON comparison, and a threshold-zoom inset around the experimental I_th ≈ 1152 µA |
+-| `calibrate_to_experiment.py` | (stdout) | θ_SH calibration scan against Device A V_th(0.75 ns) = 894 mV — produces the table that selected the `theta_SH = 0.04` default |
++| `calibrate_to_experiment.py` | (stdout) | θ_SH calibration scan against Device A V_th(0.75 ns) = 894 mV — produces the table that selected the `theta_SH = 0.066` default |
+ 
+ `plot_ser_mc.py` accepts CLI toggles that exercise the new physics options:
+ 
+@@ -217,7 +217,7 @@ python plot_ser_mc.py --integrator=cayley   # norm-preserving Cartesian stepper
+ 
+ Each driver writes to its own folder *and* mirrors the figure into
+ `article/00_chapter_drafts/figs/`, so the manuscript and the code stay in
+-lock-step. For the physics defaults these figures rely on (`theta_SH=0.04`,
++lock-step. For the physics defaults these figures rely on (`theta_SH=0.066`,
+ `TMR=1.0`, `RA=16.6e-12 Ω·m²`, etc.) see [docs/technical_details.md §2.3](docs/technical_details.md).
+ 
+ Preview of the latest 09 outputs (full size + ON/OFF + Wilson CI inset are in
+@@ -324,7 +324,7 @@ from vgsot_sim import (
+ 
+ cfg = SerSotNoVcmaThermalConfig(
+     trials=500,
+-    # Default theta_SH=0.04 puts the threshold near ~1.1 mA; pick the sweep range accordingly.
++    # Default theta_SH=0.066 puts the threshold near ~1.1 mA; pick the sweep range accordingly.
+     i_sot_list=[-1500e-6, -1200e-6, -1100e-6, -1000e-6, -800e-6],
+ )
+ 
+@@ -372,10 +372,12 @@ res = ser_sot_no_vcma_thermal(
+ ```
+ 
+ The Cayley vector stepper preserves `|m|=1` to machine precision and takes
+-`σ̂_SH` as an explicit 3-vector argument (default `[-1, 0, 0]`). It reports a
+-threshold ~10 % higher than the spherical-Euler default at 0.75 ns; the
+-chapter calibration was performed against the latter, so `"euler_spherical"`
+-remains the default.
++`σ̂_SH` as an explicit 3-vector argument (default `[-1, 0, 0]`). After the
++FL-SOT `dφ/dt` sign fix it shares the same right-hand side as the
++spherical-Euler stepper (they agree to <1e-4; `tests/test_integrator_consistency.py`)
++and is now the library stepper default; the effective `theta_SH` was
++recalibrated to `0.066` against it. (The old euler-vs-Cayley note claimed only
++~10 %; the true FL-SOT bug effect on V_th was ~40 %, the 0.066/0.04 ratio.)
+ 
+ ------
+ 
+@@ -402,7 +404,7 @@ res = run_piecewise_direct_excitation(
+     pap=1,
+ 
+     v_mtj_stage1=0.0, v_mtj_stage2=0.0, v_mtj_stage3=0.0,
+-    i_sot_stage1=-2000e-6,  # super-threshold pulse for the calibrated theta_SH=0.04
++    i_sot_stage1=-2000e-6,  # super-threshold pulse for the calibrated theta_SH=0.066
+     i_sot_stage2=0.0,
+     i_sot_stage3=0.0,
+ 
+diff --git a/docs/api.md b/docs/api.md
+index 632caa6..5f71c73 100644
+--- a/docs/api.md
++++ b/docs/api.md
+@@ -202,7 +202,7 @@ res = sot_only_constant_current(cfg)
+ | `sim_mid1_step` | `2000` | End of pulse stage. |
+ | `sim_end_step` | `5000` | Final simulation index. |
+ | `pap` | `1` | Initial state selector. |
+-| `i_sot_stage1` | `-400e-6` | SOT current during stage 1 (~3× sub-threshold for the calibrated `theta_SH=0.04`). |
++| `i_sot_stage1` | `-400e-6` | SOT current during stage 1 (~3× sub-threshold for the calibrated `theta_SH=0.066`). |
+ | `i_sot_stage2` | `0.0` | SOT current during stage 2 and stage 3. |
+ | `v_mtj_stage1` | `0.0` | MTJ voltage during stage 1. |
+ | `v_mtj_stage2` | `0.0` | MTJ voltage during stage 2 and stage 3. |
+@@ -229,7 +229,7 @@ print(res.mz_curves.keys())
+ 
+ | Field | Default | Meaning |
+ |---|---:|---|
+-| `i_sot_list` | `(-800e-6, -700e-6, -750e-6, -600e-6, -500e-6, -400e-6, -300e-6, -200e-6)` | SOT currents to sweep. Bracket the calibrated `theta_SH = 0.04` threshold near 1.1 mA. |
++| `i_sot_list` | `(-800e-6, -700e-6, -750e-6, -600e-6, -500e-6, -400e-6, -300e-6, -200e-6)` | SOT currents to sweep. Bracket the calibrated `theta_SH = 0.066` threshold near 1.1 mA. |
+ | `sim_start_step` | `1` | Simulation start index. |
+ | `sim_mid1_step` | `5000` | End of pulse stage (5 ns at `t_step = 1 ps`). |
+ | `sim_end_step` | `10000` | Final simulation index. |
+@@ -265,7 +265,7 @@ res = ser_sot_no_vcma_thermal(cfg)
+ 
+ | Field | Default | Meaning |
+ |---|---:|---|
+-| `i_sot_list` | `(-800e-6, -700e-6, -750e-6, -600e-6, -500e-6, -400e-6, -300e-6, -200e-6)` | Currents to sweep — bracket the calibrated `theta_SH = 0.04` threshold near `\|I_SOT\| ≈ 1.1 mA`. |
++| `i_sot_list` | `(-800e-6, -700e-6, -750e-6, -600e-6, -500e-6, -400e-6, -300e-6, -200e-6)` | Currents to sweep — bracket the calibrated `theta_SH = 0.066` threshold near `\|I_SOT\| ≈ 1.1 mA`. |
+ | `trials` | `200` | Monte-Carlo trials per point. |
+ | `sim_start_step` | `1` | Simulation start index. |
+ | `sim_mid1_step` | `5000` | End of active pulse (5 ns at `t_step = 1 ps`). |
+diff --git a/docs/cases.md b/docs/cases.md
+index b65abe9..76bdf34 100644
+--- a/docs/cases.md
++++ b/docs/cases.md
+@@ -107,7 +107,7 @@ A **control experiment** answering:
+ 
+ ### Default sweep window
+ 
+-With the calibrated `theta_SH=0.04` the deterministic threshold sits around
++With the calibrated `theta_SH=0.066` the deterministic threshold sits around
+ `|I_SOT| ≈ 1.1 mA`. The default `i_sot_list` therefore spans `−800 µA` to
+ `−200 µA` — both sides of threshold. Older configs targeting a literature
+ `theta_SH = 0.25` (threshold ~140 µA) will silently no-switch under the new
+diff --git a/docs/parameters.md b/docs/parameters.md
+index 41b40ef..317a6b9 100644
+--- a/docs/parameters.md
++++ b/docs/parameters.md
+@@ -9,7 +9,7 @@
+ > what runs when you simply execute `vgsot-sim <case_name>` (the CLI just
+ > instantiates the matching `*Config()` with no overrides).
+ >
+-> **Sweep ranges are calibrated to `theta_SH = 0.04`** (chapter §2.3.4 default).
++> **Sweep ranges are calibrated to `theta_SH = 0.066`** (chapter §2.3.4 default).
+ > The threshold sits around `|I_SOT| ≈ 1.1 mA`, so default sweeps span the
+ > millisecond range. Override `constants=PhysicalConstantsConfig(theta_SH=0.25)`
+ > if you need the literature β-W regime (~140 µA threshold).
+@@ -118,7 +118,7 @@ A measurements (2026-05-16). The notable changes from older versions:
+ 
+ | Parameter | Default | Note |
+ |---|---|---|
+-| `theta_SH` | **`0.04`** | Calibrated to Device A P→AP V_th(0.75 ns) = 894 mV (was `0.25` from textbook β-W). For bare-material studies override explicitly. |
++| `theta_SH` | **`0.066`** | Calibrated to Device A P→AP V_th(0.75 ns) = 894 mV (was `0.04` pre-FL-SOT-fix; `0.25` textbook β-W). For bare-material studies override explicitly. |
+ | `TMR` | **`1.0`** | ≈100 % to match the §2.3.3 hysteresis amplitude R_AP/R_P ≈ 2 (was `1.19`). |
+ | `RA` | **`16.6e-12`** Ω·m² | Calibrated to R_P ≈ 5 kΩ at D_elec = 65 nm (was `36e-12`). |
+ | `D_elec` | `65e-9` m | Electrical effective MTJ diameter (new; D_phys remains `80e-9`). |
+@@ -131,7 +131,7 @@ A measurements (2026-05-16). The notable changes from older versions:
+ | `tmr_model` | `"pdk"` | Bias-dependent TMR(V) model selector (was implicit Lorentzian). Set to `"lorentzian"` for the legacy single-parameter form. |
+ | `k_tmr, a_tmr, b_tmr, c_tmr` | `1.2346, 0.1729, 0.1315, 0.4475` | Three-parameter PDK TMR(V) coefficients (new). |
+ 
+-See [`technical_details.md`](technical_details.md) §2.3 for the calibration story behind `theta_SH = 0.04` and the
++See [`technical_details.md`](technical_details.md) §2.3 for the calibration story behind `theta_SH = 0.066` and the
+ diagnostic `09_simulation_figures/calibrate_to_experiment.py` script.
+ 
+ ### Derived quantities
+diff --git a/docs/technical_details.md b/docs/technical_details.md
+index c51e140..8ba63a2 100644
+--- a/docs/technical_details.md
++++ b/docs/technical_details.md
+@@ -205,7 +205,7 @@ The simulated device is a 80 nm circular MTJ on top of a β-W heavy-metal channe
+ | Free layer thickness  | $t_f$    | 1.1   | nm   | Magnetic layer thickness |
+ | Barrier thickness     | $t_{ox}$ | 1.4   | nm   | Tunnel barrier thickness |
+ 
+-> **Note on electrical vs physical diameter.** The thesis (Section 2.2.2.4 / 2.3.1) distinguishes the physical diameter $D_{phys}$ from the electrical effective diameter $D_{elec} \approx D_{phys} - 2\delta_{edge} \approx 65$ nm; the latter is what reconciles the wafer-measured $R_P=10.89\ \text{k}\Omega$ with $RA = 36\ \Omega\cdot\mu\text{m}^2$. The current `configs.py` uses a single `D` parameter without this separation — see `docs/IMPLEMENTATION_STATUS.md`.
++> **Note on electrical vs physical diameter.** The thesis (Section 2.2.2.4 / 2.3.1) distinguishes the physical diameter $D_{phys}$ from the electrical effective diameter $D_{elec} \approx D_{phys} - 2\delta_{edge} \approx 65$ nm; the latter is what reconciles the wafer-measured $R_P=10.89\ \text{k}\Omega$ with $RA = 36\ \Omega\cdot\mu\text{m}^2$. The current `configs.py` separates the two — `D` = $D_{phys}$ = 80 nm and `D_elec` ≈ 65 nm — and builds the MTJ area $A_1$ from $D_{elec}$.
+ 
+ Derived areas and volumes:
+ 
+@@ -229,11 +229,11 @@ $$
+ | Interfacial anisotropy   | $K_i$         | $0.32\times10^{-3}$ | J/m² | Perpendicular anisotropy           |
+ | Saturation magnetization | $M_s$         | $6.25\times10^5$    | A/m  | Free-layer magnetization           |
+ | Gilbert damping          | $\alpha$      | 0.05                | –    | Damping constant                   |
+-| Spin Hall angle          | $\theta_{SH}$ | **0.04** (calibrated, was 0.25) | –    | Effective SOT efficiency — see note below |
++| Spin Hall angle          | $\theta_{SH}$ | **0.066** (calibrated; 0.04 pre-fix, 0.25 textbook) | –    | Effective SOT efficiency — see note below |
+ | Spin polarization        | $P$           | 0.58                | –    | Tunnel current spin polarization   |
+ | Temperature              | $T$           | 300                 | K    | Operating temperature              |
+ 
+-> **Note on calibrated $\theta_{SH}$.** The literature β-W value $\theta_{SH}\!\approx\!0.25$ leaves the simulator's deterministic threshold at $|I_{SOT}|\!\approx\!140\,\mu\mathrm{A}$ ($V_{SOT}\!\approx\!109\,\mathrm{mV}$ for $R_W\!\approx\!776\,\Omega$), about $8\times$ lower than the same-batch Device A P→AP detailed-$P_{sw}$ value $V_{th}(0.75\,\mathrm{ns})\!\approx\!894\,\mathrm{mV}$ ($I_{th}\!\approx\!1152\,\mu\mathrm{A}$) extracted in Section 2.3.3 (Sigmoid fit, $\beta_s = 44.6\,\mathrm{V^{-1}}$). A scan over $\theta_{SH}$ combinations (see `09_simulation_figures/calibrate_to_experiment.py`) converges on $\theta_{SH}\!\approx\!0.04$ as the calibration that — jointly with $TMR = 1.0$ and $RA = 16.6\times 10^{-12}\,\Omega\cdot\mathrm{m}^2$ — reproduces the same-batch $V_{th}(0.75\,\mathrm{ns})$ within $\sim 1\%$. This is the calibrated value used as the package default. The deviation from the textbook β-W value absorbs additional loss channels not in this simplified model: Néel–Edelstein contributions, interfacial spin-memory loss, top-electrode parasitic series resistance, and (over the pulse window) any partial misalignment between charge-current and the assumed σ̂ axis. For material-level studies of the bare spin Hall effect, override with `theta_SH=0.25` (or any literature value).
++> **Note on calibrated $\theta_{SH}$.** The literature β-W value $\theta_{SH}\!\approx\!0.25$ leaves the simulator's deterministic threshold at $|I_{SOT}|\!\approx\!140\,\mu\mathrm{A}$ ($V_{SOT}\!\approx\!109\,\mathrm{mV}$ for $R_W\!\approx\!776\,\Omega$), about $8\times$ lower than the same-batch Device A P→AP detailed-$P_{sw}$ value $V_{th}(0.75\,\mathrm{ns})\!\approx\!894\,\mathrm{mV}$ ($I_{th}\!\approx\!1152\,\mu\mathrm{A}$) extracted in Section 2.3.3 (Sigmoid fit, $\beta_s = 44.6\,\mathrm{V^{-1}}$). A scan over $\theta_{SH}$ combinations (see `09_simulation_figures/calibrate_to_experiment.py`) converges on $\theta_{SH}\!\approx\!0.066$ as the calibration that — jointly with $TMR = 1.0$ and $RA = 16.6\times 10^{-12}\,\Omega\cdot\mathrm{m}^2$ — reproduces the same-batch $V_{th}(0.75\,\mathrm{ns})$ within $\sim 1\%$. This is the calibrated value used as the package default. The deviation from the textbook β-W value absorbs additional loss channels not in this simplified model: Néel–Edelstein contributions, interfacial spin-memory loss, top-electrode parasitic series resistance, and (over the pulse window) any partial misalignment between charge-current and the assumed σ̂ axis. For material-level studies of the bare spin Hall effect, override with `theta_SH=0.25` (or any literature value).
+ 
+ Effective anisotropy field:
+ $$
+@@ -332,7 +332,7 @@ Spin-orbit torque strength depends on material and geometry:
+ 
+ | Parameter            | Symbol        | Value    | Unit | Description                                          |
+ | -------------------- | ------------- | -------- | ---- | ---------------------------------------------------- |
+-| Spin Hall angle      | $\theta_{SH}$ | 0.04     | –    | Effective SOT efficiency (calibrated; see §2.3 note) |
++| Spin Hall angle      | $\theta_{SH}$ | 0.066    | –    | Effective SOT efficiency (calibrated; see §2.3 note) |
+ | SOT current          | $I_{SOT}$     | variable | A    | Applied current                                      |
+ | Free-layer thickness | $t_f$         | 1.1      | nm   | Magnetic thickness                                   |
+ 
+@@ -407,10 +407,10 @@ This approach enables **lower current switching while maintaining reliability**.
+ 
+ ## 4. Benchmark Results
+ 
+-> **Calibrated baseline.** All numbers below use the 2026-05 package defaults
+-> ($\theta_{SH} = 0.04$, $TMR = 1.0$, $RA = 16.6\times 10^{-12}\,\Omega\cdot\mathrm{m}^2$,
++> **Calibrated baseline.** All numbers below use the package defaults
++> ($\theta_{SH} = 0.066$, $TMR = 1.0$, $RA = 16.6\times 10^{-12}\,\Omega\cdot\mathrm{m}^2$,
+ > $D_{elec} = 65\,\mathrm{nm}$). With the literature $\theta_{SH} = 0.25$ all
+-> threshold currents drop by roughly the $0.25/0.04 \approx 6.25$ ratio.
++> threshold currents drop by roughly the $0.25/0.066 \approx 3.8$ ratio.
+ 
+ ### 4.1 Switching Current Threshold
+ 
+diff --git a/src/vgsot_sim/configs.py b/src/vgsot_sim/configs.py
+index 1c853a1..a7052b7 100644
+--- a/src/vgsot_sim/configs.py
++++ b/src/vgsot_sim/configs.py
+@@ -228,7 +228,7 @@ class TerminalVoltageControlConfig:
+ #   - relaxation tail 3.25 ns      → sim_end_step  = 4000
+ #   - V_MTJ = 0  (no VCMA in this protocol)
+ #   - I_SOT swept across the calibrated threshold |I_th| ≈ 1.1 mA
+-#     (theta_SH = 0.04 calibration; see configs.PhysicalConstantsConfig
++#     (theta_SH = 0.066 calibration; see configs.PhysicalConstantsConfig
+ #     and docs/technical_details.md §2.3)
+ # Override fields explicitly when running a different protocol.
+ # ─────────────────────────────────────────────────────────────────────────
+diff --git a/va/README.md b/va/README.md
+index 4a7454f..33bcf02 100644
+--- a/va/README.md
++++ b/va/README.md
+@@ -28,6 +28,6 @@ ngspice_con -b tb_switch.spice                   # .spiceinit loads the OSDI mod
+ 
+ - **Deterministic dynamics: validated.** `|m|=1` conserved to ~1e-4 with no manual renormalisation; m_z(t) matches the Python `switching_vector` trajectory to **max ~0.006 over 0–3 ns** (exact agreement at the current-on equilibrium; the small transient difference is fixed-step Cayley vs ngspice adaptive `ddt`).
+ - **Stochastic via harness:** the `h_th` injection path is in place; the seeded Python↔VA Monte-Carlo equivalence harness and its committed regression are pending (see project `#15`).
+-- **`theta_SH` default** is the calibrated `0.04`; note a recalibration is pending after the `dynamic_switching.py` FL-SOT fix (project `#12`). The `.va` exposes `theta_SH` as a parameter, so the calibrated value can be set without editing the model.
++- **`theta_SH` default** is the recalibrated `0.066` (Cayley, post-FL-SOT-fix; `0.04` was the pre-fix value). The `.va` exposes `theta_SH` as a parameter, so the calibrated value can be set without editing the model.
+ 
+ The compact behavioural Verilog-A (operating-point sigmoid + telegraph observables) lives separately in the consuming project at `eda/models/smtj_sot.va`; it is a fast circuit surrogate, not a replacement for this first-principles LLG engine.

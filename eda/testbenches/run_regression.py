@@ -31,6 +31,7 @@ GOLDEN = HERE / "golden_psw.csv"
 NETLIST = HERE / "regression_psw.spice"
 OSDI = HERE / "smtj_sot.osdi"
 NG_OUT = HERE / "ngspice_psw.csv"
+SUMMARY = HERE / "regression_summary.json"          # committable run evidence (osdi/csv are gitignored)
 
 
 def load_config():
@@ -115,6 +116,25 @@ def main():
     print(f"  points={len(n[0])}  max|err|={err.max():.2e}  R^2(ngspice vs golden)={rsq:.6f}")
     ok = err.max() < 1e-3 and rsq >= 0.99
     print("  RESULT:", "PASS" if ok else "FAIL")
+
+    # committable evidence the regression was actually executed (the .osdi/.csv are
+    # gitignored as regenerable). NOTE: this R^2 is OSDI-vs-numpy SELF-CONSISTENCY
+    # (the golden mirrors the same closed form the .va evaluates), i.e. a model-port /
+    # tool-equivalence check -- NOT validation against measurement (see golden_summary.json,
+    # sigmoid-vs-measured R^2=0.992) or against the LLG solver (see llg_validate.py).
+    from datetime import datetime, timezone
+    SUMMARY.write_text(json.dumps({
+        "kind": "tool_self_consistency_regression",
+        "note": "OSDI-compiled smtj_sot.va vs numpy golden (same closed form); not a physical validation.",
+        "points": int(len(n[0])),
+        "max_abs_err": float(err.max()),
+        "r2_ngspice_vs_golden": float(rsq),
+        "pass": bool(ok),
+        "openvaf": str(openvaf),
+        "ngspice": str(ngspice),
+        "ran_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }, indent=2))
+    print(f"  wrote {SUMMARY.name}")
     return 0 if ok else 1
 
 
