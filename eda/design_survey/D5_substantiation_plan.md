@@ -1,5 +1,7 @@
 # D.5 Substantiation Plan — Grounded Capability Matrix, Reviewer-Risk Triage, and Reproduction Roadmap
 
+> **STATUS (2026-07-01): executed in full.** P0–P2 (corrections, cited justifications, attribution fixes) applied to appendix D; P3 tiers 0–1 and all P4 items reproduced same-flow (see `README.md` § Reproduced literature designs for the script→JSON map). This document is retained as the planning/triage record.
+
 This plan converts the per-design grounding results into a defensible form of the D.5 qualitative capability matrix. Each non-N mark is given a one-line cited justification; cells that the grounding could not defend are flagged for downgrade or drop; and the designs are ranked by same-flow reproduction feasibility so that as many qualitative rows as possible can be migrated into the quantitative D.2–D.4 tables.
 
 Legend: `Y` = directly addresses the capability; `~` = partially / by analogy; `N` = not addressed. `[lo]` = low-confidence verdict (defensible either way, the safer mark is shown); all other non-N marks are high confidence unless noted.
