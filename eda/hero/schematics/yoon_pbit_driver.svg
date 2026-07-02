@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="716.91" height="507.58" viewBox="-6 -2.1242 716.91 507.58" version="1.1">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="503" version="1.1">
 <style type="text/css">
 .l0{
  fill: #ffffff;
@@ -157,10 +157,10 @@
 text {font-family: Sans-Serif;}
 </style>
 <rect class="l0" x="0" y="0" width="900" height="503"/>
-<text fill="#000000"  xml:space="preserve" font-size="8.07361" transform="translate(32.1314, 101.046)" >R<tspan baseline-shift="sub" font-size="0.72em">P</tspan> = 4.9k</text>
-<text fill="#000000"  xml:space="preserve" font-size="8.07361" transform="translate(32.1314, 116.572)" >R<tspan baseline-shift="sub" font-size="0.72em">AP</tspan> = 9.8k</text>
+<text fill="#000000"  xml:space="preserve" font-size="8.07361" transform="translate(32.1314, 101.046)" >R_P = 4.9k</text>
+<text fill="#000000"  xml:space="preserve" font-size="8.07361" transform="translate(32.1314, 116.572)" >R_AP = 9.8k</text>
 <text fill="#000000"  xml:space="preserve" font-size="7.26625" transform="translate(13.5, 188.812)" >SOT track tied:</text>
-<text fill="#000000"  xml:space="preserve" font-size="7.26625" transform="translate(13.5, 204.338)" >V<tspan baseline-shift="sub" font-size="0.72em">wr</tspan> = 0</text>
+<text fill="#000000"  xml:space="preserve" font-size="7.26625" transform="translate(13.5, 204.338)" >V_wr = 0</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.88097" transform="translate(292.583, 127.776)" >enp1</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.88097" transform="translate(424.555, 127.776)" >enp2</text>
 <text fill="#000000"  xml:space="preserve" font-size="8.88097" transform="translate(292.583, 391.721)" >enn1</text>
@@ -530,12 +530,4 @@ text {font-family: Sans-Serif;}
 <circle class="l1" cx="628.336" cy="266.056" r="3.10523"/>
 <circle class="l1" cx="628.336" cy="266.056" r="3.10523"/>
 <circle class="l1" cx="628.336" cy="266.056" r="3.10523"/>
-<g id="module-groups">
-<rect x="4" y="72" width="205.9" height="345.5" rx="6" fill="none" stroke="#5E3F8C" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="7" y="69" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#5E3F8C" font-weight="bold" text-anchor="start">sMTJ/NMOS divider</text>
-<rect x="233.2" y="83.6" width="287.2" height="357.1" rx="6" fill="none" stroke="#1A6B5A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="236.2" y="80.6" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#1A6B5A" font-weight="bold" text-anchor="start">VTC (2 PU + 2 PD)</text>
-<rect x="543.7" y="165.1" width="155.3" height="240.7" rx="6" fill="none" stroke="#C77A0A" stroke-width="1.4" stroke-dasharray="7 4" opacity="0.9"/>
-<text x="546.7" y="162.1" font-family="Helvetica,Arial,sans-serif" font-size="7.2" fill="#C77A0A" font-weight="bold" text-anchor="start">output inverter</text>
-</g>
 </svg>

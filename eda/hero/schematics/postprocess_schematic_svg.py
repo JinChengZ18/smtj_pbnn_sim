@@ -60,6 +60,21 @@ GROUPS = {
         (200, 55, 195, 292, "#1A6B5A", "auto-zero loop"),
         (430, 55, 448, 412, "#C77A0A", "StrongARM core + isolation"),
     ]),
+    "yoon_pbit_driver": ("AppendixD_07", [
+        (4, 72, 205.9, 345.5, "#5E3F8C", "sMTJ/NMOS divider"),
+        (233.2, 83.6, 287.2, 357.1, "#1A6B5A", "VTC (2 PU + 2 PD)"),
+        (543.7, 165.1, 155.3, 240.7, "#C77A0A", "output inverter"),
+    ]),
+    "rram_flash_slice": ("AppendixD_09", [
+        (10, 5, 72, 352, "#5E3F8C", "7-tap reference ladder"),
+        (77, 369, 235, 129, "#1A6B5A", "8:1 input mux + C_ADC"),
+        (181, 30, 113, 288, "#C77A0A", "7-comparator thermometer bank"),
+    ]),
+    "picoram_gating": ("AppendixD_10", [
+        (88, 110, 124, 192, "#5E3F8C", "coarse ±Vg ambiguity detectors"),
+        (266, 95, 598, 295, "#C77A0A", "clock gating: amb → cclk1"),
+        (124, 394, 120, 88, "#A82038", "gated precise Cmp1 (StrongARM)"),
+    ]),
     "current_steering_dac": ("AppendixD_05", [
         (10.4, 127.3, 93.3, 374.2, "#5E3F8C", "reference current mirror"),
         (200, 153.6, 560.5, 202.4, "#1A6B5A", "binary-weighted PMOS current-source array"),
@@ -76,6 +91,10 @@ GROUPS = {
 # coords. Default is the box top-left (x+3, y-3); override to move a caption clear of
 # wiring/labels. anchor in {"start","middle","end"} (default "start").
 CAP_POS = {
+    "rram_flash_slice": {
+        # keep the mux caption clear of the vertical vin riser (svg x~186)
+        "8:1 input mux + C_ADC": (10, 366),
+    },
     "writepath": {
         # the R-string box straddles the vertical VREF wire (x~120); park its caption
         # in the clear upper-left margin instead of across the wire
