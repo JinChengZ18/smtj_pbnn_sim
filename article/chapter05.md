@@ -6,7 +6,7 @@ PBNN与RC对器件随机性的使用恰好对偶。第四章的采样路径每�
 
 ## 5.1 sMTJ-RC的硬件工作原理
 
-本节先把sMTJ如何充当储备池节点的物理图景叙述清楚，作为后续仿真器扩展的参照。储备池计算的三个要件，即高维投影、非线性与衰减记忆，在超顺磁sMTJ上分别由器件群体、热激活翻转的电压依赖性与磁矩弛豫时间承担。图5.1给出整体原理。
+sMTJ作为储备池节点的物理图景决定了后续仿真器扩展的边界。储备池计算的三个要件，即高维投影、非线性与衰减记忆，在超顺磁sMTJ上分别由器件群体、热激活翻转的电压依赖性与磁矩弛豫时间承担。图5.1给出整体原理。
 
 ![图5.1 基于随机sMTJ节点的储备池计算原理](figs/Chapter05_local_01.png)
 
@@ -19,13 +19,13 @@ r_\uparrow(V) = \frac{1}{\tau_0}\exp\!\big[-\Delta(1 - V/V_{c0})\big],\qquad
 r_\downarrow(V) = \frac{1}{\tau_0}\exp\!\big[-\Delta(1 + V/V_{c0})\big],
 $$
 
-其中$$r_\uparrow$$即第二章$$P_\mathrm{sw}$$所内含的瞬时翻转速率，$$r_\downarrow$$为偏置反向后的同一律。由此可闭式导出RC关心的两个量。其一是稳态均值，给出输入到状态的非线性传输关系
+其中$$r_\uparrow$$即第二章$$P_\mathrm{sw}$$所内含的瞬时翻转速率，$$r_\downarrow$$为偏置反向后的同一律。稳态均值给出输入到状态的非线性传输关系
 
 $$
 \langle s\rangle_\infty(V) = \frac{r_\uparrow - r_\downarrow}{r_\uparrow + r_\downarrow} = \tanh\!\big(\Delta V/V_{c0}\big),
 $$
 
-零偏处斜率为$$\Delta/V_{c0}\approx 5.7\,\mathrm{V^{-1}}$$。其二是弛豫时间，即衰减记忆的时间常数
+零偏处斜率为$$\Delta/V_{c0}\approx 5.7\,\mathrm{V^{-1}}$$。弛豫时间给出衰减记忆的时间常数
 
 $$
 \tau(V) = \frac{1}{r_\uparrow + r_\downarrow},
@@ -59,7 +59,7 @@ $$
 
 ## 5.4 面向RC的器件优化与变异分析
 
-本节是本章相对既有自旋电子RC工作的独特贡献，其目标在于研究面向RC构建计算系统时应当如何进行sMTJ的工艺优化。由于非递归储备池节点的记忆即其弛豫时间$$\tau=\tau_0 e^{\Delta}/2$$，热稳定因子$$\Delta$$是首要器件参数。本节全部在均值场模式下进行，使结论关于器件物理而非散粒噪声。
+面向RC的器件优化构成本章相对既有自旋电子RC工作的主要增量。由于非递归储备池节点的记忆即其弛豫时间$$\tau=\tau_0 e^{\Delta}/2$$，热稳定因子$$\Delta$$是首要器件参数；以下扫描全部在均值场模式下进行，使结论关于器件物理而非散粒噪声。
 
 ![图5.3 面向RC的器件优化指导](figs/Chapter05_local_03.png)
 
@@ -123,7 +123,7 @@ Mackey-Glass单步预测NRMSE低至0.006，随预测步长增至约0.04，表明
 
 本章结论受三方面条件约束。其一，散粒噪声与面积的权衡尚未在更省的读出方案 (速率读出、长积分窗、概率域读出) 下充分探索，这关系到sMTJ-RC能否在更广场景胜过数字基线。其二，递归耦合在本章以数值矩阵实现，其物理形态 (偶极场或共享电流线) 的保真度与面积代价需在阵列层进一步评估。其三，器件随机性相对确定性ESN更可能是代价而非优势，本章已明确区分sMTJ-RC占优的指标 (能量、面积、对工艺变异的容忍) 与不占优的指标 (绝对精度)，不作过度宣称。
 
-把同一物理阵列以时分复用同时承担概率位推断与储备池处理，还要求两种模式取不同的热稳定因子：概率位取$$\Delta=4.91$$ (零偏弛豫约68 ns)，储备池取$$\Delta\approx3.8$$ (约22 ns)。一块固定器件不能同时是两个势垒，时分复用需约22.6%的势垒摆幅 ($$\Delta E_b\approx28.7\,\mathrm{meV}$$)，可经电压控制磁各向异性栅[^vcma_gate]或约88 K温升达到。但三点限制必须登记：两种模式在时间上互斥；储备池所需的低势垒与概率位的写保持及读扰动相冲突；尚无在同一物理阵列上时分复用概率位写入与储备池自由演化的实现，已报道的电压可调随机性器件或为脉冲驱动的可调随机电报噪声[^tunable_rtn]，或为电压控制各向异性的确定与泊松双功能宏[^vcma_macro]，均非概率位与储备池双模阵列。因此该统一阵列应作为受限的、电压栅控的、时分复用的架构提案陈述，并附上述量化调谐包络与势垒冲突这一限制。
+把同一物理阵列以时分复用同时承担概率位推断与储备池处理，还要求两种模式取不同的热稳定因子：概率位取$$\Delta=4.91$$ (零偏弛豫约68 ns)，储备池取$$\Delta\approx3.8$$ (约22 ns)。一块固定器件不能同时是两个势垒，时分复用需约22.6%的势垒摆幅 ($$\Delta E_b\approx28.7\,\mathrm{meV}$$)，可经电压控制磁各向异性栅[^vcma_gate]或约88 K温升达到。该提案有三个限制：两种模式在时间上互斥；储备池所需的低势垒与概率位的写保持及读扰动相冲突；尚无在同一物理阵列上时分复用概率位写入与储备池自由演化的实现，已报道的电压可调随机性器件主要是脉冲驱动稳定pMTJ得到的可调随机电报噪声[^tunable_rtn]，并非概率位与储备池双模阵列。因此该统一阵列应作为受限的、电压栅控的、时分复用的架构提案陈述，并附上述量化调谐包络与势垒冲突这一限制。
 
 [^vcma_gate]: 该栅压约0.56 V，量级与已报道的电压可调各向异性器件相当。
 
@@ -159,6 +159,4 @@ Mackey-Glass单步预测NRMSE低至0.006，随预测步长增至约0.04，表明
 
 [^ens_rc]: Nakamura Y, Kubota T, Imai Y, Tsunegi S, Notsu H, Nakajima K. Ensemble reservoir computing for physical systems. *arXiv preprint*, 2026. [arXiv:2601.21807](https://arxiv.org/abs/2601.21807)
 
-[^tunable_rtn]: Sidi El Valli A, Tsao M, Chen D, Kent A D. Tunable random telegraph noise in stable perpendicular magnetic tunnel junctions for unconventional computing. *Physical Review Applied*, 2026, 25(1): 014035. [doi:10.1103/tbm9-6938](https://doi.org/10.1103/tbm9-6938)
-
-[^vcma_macro]: Hou Y, Xiao Z, Wu X, Wang S, Zhu Z, Wu D, Wang J, Li Y, Cai H, Shao Q. A 28 nm CMOS-integrated VCMA-MTJ dual-function macro for deterministic in-memory computing synapses and stochastic Poisson neurons in hybrid vision. *IEEE Symposium on VLSI Technology and Circuits*, 2026.
+[^tunable_rtn]: Sidi El Valli A, Tsao M, Chen D, Kent A D. Tunable random telegraph noise in stable perpendicular magnetic tunnel junctions for unconventional computing. *arXiv preprint*, 2025. [arXiv:2509.13458](https://arxiv.org/abs/2509.13458)

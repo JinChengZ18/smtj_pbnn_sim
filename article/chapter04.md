@@ -6,7 +6,7 @@
 
 ## 4.1 sMTJ-PBNN的硬件工作原理
 
-本节先把sMTJ-PBNN在硬件上如何完成一次前向计算的图景叙述清楚，作为后续仿真器各层抽象的物理参照。叙述按阵列内二值内积如何在电流域里完成、概率神经元如何由器件的随机翻转过程天然实现、以及一次完整闭环前向如何由多步采样得到稳定期望输出的顺序展开。
+sMTJ-PBNN在硬件上完成一次前向计算的图景，是后续仿真器各层抽象的物理参照。这个过程依次包含阵列内二值内积在电流域的实现、概率神经元由器件随机翻转过程生成，以及一次完整闭环前向通过多步采样得到稳定期望输出。
 
 BNN通过将浮点乘加替换为按位同或 (XNOR) 与位计数 (popcount)，相对全精度网络在能效上有数量级提升。基于非易失性存储器的存内计算CIM架构能在阵列内部直接完成XNOR运算，进一步消除访存瓶颈。当确定性BNN向PBNN演进时，系统不再以确定性比特为运算载体，而需要原生的随机比特生成源。MTJ，尤其是工作于亚临界区的sMTJ，其热涨落驱动的翻转过程具有真实的物理随机性，可作为天然真随机数发生器 (True Random Number Generator，TRNG) [^neel1949][^brown1963]。这一物理特性使MRAM阵列同时承担两重身份：既是确定性权重的存储与计算载体，又是概率计算所需的物理熵源。考虑全连接层第$$j$$个输出神经元的预激活值$$z_j=\sum_{i=1}^{N} w_{ji} x_i$$。当输入$$x_i$$与权重$$w_{ji}$$均限定在$$\{-1,+1\}$$时，单次乘积严格等价于比特域$$\{0,1\}$$中的XNOR仿射映射$$w_{ji}x_i=2\,\mathrm{XNOR}(x_i^{(b)}, w_{ji}^{(b)})-1$$。代入并整理得$$z_j=2k_j-N$$，其中$$k_j=\mathrm{popcount}\!\bigl(\mathrm{XNOR}(\boldsymbol{x}^{(b)},\boldsymbol{w}_j^{(b)})\bigr)$$为输入与权重的符号匹配位数，这一变换将$$N$$次实数乘法压缩为一次位计数。在MRAM阵列的物理层，权重的逻辑态由MTJ的平行电导$$G_P$$与反平行电导$$G_\mathrm{AP}$$表征，输入$$x_i$$以位线电压驱动施加于单元。理想化情形下，单元输出电流可写为
 
@@ -42,9 +42,9 @@ $$s^{(r)}=\underbrace{\sum_i w_i x_i^{(r)}}_{\text{ideal}}+\underbrace{\epsilon_
 
 ## 4.2 既有仿真工作与本章定位
 
-为定位本章工作，先对相关仿真工具作一次梳理。这些工具大致可按原生支持的对象划入四类：确定性CIM加速器、模拟存算加速器、sMTJ器件级与p-bit级、PBNN算法与变分推断工具。确定性CIM加速器仿真器以Yu课题组维护的NeuroSim系列为代表：MLP+NeuroSim以C++实现单层感知机评估[^cim_neurosim_validation]，DNN+NeuroSim V2.0与PyTorch对接，覆盖电阻随机存储器 (Resistive Random-Access Memory，ReRAM)、相变随机存储器 (Phase-Change RAM，PCRAM)、自旋转移矩磁随机存储器 (Spin-Transfer-Torque MRAM，STT-MRAM)、铁电场效应晶体管 (Ferroelectric FET，FeFET)、电化学随机存储器 (Electrochemical RAM，ECRAM) 等器件的训练与推理基准[^cim_dnn_neurosim_v2]，最新的V1.5将PyTorch行为仿真与C++硬件估算解耦并引入TensorRT后训练量化以及器件级与电路级两种非理想注入模式[^cim_neurosim_v15]；MNSIM 2.0以行为级建模为目标，建立从器件到处理单元 (Processing Element，PE) 的层次化模型，支持混合精度网络的推理精度评估[^cim_mnsim2]；MICSim在NeuroSim V1.3基础上加入Transformer算子并接入HuggingFace[^cim_micsim]。这一类工具的统一假设是权重为确定性多比特，单元的随机性仅以误差源进入精度评估而不充当计算资源，其架构亦围绕模拟数字转换器 (Analog-to-Digital Converter，ADC)、缓冲与片上网络组织，与本工作以单比特概率采样为核心信号的图景偏离明显。模拟存算加速器仿真器以IBM的aihwkit为代表，覆盖全连接、卷积、长短期记忆 (Long Short-Term Memory，LSTM) 层及对应的模拟随机梯度下降 (Stochastic Gradient Descent，SGD) 优化器，支持D2D变异、C2C变异、电导响应曲线、读出与权重噪声等[^cim_aihwkit][^cim_aihwkit_apl]；其权重以连续电导编码、噪声为加性扰动，二值随机权重、Bernoulli采样语义以及由Arrhenius律决定的Sigmoid型概率台阶并不在其原生模型范围内。
+本章工作可相对于四类仿真工具定位：确定性CIM加速器、模拟存算加速器、sMTJ器件级与p-bit级工具，以及PBNN算法与变分推断工具。确定性CIM加速器仿真器以Yu课题组维护的NeuroSim系列为代表：MLP+NeuroSim以C++实现单层感知机评估[^cim_neurosim_validation]，DNN+NeuroSim V2.0与PyTorch对接，覆盖电阻随机存储器 (Resistive Random-Access Memory，ReRAM)、相变随机存储器 (Phase-Change RAM，PCRAM)、自旋转移矩磁随机存储器 (Spin-Transfer-Torque MRAM，STT-MRAM)、铁电场效应晶体管 (Ferroelectric FET，FeFET)、电化学随机存储器 (Electrochemical RAM，ECRAM) 等器件的训练与推理基准[^cim_dnn_neurosim_v2]，最新的V1.5将PyTorch行为仿真与C++硬件估算解耦并引入TensorRT后训练量化以及器件级与电路级两种非理想注入模式[^cim_neurosim_v15]；MNSIM 2.0以行为级建模为目标，建立从器件到处理单元 (Processing Element，PE) 的层次化模型，支持混合精度网络的推理精度评估[^cim_mnsim2]；MICSim在NeuroSim V1.3基础上加入Transformer算子并接入HuggingFace[^cim_micsim]。这一类工具的统一假设是权重为确定性多比特，单元的随机性仅以误差源进入精度评估而不充当计算资源，其架构亦围绕模拟数字转换器 (Analog-to-Digital Converter，ADC)、缓冲与片上网络组织，与本工作以单比特概率采样为核心信号的图景偏离明显。模拟存算加速器仿真器以IBM的aihwkit为代表，覆盖全连接、卷积、长短期记忆 (Long Short-Term Memory，LSTM) 层及对应的模拟随机梯度下降 (Stochastic Gradient Descent，SGD) 优化器，支持D2D变异、C2C变异、电导响应曲线、读出与权重噪声等[^cim_aihwkit][^cim_aihwkit_apl]；其权重以连续电导编码、噪声为加性扰动，二值随机权重、Bernoulli采样语义以及由Arrhenius律决定的Sigmoid型概率台阶并不在其原生模型范围内。
 
-sMTJ器件级仿真器关注随机翻转事件的统计性质而不直接接入神经网络。ARM公开的MRAM紧凑模型以随机Landau-Lifshitz-Gilbert-Slonczewski (s-LLGS) 方程为内核，提供Python与Verilog-A两套实现，并以Fokker-Planck求解器校准至给定写错误率，已用OOMMF微磁仿真验证[^smtj_arm_compact]；Rajpoot等人公开的STT/SHE-MTJ NGSPICE紧凑模型亦给出相近能力并兼容开源仿真链[^smtj_ngspice]。p-bit层面，Onizawa等人的GPU加速模拟退火框架以受变异修正的p-bit为采样源，对最大割 (MAX-CUT) 等组合优化问题获得相对CPU两个数量级的加速[^psl_gpu_sa]；Camsari等人系统综述了p-bit的电路实现与Bernoulli发生器的能耗代价；Borders等人展示了基于sMTJ的整数因子分解原型机[^borders_factor]，Sutton等人将其扩展为自治概率协处理器原型[^sutton_pbit]。这些工作主要服务于组合优化任务，更新规则为同步Gibbs或全异步，与PBNN所需的按层有序前馈不一致。Kaiser等人发表的基于sMTJ的in-situ玻尔兹曼机硬件感知学习电路与仿真[^kaiser_insitu_bm]是迄今最贴近本工作的先例，但仍以无向玻尔兹曼机为对象，不涉及前馈PBNN在大规模图像数据集上的精度评估。PBNN算法层面已有若干公开的PyTorch复现，包括Peters等人的原始论文复现[^pbnn_peters]以及Bayes-by-Backprop类工具如PyTorch-BayesianCNN[^bnn_bayescnn]与TyXe[^bnn_tyxe]，主要展示算法可行性而无硬件建模。将上述四类能力对照本工作目标——同时承担sMTJ Sigmoid采样、单比特Bernoulli权重、基于中心极限定理 (Central Limit Theorem，CLT) 的高斯化前向、时域展开、阵列级XNOR-popcount与PPA估算——没有一个既有工具是该交集的天然载体。本章因此选择以PyTorch自行搭建仿真流水线，复用社区已成熟的器件级与PPA估算结果 (Arrhenius $$P_\mathrm{sw}$$拟合参数、NeuroSim校准的工艺常数、aihwkit验证过的硬件感知训练范式)，但在网络层与采样层独立实现，以匹配sMTJ-PBNN的语义需求。
+sMTJ器件级仿真器关注随机翻转事件的统计性质而不直接接入神经网络。ARM公开的MRAM紧凑模型以随机Landau-Lifshitz-Gilbert-Slonczewski (s-LLGS) 方程为内核，提供Python与Verilog-A两套实现，并通过OOMMF微磁仿真和1 Mb 28 nm MRAM宏基准验证其可扩展性[^smtj_arm_compact]；Rajpoot等人公开的STT/SHE-MTJ NGSPICE紧凑模型亦给出相近能力并兼容开源仿真链[^smtj_ngspice]。p-bit层面，Onizawa等人的GPU加速模拟退火框架以受变异修正的p-bit为采样源，对最大割 (MAX-CUT) 等组合优化问题获得相对CPU两个数量级的加速[^psl_gpu_sa]；Camsari等人系统综述了p-bit的电路实现与Bernoulli发生器的能耗代价；Borders等人展示了基于sMTJ的整数因子分解原型机[^borders_factor]，Sutton等人将其扩展为自治概率协处理器原型[^sutton_pbit]。这些工作主要服务于组合优化任务，更新规则为同步Gibbs或全异步，与PBNN所需的按层有序前馈不一致。Kaiser等人发表的基于sMTJ的in-situ玻尔兹曼机硬件感知学习电路与仿真[^kaiser_insitu_bm]是迄今最贴近本工作的先例，但仍以无向玻尔兹曼机为对象，不涉及前馈PBNN在大规模图像数据集上的精度评估。PBNN算法层面已有若干公开的PyTorch复现，包括Peters等人的原始论文复现[^pbnn_peters]以及Bayes-by-Backprop类工具如PyTorch-BayesianCNN[^bnn_bayescnn]与TyXe[^bnn_tyxe]，主要展示算法可行性而无硬件建模。将上述四类能力对照本工作目标——同时承担sMTJ Sigmoid采样、单比特Bernoulli权重、基于中心极限定理 (Central Limit Theorem，CLT) 的高斯化前向、时域展开、阵列级XNOR-popcount与PPA估算——没有一个既有工具是该交集的天然载体。本章因此选择以PyTorch自行搭建仿真流水线，复用社区已成熟的器件级与PPA估算结果 (Arrhenius $$P_\mathrm{sw}$$拟合参数、NeuroSim校准的工艺常数、aihwkit验证过的硬件感知训练范式)，但在网络层与采样层独立实现，以匹配sMTJ-PBNN的语义需求。
 
 ## 4.3 仿真器分层架构与器件层校准
 
@@ -222,7 +222,7 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 **图4.13** 九种存储器/p-bit架构在20轮MNIST PBNN-MLP训练下的总能耗对比。横轴为对数刻度的总能耗 (J)，每架构按前向、反向、写或$$\theta$$更新三段堆叠；上方四行为概率二值架构、下方五行为确定性INT8架构。PBNN sMTJ以11.91J排在所有非易失架构第二，仅比STT-MRAM高14%、低于ReRAM与PCRAM；CMOS p-bit以49.52J为sMTJ的4.2倍，反映sMTJ对CMOS Bernoulli发生器的物理优势；随机ReRAM因per-cell写能高达50–100pJ达到452.80J，在训练阶段不可承受。
 
-该排名给出两点核心结论。其一，PBNN sMTJ以11.91 J在非易失架构中排第二[^nv_ranking]，与4.5节的鲁棒性合起来构成明确取舍：为换取5%–10%比特翻转率下精度仍保97%以上 (FP-NN同条件仅52.32%)，14%的训练能耗溢价是合理的。其二，把随机源由sMTJ换为CMOS p-bit ASIC，总能耗升至4.2倍 (49.52 J)，这一倍数即磁性器件相对CMOS的物理优势：sMTJ的Ohmic写能$$V^2 t/R$$在第二章工作点为$$0.78\,\mathrm{pJ}$$，而同等噪声裕度的CMOS Bernoulli发生器约需$$5\,\mathrm{pJ}$$。易失SRAM-CIM虽最低 (6.71 J) 但需外部刷新、不计入非易失对比；PCRAM-FP (56.44 J) 与随机ReRAM-PBNN (452.80 J) 则因per-cell写能达50–100 pJ在训练阶段不可承受。
+该排名给出两个核心结论。PBNN sMTJ以11.91 J在非易失架构中排第二[^nv_ranking]，与4.5节的鲁棒性合起来构成明确取舍：为换取5%–10%比特翻转率下精度仍保97%以上 (FP-NN同条件仅52.32%)，14%的训练能耗溢价是合理的。把随机源由sMTJ换为CMOS p-bit ASIC，总能耗升至4.2倍 (49.52 J)，这一倍数即磁性器件相对CMOS的物理优势：sMTJ的Ohmic写能$$V^2 t/R$$在第二章工作点为$$0.78\,\mathrm{pJ}$$，而同等噪声裕度的CMOS Bernoulli发生器约需$$5\,\mathrm{pJ}$$。易失SRAM-CIM虽最低 (6.71 J) 但需外部刷新、不计入非易失对比；PCRAM-FP (56.44 J) 与随机ReRAM-PBNN (452.80 J) 则因per-cell写能达50–100 pJ在训练阶段不可承受。
 
 [^nv_ranking]: 该能耗为STT-MRAM的1.14倍，低于ReRAM、PCRAM，与FeRAM持平。
 
@@ -362,7 +362,7 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 [^cim_aihwkit_apl]: Le Gallo M, Lammie C, Buechel J, Carta F, Fagbohungbe O, Mackin C, Tsai H, Narayanan V, Sebastian A, El Maghraoui K, Rasch M J. Using the IBM analog in-memory hardware acceleration kit for neural network training and inference. *APL Machine Learning*, 2023, 1(4): 041102. [doi:10.1063/5.0168089](https://doi.org/10.1063/5.0168089)
 
-[^smtj_arm_compact]: Garcia-Redondo F, Lopez-Vallejo M, Stanley-Marbell P. A compact model for scalable MTJ simulation. *Proc. International Conference on Synthesis, Modeling, Analysis and Simulation Methods and Applications to Circuit Design*, 2021: 1–4. [doi:10.1109/SMACD52803.2021.9636229](https://doi.org/10.1109/SMACD52803.2021.9636229)
+[^smtj_arm_compact]: García-Redondo F, Prabhat P, Bhargava M, Dray C. A compact model for scalable MTJ simulation. *arXiv preprint*, 2021. [arXiv:2106.04976](https://arxiv.org/abs/2106.04976)
 
 [^smtj_ngspice]: Rajpoot J, Paul R, Verma S. Novel STT/SHE MTJ compact model compatible with NGSPICE. *arXiv preprint*, 2022. [arXiv:2208.14055](https://arxiv.org/abs/2208.14055)
 
@@ -372,7 +372,7 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 [^borders_factor]: Borders W A, Pervaiz A Z, Fukami S, Camsari K Y, Ohno H, Datta S. Integer factorization using stochastic magnetic tunnel junctions. *Nature*, 2019, 573: 390–393. [doi:10.1038/s41586-019-1557-9](https://doi.org/10.1038/s41586-019-1557-9)
 
-[^sutton_pbit]: Sutton B M, Faria R, Ghantasala L A, Jaiswal R, Camsari K Y, Datta S. Autonomous probabilistic coprocessing with petaflops-equivalent capacity. *Science Advances*, 2020, 6(20): eabb2823. [doi:10.1126/sciadv.abb2823](https://doi.org/10.1126/sciadv.abb2823)
+[^sutton_pbit]: Sutton B M, Faria R, Ghantasala L A, Jaiswal R, Camsari K Y, Datta S. Autonomous probabilistic coprocessing with petaflips per second. *arXiv preprint*, 2019. [arXiv:1907.09664](https://arxiv.org/abs/1907.09664)
 
 [^kaiser_insitu_bm]: Kaiser J, Borders W A, Camsari K Y, Fukami S, Ohno H, Datta S. Hardware-aware in situ learning based on stochastic magnetic tunnel junctions. *Physical Review Applied*, 2022, 17: 014016. [doi:10.1103/PhysRevApplied.17.014016](https://doi.org/10.1103/PhysRevApplied.17.014016)
 
