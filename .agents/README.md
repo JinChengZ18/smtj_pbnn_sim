@@ -17,8 +17,29 @@
 |---|---|---|
 | EDA 晶体管级验证/创新 | `.agents/eda/STATUS.md` | **长时程任务唯一续传点**（当前状态 / 决策账本 D1–D8 / 验证账本 / 各阶段 DoD）。读它，再读 `.agents/eda/ROADMAP.md`。 |
 | 论文交付稿 | `article/` | 只放交付内容；**禁止**写本地引用 / TODO / 勘误指针（见 §2）。 |
-| 勘误总表 | `errata.md` | E1/E2 已修；R1–R7 待 EDA 验证；N1–N3 注记。 |
+| 勘误总表 | `errata.md` | E1/E2 已修；**R1–R7 已全部处理**（R2/R4/R6/R7 收口为设计边界、R1/R3/R5 有真实提取数；回填检查表 2026-07-06 逐项核验，R5 留口径注记）；S 节=仿真器评估账本；N1–N3 注记。 |
+| 下一步统筹计划 | `plans/` | 2026-07-06 审稿人视角统筹产出的可执行计划文件（创新点/拓展/答辩加固），逐份带 DoD。 |
 | Claude-CLI 私有跨会话记忆 | `<user>\.claude\projects\…-smtj-pbnn-sim\memory\` | Claude Code 自动记忆（**仓库外**，按 cwd 派生）。本目录是**仓库内**的跨 agent 通道；二者各自维护、内容保持一致。 |
+
+## 1b. 文件索引（全量，2026-07-06 审计后整理）
+
+| 文件 | 一句话定位 | 状态注记 |
+|---|---|---|
+| `README.md` | 本文件：协作中心 orientation + 约定 + 索引 | 活文档 |
+| `MEMORY.md` | 跨 agent 带日期变更日志（append-only） | 活文档；与 Claude 私有记忆库并行维护 |
+| `status.md` | 仿真器/实验主线的开发者进度日志（PBNN/RC/EDA/测试四段） | 与 v0.4.0 对齐 |
+| `errata.md` | 勘误总表：E（已修）/R1–R7（已全部处理）/S（仿真器评估账本）/N（澄清）+ 回填检查表 | 2026-07-06 检查表逐项核验；R5 留口径注记；S-C 缓办项是拓展工作素材池 |
+| `reference_fact_check_2026-07-03.md` | 引文事实核查审计（57 链接；4 处更正 + 复核留存） | 后续跟进：非 DOI 条目（IEDM/ISSCC）补核 |
+| `plans/` | **下一步统筹计划**（2026-07-06 审稿人视角统筹产出，逐份带 DoD） | 新增 |
+| `eda/STATUS.md` | EDA 长时程任务单一续传点（决策/验证账本、阶段 DoD） | 「当前状态」快照补至 2026-07-06 |
+| `eda/PLAN_execution.md` | 创新主线执行清单（步骤 1.1…3.6 + DoD + 状态） | 2026-07-06 勘正：1.13 实已完成（14 个 `.sch`）；开口=1.7–1.10 版图链、3.2、TIA 偏置 |
+| `eda/ROADMAP.md` | 阶段化路线图 P0–P7 + 创新优先重排说明 | 阶段细节参考；续传以 STATUS 为准 |
+| `eda/PPA_grounding_plan.md` | PPA 常数 sky130 地标账本（能量/面积全部落地） | 开口=DRC-clean GDS 面积、Liberty/OpenSTA 能量精修 |
+| `eda/VA_SYNC_RUNBOOK.md` | vgsot-sim Verilog-A 同步预案 | **PARKED**：等 canonical 侧验证通过 |
+| `eda/pending_vgsot_destale.patch` | θ_SH 0.04→0.066 的 7 文件文档 de-stale 补丁 | 随 runbook 解锁时应用 |
+| `eda/MANUAL_SETUP_NEEDED.md` | 需人工/GUI 的环境步骤（Magic 升级已完成等） | 多数已完成，留 GUI 布线相关 |
+| `eda/OPEN_SOURCE_FEASIBILITY.md` | 开源工具链可行性矩阵（OpenVAF 约束与设计应对） | 参考 |
+| `eda/research/` | 带日期的调研/评估/复核记录（7 篇：EDA 评估、创新重排、蓝本复核、图规范、SA 调研、子模块设计调研、vgsot 整合决策） | 图规范篇含**绑定性生产规范** |
 
 ## 2. 多 agent 协作约定
 

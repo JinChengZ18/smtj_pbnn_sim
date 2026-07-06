@@ -82,8 +82,8 @@
 |1.10| **回填**：真实 `e_smtj_read`(~50fJ 量级)→P6 接口→重跑 MNIST PPA | Python | 外围占比位移数 | ⬜ 待 1.9（关 R1）|
 |1.11| Pareto：accuracy vs (V_offset/V_T)，{无/4×面积/单容自调零/两相斩波} | Python | Pareto + 设计边界 | ✅ `pareto_offset_cancellation.py`（V_in≥0.5 plain 最优；≤0.4 才需自调零）|
 |1.12| **C2 摊销写-DAC**：3–4 trim-bit V_th 微调，代价<1% 写预算 | Python | trim→精度恢复曲线 | ✅ `write_dac_trim.py`（σ_col=8: 96.35%→b3 96.82%≈基线；静态码摊销→<1%写能）|
-|1.13| Xschem 原理图+`.sym`+测试台 → SVG/PDF（"导出原理图"工件）| Xschem | hero 原理图图 | ⬜（需装 Xschem）|
-|1.14| Hero 闭环图（σ_offset→栈→92.8%→~97% @ iso 读能）| Python/绘图 | 论文 hero 图 | ⬜ 汇总 1.10/1.11 |
+|1.13| Xschem 原理图+`.sym`+测试台 → SVG/PDF（"导出原理图"工件）| Xschem | hero 原理图图 | ✅（2026-07-06 勘正：`eda/hero/schematics/` 已有 14 个 `.sch`，图 4.15/5.8 及附录 D 全部原理图均由 Xschem 导出）|
+|1.14| Hero 闭环图（σ_offset→栈→92.8%→~97% @ iso 读能）| Python/绘图 | 论文 hero 图 | ◑（4.6 节图 4.15–4.21 已承载协同设计叙事；专门的单张闭环汇总图未单独制作，视论文需要决定是否补）|
 
 **Phase 1 下一步（最小动作）**：1.7 GUI 布线 → 1.8 LVS → 1.9 路由后 PEX → 1.10 回填。1.11/1.13/1.14 可并行（不依赖布线）。
 
@@ -121,8 +121,8 @@
 - **`.docx` 同步**：改 `article/*.md` 后 watcher ~4–5min 重生 `.docx`，与 `.md` 一起提交。
 
 ## 立即可开工的 5 个动作（按杠杆排序）
-1. **1.7 GUI 布线 SA**（解锁 1.8–1.10 整条 Hero 版后链；清单已备 `LVS_GUI_CHECKLIST.md`）。
-2. **1.11 Pareto 扫描**（纯 Python，不等布线；把 1.4 的设计边界扩成 accuracy-vs-V_offset/V_T 曲线）。
-3. **2.3 RC {N,M,b} 等高线**（纯 Python，扩 `rc_readout_noise.py`；推进第二篇）。
-4. **1.13 装 Xschem + 画 hero 原理图**（"导出原理图"工件；与布线并行）。
-5. **3.1 sky130 写驱动端到端**（ngspice+sky130，给 R4 端到端写能，补 Track B 的写侧）。
+> 2026-07-06 勘正：原 5 动作中 2/3/4/5 均已完成（1.11、2.3、1.13、3.1 见上表），仅 1 仍开口。
+
+1. **1.7 GUI 布线 SA**（解锁 1.8–1.10 整条 Hero 版后链；清单已备 `LVS_GUI_CHECKLIST.md`；按指令①设计已冻结、可开工）。
+
+**当前全部开口项（2026-07-06 审计）**：1.7→1.8→1.9→1.10 版图收尾链（GUI）；3.2 路由后列级 popcount 误差 vs N（R3 尾巴）；R6 尾巴 TIA 前端偏置能量（量级）；`PPA_grounding_plan.md` 两项精修（DRC-clean GDS 面积、Liberty/OpenSTA 能量）；VA 同步（PARKED，见 `VA_SYNC_RUNBOOK.md`）；errata §S-C 缓办项（exp05a CNN 重训、PPA-1/2 面积延迟、RC/SE 系列建模缺口）。**新方向统筹见 [`../plans/`](../plans/)。**
