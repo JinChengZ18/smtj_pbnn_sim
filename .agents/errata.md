@@ -145,7 +145,7 @@
 - [x] R2 → §4.6 已含 SA 失调通道、斜率匹配协同律与 plain-SA Pareto 边界 (chapter04.md §4.6，图 4.15)。
 - [x] R3 → §4.6 已给写线 IR 真实提取数 (N=256 met2 ≈128 Ω=16.5%，chapter04.md:265) 与设计指引。残余：路由后列级 popcount 误差 vs N (PLAN 3.2)。
 - [x] R4 → §4.6 已并列报告器件级 0.78 pJ 与端到端 ~1.6 pJ (chapter04.md:265，图 4.16)。
-- [~] R5 → 正文未采用本表建议的 6.95 pJ/bit 重定基准，而是把 5 pJ 锚点落到 Camsari 2019 APR 综述 + Borders/Sutton 原型机作边界 (chapter04.md:205 脚注 [^cmos_pbit_camsari]，DOI 已核)，并单列端到端写能 1.6 pJ。**残余口径注意**：图 4.13 的 4.2× 头条仍是「sMTJ 0.78 pJ 器件级 vs CMOS 5 pJ per-update」的混合口径；若审稿人以端到端 1.6 pJ 对 5 pJ，比值收缩为 ~3.1×。答辩/投稿前建议在正文加一句口径限定或并列两个比值。
+- [x] R5 → 正文未采用本表建议的 6.95 pJ/bit 重定基准，而是把 5 pJ 锚点落到 Camsari 2019 APR 综述 + Borders/Sutton 原型机作边界 (chapter04.md:205 脚注 [^cmos_pbit_camsari]，DOI 已核)，并单列端到端写能 1.6 pJ。**残余口径已于 2026-07-08 闭环**：§4.5 新增单参数敏感性扫描句与 [^energy_sens] 脚注 (exp22)——并列器件级 6.4× 与端到端 3.1× 两个口径、注明均与总能耗 3.9× 同向；p-bit/sMTJ 包络 1.5–10.9× (对 5 pJ 锚点线性敏感、方向全程不变)，sMTJ/STT 包络 0.7–1.6× 跨越持平点故改口「同档」。
 - [x] R6 → 第五章已重算 (~30×/~35×，chapter05.md:104) 并显式解释「读出非免费、比较器主导、列共享摊销」协同 (chapter05.md:108，图 5.8/5.9)；`reservoir_energy.py` 已补地标 ADC 项。残余：TIA 前端偏置能量 (量级)。
 - [x] R7 → 第五章已改述为受限、时分复用、VCMA 栅控的提案 + 22.6% 势垒摆幅 + 三条限制 (chapter05.md:126)。
 - [~] 全部 → `.docx` 由 watcher 自动重生；当前工作树有 chapter04/05 `.docx` 未提交的重生版 (与 `.md` 一起提交即闭环)。

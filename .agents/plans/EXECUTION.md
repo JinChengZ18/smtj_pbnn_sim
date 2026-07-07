@@ -6,7 +6,7 @@
 
 - [x] **A1 = T3-1 步骤 0**（2026-07-08 完成）：表 4.6 修正为规范 run 值——**两行**变动（sMTJ 7.90/12.73 J + stoch-ReRAM 448.40/453.22 J，指南 §7.1 原「仅 sMTJ 一行」的 diff 声明不完整已订正）；图 4.13 题注与 §4.5 正文（排名改「仅次于 STT-MRAM 与 FeRAM」、1.14×→1.22×、4.2×→3.9×）；[^nv_ranking] 重写并附旧占位值来历；图 4.13 经 deck 换图重导出（slide 13 blob 替换 + 纵横比修正 + dpi 419 裁剪）；guide/status.md 同步。规范 run 的 CSV 未入库（runs/ 整体 gitignored，见阻塞项登记的 guide 措辞问题）。⏳ 待 watcher 重生 chapter04.docx 后一并提交。
 - [x] **A2 = MTJ 计划口径修正 #1**（2026-07-08 完成）：chapter04.md「约100 nm」改归属——标定器件临界尺寸改为约 80 nm（第二章口径），无沟道工艺以「(临界尺寸约100 nm)」括注保留在对照句中。
-- [ ] **A3 = T3-1 步骤 1–3**：占位常数三档带宽敏感性扫描 → 龙卷风数据 + 名次反转边界 → 正文头条加不确定度包络（「约 3–5×，方向稳健」「sMTJ/STT 在 e_int8_mac ±3× 内不可分辨」）。新实验脚本按 experiments/ 惯例组织。
+- [x] **A3 = T3-1 步骤 1–3**（2026-07-08 完成）：`experiments/22_energy_sensitivity.py`（18 参数、三档带宽、基线对规范 run 自校验、闭式反转点）。实测：p-bit/sMTJ 包络 **1.5–10.9×**（方向全程不变，宽端来自 5 pJ 锚点自身 ±3×；统筹报告预跑的 2.7–4.8× 系未扫锚点本身，已被实测取代）；sMTJ/STT 包络 **0.72–1.64×** 跨 1（反转点：e_int8_mac ×2.03、stt.read ×1.64；对 FeRAM：×1.78/×1.49）；带内共 19 处名次反转（reversal_boundaries.csv）。§4.5 增包络句 + [^energy_sens] 脚注（并列 6.4×/3.1× 两口径，同时闭环 R5 残余）。**待定**：龙卷风图 `figures/22_energy_sensitivity_tornado.png` 暂为仓库级证据，是否经 deck 收进正文/附录由用户定夺；runs/ 下两个 CSV 因 gitignore 未入库（脚本确定性可再生，另见 runs 入库任务芯片）。
 - [ ] **A4 = T3-2**：EOT 自适应攻击审计（先修 `_eval_pgd` 口径不一致 + FULL_STACK no_grad 补丁，再跑攻击矩阵；GPU）。
 - [ ] **A5 = T3-3**：真 IPC 正交化（metrics.py 规范 IPC + rank 上界自检 + 重跑 exp18 面板 (c)(d) + 图 5.6/正文联动）。
 - [ ] **A6 = T3-4**：V_th 慢漂移压力测试与再校准配方（variation 层 OU/随机游走注入 + 节拍公式）。
