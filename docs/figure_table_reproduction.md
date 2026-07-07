@@ -86,7 +86,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 | 图 4.10 | 硬件比特翻转鲁棒性扫描 (a/b/c) | `experiments/09_hardware_bitflip.py` | `figures/09a_per_bit_sensitivity.png` + `09b_bitflip_accuracy.png` + `09c_effective_error_dist.png` → `Chapter04_local_10.png` | torch + MNIST |
 | 图 4.11 | 非理想性对 sMTJ Sigmoid 响应曲线的影响 | `experiments/08_nonideality_ablation.py` (Part 1) | `figures/08a_psw_nonideality_curves.png` → `Chapter04_local_11.png` | 解析曲线，无需 torch |
 | 图 4.12 | 非理想性消融下的测试精度 | `experiments/08_nonideality_ablation.py` (Part 2) | `figures/08b_nonideality_accuracy.png` → `Chapter04_local_12.png` | torch + MNIST；同 run 另写六个 `sweep_*.csv` |
-| 图 4.13 | 九种存储器架构训练总能耗对比 | `experiments/13_training_energy.py` | `figures/13a_training_energy_breakdown.png` → `Chapter04_local_13.png` | 解析能量模型，无需 torch；⚠ 数值同表 4.6，见 §7 |
+| 图 4.13 | 九种存储器架构训练总能耗对比 | `experiments/13_training_energy.py` | `figures/13a_training_energy_breakdown.png` → (Chapter04_local.pptx slide 13 换图) → `Chapter04_local_13.png` | 解析能量模型，无需 torch；数值同表 4.6 (2026-07-08 起与规范 run 一致) |
 | 图 4.14 | StrongARM 灵敏放大器电路 | 电路原理图流程 (§2.1)，`<base>=strongarm_sa` | → `Chapter04_local_14.{svg,png,pdf}` | WSL EDA 工具链 |
 | 图 4.15 | 斜率匹配读出的失调预算与帕累托 (a/b/c) | EDA 分析面板流程 (§2.2)，`gen_supplement_figs.py` fig2 | `figures/panels/ch04_15_*` → (build_ppt_figs) → `Chapter04_local_15.png` | 数据源 `eda/hero/offset_mc_summary.json`、`pareto_offset_cancellation_summary.json`、`comparison_results.json`；离线可复现 |
 | 图 4.16 | 写通路能量与供电完整性 (a/b) | EDA 分析面板流程，`gen_supplement_figs.py` fig3 | `figures/panels/ch04_16_*` → `Chapter04_local_16.png` | 数据源 `eda/extraction/writeline/ir_drop_summary.json`；面板 b 的驱动数为 fig3 内联 ngspice 实测数组 |
@@ -105,7 +105,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 | 表 4.3 | PBNN-MLP 在六类 UCI 表格任务上的迁移精度 | `experiments/10_uci_benchmarks.py` | `runs/10_uci_20260502_071140/summary.csv` (列 pbnn_best_acc, fp_best_acc, ref_baseline) | 六行逐行核对一致 |
 | 表 4.4 | 八类输入、权重与对抗扰动下的 MNIST 测试精度 | `experiments/07_baseline_comparison.py` | `runs/07_baseline_20260511_192151/noise_*.csv` (8 个文件) | 列 param, pbnn_T4, bnn, fp |
 | 表 4.5 | 均匀单比特翻转率下不同权重编码的 MNIST 测试精度 | `experiments/09_hardware_bitflip.py` | `runs/09_hardware_bitflip_20260502_061419/bitflip_sweep.csv` (列 p_flip, pbnn_T8, pbnn_T64, bnn, fp_8bit) | 八行逐行核对一致 |
-| 表 4.6 | 九种存储器/p-bit 架构的训练能耗分解 | `experiments/13_training_energy.py` | 规范 run `runs/13_training_energy_20260706_225408/breakdown.csv` (列 forward_J, backward_J, write_or_theta_J, total_J) | ⚠ 文章值取自旧 run，与最新 run 不一致，见 §7 |
+| 表 4.6 | 九种存储器/p-bit 架构的训练能耗分解 | `experiments/13_training_energy.py` | 规范 run `runs/13_training_energy_20260706_225408/breakdown.csv` (列 forward_J, backward_J, write_or_theta_J, total_J) | 2026-07-08 已修正：文章值与规范 run 一致，见 §7 |
 
 ## 5. 第 5 章 (无编号表)
 
@@ -159,7 +159,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 
 ## 7. 已知偏差与注意事项
 
-1. **表 4.6 / 图 4.13 数值陈旧 (最高优先)**：文章表 4.6 与图 4.13 题注中 PBNN sMTJ = 11.91 J (前向 7.09 J) 取自旧 run `runs/13_training_energy_20260511_214859`；最新 `runs/13_training_energy_20260706_225408/breakdown.csv` 为 12.73 J (前向 7.90 J)。逐行比对确认两 run 之间仅 sMTJ 的 `forward_J` 变动 (7.09→7.90 J)，其余八架构逐值不变。若以最新 run 为规范来源，需把 11.91→12.73 J、7.09→7.90 J 传播到表 4.6、图 4.13 题注与 4.5 节末正文/脚注，并把"比 STT-MRAM (10.42 J) 高 14%"重算为约 22% (12.73/10.42≈1.22)。此为文章文本的修正项，非脚本问题。
+1. **表 4.6 / 图 4.13 数值陈旧 — 已于 2026-07-08 修正**：文章旧值 (PBNN sMTJ 11.91 J、前向 7.09 J) 取自旧 run `runs/13_training_energy_20260511_214859`；规范 run `20260706_225408` (与 2026-07-08 重跑逐字节一致，模型确定性) 为 12.73 J (前向 7.90 J)。注意本条早先"仅 sMTJ 一行变动"的比对结论**不完整**：stoch-ReRAM 行同样变动 (前向 447.97→448.40 J、总 452.80→453.22 J)。已传播：表 4.6 两行、图 4.13 题注与 4.5 节末正文 (排名改为"仅次于 STT-MRAM 与 FeRAM"、1.14×→1.22×、4.2×→3.9×)、脚注 [^nv_ranking] (含旧占位值的来历说明)；图 4.13 经 deck 换图重导出 (slide 13 内嵌图替换为新 `13a_*.png` 并修正纵横比，LibreOffice→PDF→dpi 419 裁剪)。
 2. **图 4.2 不能由当前 HEAD 精确复现**：`demo/01_simulator_framework.py` 现输出 `demo/figures/01_simulator_framework.png`，与已入库 `Chapter04_local_02.png` 不一致 (标题已去除、模块标签改动、并新增 training_energy 项)——该资产由在 `Chapter04_local.pptx` 中编辑后的渲染合成，重跑脚本得到的是旧版式。
 3. **图 4.19 生成脚本目标名陈旧**：`eda/testbenches/plot_waveforms.py` 仍写 `Supplement_local_11.{png,svg,pdf}`，而文章资产为 `Chapter04_local_19`。内容一致；运行后须把三个文件改名为 `Chapter04_local_19.*`，或改脚本第 90 行的目标名。
 4. **表 4.2 BNN 行 (97.05%) 数据源缺口**：该行不在任一已保存的 05 run 目录 (`20260509_092543` 缺 `bnn_metrics.csv`、`20260506_181751` 为旧格式)。同表 PBNN 与四档 QAT 行已精确核对。重跑 `experiments/05_mnist_pbnn.py` 可重新生成 BNN 行 (脚本第 261 行确写 `bnn_metrics.csv`)。
