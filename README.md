@@ -93,6 +93,8 @@ Every default constant in the simulator traces to a specific, documented physica
 
 Every experiment is parameterized by a single YAML under `configs/experiment/`. The training script writes `runs/<name>/resolved.yaml` alongside the checkpoint, so any run can be rerun with `smtj-train --config runs/<name>/resolved.yaml`.
 
+Every figure and table in the thesis (Chapters 1/4/5 and Appendices B/C/D) is mapped to its generator script, run command, raw output, and committed data source in [`docs/figure_table_reproduction.md`](./docs/figure_table_reproduction.md).
+
 ## Layout
 
 ```
@@ -106,6 +108,7 @@ smtj_pbnn_sim/
 │   ├── architecture.md
 │   ├── calibration_guide.md
 │   ├── experiment_findings.md          (expected per-experiment results)
+│   ├── figure_table_reproduction.md    (every thesis figure/table -> generator + command + data source)
 │   └── physics_grounding.md
 ├── .agents/                            (internal: project status, errata ledger, EDA plans)
 ├── demo/                               (principle-figure scripts, incl. 05 reservoir computing)
