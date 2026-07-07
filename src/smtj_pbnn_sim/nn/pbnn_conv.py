@@ -204,12 +204,15 @@ class PBNNConv2d(torch.nn.Module):
             with torch.no_grad():
                 # Use soft p for Bernoulli sampling (mirrors PBNNLinear).
                 p = self._p_soft_for_sampling()
-                acc: Optional[Tensor] = None
-                for _ in range(T_eff):
-                    w = _bernoulli_pm1(p)
-                    z_t = torch.nn.functional.linear(flat, w)
-                    acc = z_t if acc is None else (acc + z_t)
-                z = acc / T_eff
+                ws = [_bernoulli_pm1(p) for _ in range(T_eff)]
+            # Sampled weights stay detached; the linear map runs on the
+            # autograd tape so input-space gradients flow (mirrors
+            # PBNNLinear._forward_full_stack).
+            acc: Optional[Tensor] = None
+            for w in ws:
+                z_t = torch.nn.functional.linear(flat, w)
+                acc = z_t if acc is None else (acc + z_t)
+            z = acc / T_eff
         else:
             raise ValueError(f"Unknown ForwardMode: {mode!r}")
 

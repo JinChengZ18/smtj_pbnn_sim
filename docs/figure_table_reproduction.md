@@ -103,7 +103,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 | 表 4.1 | 不同采样次数下 MNIST PBNN-MLP 全栈推理精度与能耗 | `experiments/06_sweep_T_vs_accuracy.py` | `runs/06_sweep_T_20260502_054343/results.csv` (列 T, accuracy, energy_uJ) | 逐行核对一致；依赖 `runs/mnist_pbnn_mlp/best.pt` |
 | 表 4.2 | MNIST 上 PBNN-MLP、BNN-MLP 与 QAT FP-MLP 的最佳测试精度 | `experiments/05_mnist_pbnn.py` | `runs/05_mnist_pbnn_20260509_092543/{summary.json, fp_*_metrics.csv}` | PBNN 96.98%、FP32/INT8/INT4/INT2=98.51/98.33/98.43/98.21% 已核对；⚠ BNN 行 97.05% 数据源缺口，见 §7 |
 | 表 4.3 | PBNN-MLP 在六类 UCI 表格任务上的迁移精度 | `experiments/10_uci_benchmarks.py` | `runs/10_uci_20260502_071140/summary.csv` (列 pbnn_best_acc, fp_best_acc, ref_baseline) | 六行逐行核对一致 |
-| 表 4.4 | 八类输入、权重与对抗扰动下的 MNIST 测试精度 | `experiments/07_baseline_comparison.py` | `runs/07_baseline_20260511_192151/noise_*.csv` (8 个文件) | 列 param, pbnn_T4, bnn, fp |
+| 表 4.4 | 八类输入、权重与对抗扰动下的 MNIST 测试精度 | `experiments/07_baseline_comparison.py` | `runs/07_baseline_20260511_192151/noise_*.csv` (8 个文件)；PGD 行 PBNN 单元自 2026-07-08 起 = `experiments/23_eot_attack_audit.py` 修正口径值 (规范 run `runs/23_eot_attack_20260708_053712/attack_matrix.csv`) | 列 param, pbnn_T4, bnn, fp；PGD 口径见 §7 |
 | 表 4.5 | 均匀单比特翻转率下不同权重编码的 MNIST 测试精度 | `experiments/09_hardware_bitflip.py` | `runs/09_hardware_bitflip_20260502_061419/bitflip_sweep.csv` (列 p_flip, pbnn_T8, pbnn_T64, bnn, fp_8bit) | 八行逐行核对一致 |
 | 表 4.6 | 九种存储器/p-bit 架构的训练能耗分解 | `experiments/13_training_energy.py` | 规范 run `runs/13_training_energy_20260706_225408/breakdown.csv` (列 forward_J, backward_J, write_or_theta_J, total_J) | 2026-07-08 已修正：文章值与规范 run 一致，见 §7 |
 
@@ -168,3 +168,4 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 7. **第 5 章实验-图号偏移**：脚本按撰写顺序编号，与章节图号不一致——exp 14→图 5.2、exp 15→图 5.3、exp 19→图 5.4、exp 17→图 5.5、exp 18→图 5.6、exp 16→图 5.7。
 8. **储备池实验 14–19 不写 CSV**：指标仅打印到 stdout。`runs/rc/` 下的 CSV 为原型日志，非任何编号图的数据源。
 9. **EDA 分析面板须按序跑两条命令**：只跑 `gen_supplement_figs.py` 会在 `article/figs/` 留下无字母占位图，须接着跑 `build_ppt_figs.py` 覆盖为带 `(a)(b)(c)` 的规范资产 (图 4.15/4.16/4.17/5.9)。
+10. **表 4.4 PGD 行与图 4.8(h) 的口径差 (2026-07-08 起)**：exp07 旧代码对 PBNN 的 PGD 终评误用 CLT 路径 (HARDWARE_AWARE)，与表内其余行的全栈 T=4 终评口径不一致——代码已修 (`_eval_pgd` 攻击/终评口径分离)，表 4.4 的 PBNN 单元改为 exp23 修正口径值 53.22 (52.12 为规范 run 旧口径值；BNN/FP 单元保持规范 run 出处)。图 4.8(h) 面板仍为规范 run 旧口径曲线，与新单元差约 1.1 pp、在线宽内；下次全量重跑 exp07 时自然对齐 (注意重训基线的对抗精度对训练实例敏感，±5 pp 量级，见 exp23 审计)。EOT/迁移/多重启审计细节 = `runs/23_eot_attack_20260708_053712/attack_matrix.csv`。

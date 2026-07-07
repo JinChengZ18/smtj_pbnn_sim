@@ -238,12 +238,32 @@ def _eval_with_noise(model, loader, device, noise_fn=None, *,
 
 
 def _eval_pgd(model, loader, device, epsilon, *, mode=None, T=None,
-              n_steps=10, alpha=None) -> float:
-    """Evaluate accuracy under PGD-N L_inf adversarial attack."""
+              eval_mode=None, eval_T=None, n_steps=10, alpha=None,
+              eot_K=1, n_restarts=1, attack_model=None) -> float:
+    """Evaluate accuracy under PGD-N L_inf adversarial attack.
+
+    ``mode``/``T`` set the forward used to CRAFT the attack (gradient
+    source); ``eval_mode``/``eval_T`` set the forward used for the final
+    accuracy so the terminal evaluation matches the rest of the table
+    (they default to the attack mode for backward compatibility).
+    ``eot_K > 1`` averages the input gradient over K independent
+    stochastic forwards per step (EOT; Athalye 2018) — only meaningful
+    for a stochastic attack forward.  ``n_restarts > 1`` takes, per
+    sample, the worst case over random restarts.  ``attack_model`` (for
+    transfer attacks) crafts the perturbation on a different model.
+    """
     import torch
     from smtj_pbnn_sim.nn.losses import binary_cross_entropy_loss
     if alpha is None:
         alpha = epsilon / 4.0  # standard PGD step size
+    if eval_mode is None:
+        eval_mode, eval_T = mode, T
+    crafter = model if attack_model is None else attack_model
+
+    def _fwd(m, x, fmode, fT):
+        if fmode is not None and hasattr(m, "forward_with_mode"):
+            return m.forward_with_mode(x, mode=fmode, T=fT)
+        return m(x)
 
     n_correct = 0
     n_total = 0
@@ -251,31 +271,31 @@ def _eval_pgd(model, loader, device, epsilon, *, mode=None, T=None,
         x = x.to(device, non_blocking=True)
         y = y.to(device, non_blocking=True)
         x_orig = x.detach()
-        x_adv = x.detach() + 0.001 * torch.randn_like(x)
-        x_adv = x_adv.clamp(0.0, 1.0)
+        still_correct = torch.ones_like(y, dtype=torch.bool)
 
-        for _ in range(n_steps):
-            x_adv = x_adv.detach().requires_grad_(True)
-            if mode is not None and hasattr(model, "forward_with_mode"):
-                logits = model.forward_with_mode(x_adv, mode=mode, T=T)
-            else:
-                logits = model(x_adv)
-            loss = binary_cross_entropy_loss(logits, y)
-            grad = torch.autograd.grad(loss, x_adv)[0]
+        for _ in range(n_restarts):
+            x_adv = x_orig + 0.001 * torch.randn_like(x_orig)
+            x_adv = x_adv.clamp(0.0, 1.0)
+            for _ in range(n_steps):
+                x_adv = x_adv.detach().requires_grad_(True)
+                grad = torch.zeros_like(x_adv)
+                for _ in range(eot_K):
+                    logits = _fwd(crafter, x_adv, mode, T)
+                    loss = binary_cross_entropy_loss(logits, y)
+                    grad = grad + torch.autograd.grad(loss, x_adv)[0]
+                with torch.no_grad():
+                    x_adv = x_adv + alpha * (grad / eot_K).sign()
+                    # project back into L_inf ball around x_orig
+                    x_adv = torch.max(torch.min(x_adv, x_orig + epsilon),
+                                      x_orig - epsilon).clamp(0.0, 1.0)
+
             with torch.no_grad():
-                x_adv = x_adv + alpha * grad.sign()
-                # project back into L_inf ball around x_orig
-                x_adv = torch.max(torch.min(x_adv, x_orig + epsilon),
-                                  x_orig - epsilon).clamp(0.0, 1.0)
+                logits_adv = _fwd(model, x_adv, eval_mode, eval_T)
+                pred = logits_adv.argmax(dim=1)
+                still_correct &= (pred == y)
 
-        with torch.no_grad():
-            if mode is not None and hasattr(model, "forward_with_mode"):
-                logits_adv = model.forward_with_mode(x_adv, mode=mode, T=T)
-            else:
-                logits_adv = model(x_adv)
-            pred = logits_adv.argmax(dim=1)
-            n_correct += int((pred == y).sum().item())
-            n_total += int(y.numel())
+        n_correct += int(still_correct.sum().item())
+        n_total += int(y.numel())
     return n_correct / max(1, n_total)
 
 
@@ -477,10 +497,14 @@ def main() -> None:
             r_pgd["bnn"].append(results["gaussian"]["bnn"][0])
             r_pgd["fp"].append(results["gaussian"]["fp"][0])
         else:
-            # PGD against PBNN: use HARDWARE_AWARE for gradient (CLT path)
+            # PGD against PBNN: HARDWARE_AWARE (CLT path) for the attack
+            # gradient, but the terminal accuracy is FULL_STACK T=4 like
+            # every other row of the comparison (caliber fix 2026-07-08;
+            # the old code also evaluated under HARDWARE_AWARE).
             r_pgd["pbnn"].append(_eval_pgd(
                 pbnn_model, test_loader, device, eps,
-                mode=ForwardMode.HARDWARE_AWARE))
+                mode=ForwardMode.HARDWARE_AWARE,
+                eval_mode=ForwardMode.FULL_STACK, eval_T=T_PBNN))
             r_pgd["bnn"].append(_eval_pgd(
                 bnn_model, test_loader, device, eps))
             r_pgd["fp"].append(_eval_pgd(

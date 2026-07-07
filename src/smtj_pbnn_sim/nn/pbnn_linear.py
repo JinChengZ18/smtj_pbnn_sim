@@ -306,7 +306,7 @@ class PBNNLinear(torch.nn.Module):
             if has_c2c:
                 V_wr_base = dp.V_th_nom + dp.V_T_nom * self.theta
 
-            acc: Optional[Tensor] = None
+            ws = []
             for _ in range(T):
                 if has_c2c:
                     # C2C noise: per-draw Gaussian perturbation on V_wr.
@@ -316,7 +316,13 @@ class PBNNLinear(torch.nn.Module):
                     p = psw_sigmoid(V_wr, self.V_th_field, self.V_T_field)
                     if has_plateau:
                         p = p.clamp(1.0 - dp.p_max, dp.p_max)
-                w = _bernoulli_pm1(p)
-                z_t = torch.nn.functional.linear(x, w)
-                acc = z_t if acc is None else (acc + z_t)
-            return acc / T
+                ws.append(_bernoulli_pm1(p))
+        # The sampled weights stay detached (no gradient to theta), but the
+        # linear map itself runs on the autograd tape so input-space
+        # gradients flow through the stochastic forward (EOT attacks,
+        # saliency). Values are unchanged.
+        acc: Optional[Tensor] = None
+        for w in ws:
+            z_t = torch.nn.functional.linear(x, w)
+            acc = z_t if acc is None else (acc + z_t)
+        return acc / T
