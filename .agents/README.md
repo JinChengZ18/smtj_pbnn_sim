@@ -49,8 +49,8 @@
   直接 push 到 `master` 被 auto-mode 安全闸拦截 → 工作流：本地 master 提交 →
   `git push origin master:<feature-branch>` → 用户 FF/merge。
 - **`article/` 是交付稿**：保持干净，本地草稿 / 文件引用 / 勘误指针不要写进去。
-- **`.md`→`.docx` 自动 watcher**：用户本地 watcher 在每次 `.md` 编辑后约 4–5 分钟自动重生
-  `article/*.docx`；**总是把自动重生的 `.docx` 与 `.md` 一起提交**，不要当成"不是我的改动"排除。
+- **`.md`→`.docx` 手动重生**（2026-07-08 起，原 watcher 已弃用）：改完 `article/*.md` 后运行
+  `python scripts/build_docx.py <chapter>` 重生对应 `.docx`，**与 `.md` 一起提交**。
 - **EDA 诚实支柱**（写论文时必须守）：RNG 留在 Python harness；报**比值**不报绝对值（sky130 130nm 偏悲观）；
   Magic R-PEX 粗 → IR 仅给**量级**；端到端能量基线 **6.95 pJ/bit**；MTJ-in-GDS = 抽象黑盒 + 不可制造声明。
 

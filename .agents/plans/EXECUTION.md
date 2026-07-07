@@ -1,16 +1,16 @@
 # 执行队列（合并排程，live 状态；2026-07-08 建）
 
-> 由 `README.md` 排程 + `2026-07-08_mtj_layout_structure.md` 前置口径修正合并而成的**唯一执行顺序清单**。每完成一项就地打勾并在 `../MEMORY.md` 记一行。规则：改 `article/*.md` 后等 watcher 重生 `.docx` 一起提交；数字改动必须以规范 run/入库脚本为准。
+> 由 `README.md` 排程 + `2026-07-08_mtj_layout_structure.md` 前置口径修正合并而成的**唯一执行顺序清单**。每完成一项就地打勾并在 `../MEMORY.md` 记一行。规则：改 `article/*.md` 后运行 `python scripts/build_docx.py <chapter>` 手动重生 `.docx` 一起提交（watcher 已弃用）；数字改动必须以规范 run/入库脚本为准。
 
 ## 阶段 A（答辩前必做，当前窗口）
 
-- [x] **A1 = T3-1 步骤 0**（2026-07-08 完成）：表 4.6 修正为规范 run 值——**两行**变动（sMTJ 7.90/12.73 J + stoch-ReRAM 448.40/453.22 J，指南 §7.1 原「仅 sMTJ 一行」的 diff 声明不完整已订正）；图 4.13 题注与 §4.5 正文（排名改「仅次于 STT-MRAM 与 FeRAM」、1.14×→1.22×、4.2×→3.9×）；[^nv_ranking] 重写并附旧占位值来历；图 4.13 经 deck 换图重导出（slide 13 blob 替换 + 纵横比修正 + dpi 419 裁剪）；guide/status.md 同步。规范 run 的 CSV 未入库（runs/ 整体 gitignored，见阻塞项登记的 guide 措辞问题）。⏳ 待 watcher 重生 chapter04.docx 后一并提交。
+- [x] **A1 = T3-1 步骤 0**（2026-07-08 完成）：表 4.6 修正为规范 run 值——**两行**变动（sMTJ 7.90/12.73 J + stoch-ReRAM 448.40/453.22 J，指南 §7.1 原「仅 sMTJ 一行」的 diff 声明不完整已订正）；图 4.13 题注与 §4.5 正文（排名改「仅次于 STT-MRAM 与 FeRAM」、1.14×→1.22×、4.2×→3.9×）；[^nv_ranking] 重写并附旧占位值来历；图 4.13 经 deck 换图重导出（slide 13 blob 替换 + 纵横比修正 + dpi 419 裁剪）；guide/status.md 同步。规范 run 的 CSV 未入库（runs/ 整体 gitignored；guide 措辞问题已由用户在独立会话处理——保持不入库、改「本机留存」口径，分支 claude/cool-bose-b4831a 待合入）。docx 已于 2026-07-08 经 `scripts/build_docx.py` 手动重生同步（watcher 弃用；顺带发现并同步了 chapter05.docx 落后于 .md 润色的两处）。
 - [x] **A2 = MTJ 计划口径修正 #1**（2026-07-08 完成）：chapter04.md「约100 nm」改归属——标定器件临界尺寸改为约 80 nm（第二章口径），无沟道工艺以「(临界尺寸约100 nm)」括注保留在对照句中。
-- [x] **A3 = T3-1 步骤 1–3**（2026-07-08 完成）：`experiments/22_energy_sensitivity.py`（18 参数、三档带宽、基线对规范 run 自校验、闭式反转点）。实测：p-bit/sMTJ 包络 **1.5–10.9×**（方向全程不变，宽端来自 5 pJ 锚点自身 ±3×；统筹报告预跑的 2.7–4.8× 系未扫锚点本身，已被实测取代）；sMTJ/STT 包络 **0.72–1.64×** 跨 1（反转点：e_int8_mac ×2.03、stt.read ×1.64；对 FeRAM：×1.78/×1.49）；带内共 19 处名次反转（reversal_boundaries.csv）。§4.5 增包络句 + [^energy_sens] 脚注（并列 6.4×/3.1× 两口径，同时闭环 R5 残余）。**待定**：龙卷风图 `figures/22_energy_sensitivity_tornado.png` 暂为仓库级证据，是否经 deck 收进正文/附录由用户定夺；runs/ 下两个 CSV 因 gitignore 未入库（脚本确定性可再生，另见 runs 入库任务芯片）。
+- [x] **A3 = T3-1 步骤 1–3**（2026-07-08 完成）：`experiments/22_energy_sensitivity.py`（18 参数、三档带宽、基线对规范 run 自校验、闭式反转点）。实测：p-bit/sMTJ 包络 **1.5–10.9×**（方向全程不变，宽端来自 5 pJ 锚点自身 ±3×；统筹报告预跑的 2.7–4.8× 系未扫锚点本身，已被实测取代）；sMTJ/STT 包络 **0.72–1.64×** 跨 1（反转点：e_int8_mac ×2.03、stt.read ×1.64；对 FeRAM：×1.78/×1.49）；带内共 19 处名次反转（reversal_boundaries.csv）。§4.5 增包络句 + [^energy_sens] 脚注（并列 6.4×/3.1× 两口径，同时闭环 R5 残余）。**已定（2026-07-08 用户）**：龙卷风图不收进正文/附录，保持为仓库级证据 `figures/22_energy_sensitivity_tornado.png`（正文由包络句与 [^energy_sens] 脚注承载结论）；runs/ 下 CSV 保持不入库（脚本确定性可再生）。
 - [ ] **A4 = T3-2**：EOT 自适应攻击审计（先修 `_eval_pgd` 口径不一致 + FULL_STACK no_grad 补丁，再跑攻击矩阵；GPU）。
 - [ ] **A5 = T3-3**：真 IPC 正交化（metrics.py 规范 IPC + rank 上界自检 + 重跑 exp18 面板 (c)(d) + 图 5.6/正文联动）。
 - [ ] **A6 = T3-4**：V_th 慢漂移压力测试与再校准配方（variation 层 OU/随机游走注入 + 节拍公式）。
-- [ ] **A7 = MTJ 口径修正 #2**：[^hikstor_data] 数字以 IEDM 全文自查（**阻塞于用户**：需原文全文）；核不出则换锚 EDL 80 nm / Materials Futures sub-100 nm。
+- [x] **A7 = MTJ 口径修正 #2**（2026-07-08 用户核实）：[^hikstor_data] 数字已由用户对 IEDM 2024 原文全文自查确认，脚注保留原数字，无需换锚。
 
 ## 阶段 B（答辩前争取）
 
