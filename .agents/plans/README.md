@@ -10,6 +10,7 @@
 | [`2026-07-06_defense_hardening.md`](2026-07-06_defense_hardening.md) | Tier 3 答辩加固 5 项（T3-1 表4.6 陈旧修正**已独立复现属实、最高优先级**；EOT 攻击审计；真 IPC 正交化；V_th 慢漂移压力测试；确定性重放列级共仿） | 阶段 A：立即启动，答辩前必做（T3-5 除外） |
 | [`2026-07-06_innovation_candidates.md`](2026-07-06_innovation_candidates.md) | Tier 1 可发表创新点 4 项（免复位马尔可夫采样；位翻转闭式认证界；PBNN 原生 UQ；电报储备池 ESP 认证），均 partially-preempted、附存活范围与必引先例 | 阶段 B/C：T1-1/T1-3 答辩前争取，T1-2/T1-4 期刊主力 |
 | [`2026-07-06_thesis_extensions.md`](2026-07-06_thesis_extensions.md) | Tier 2 学位论文拓展 3 项（逐层采样预算分配；Sigmoid 接口全温度自洽；计数式概率域 RC 读出） | 阶段 B/C：T2-1 答辩前争取，其余视余力 |
+| [`2026-07-08_mtj_layout_structure.md`](2026-07-08_mtj_layout_structure.md) | MTJ 版图/结构三档论证（L1 抽象 BEOL 集成版图=可做；L2 结构自洽/CD 设计窗/偶极串扰界=可做；L3 可制造版图=生态不可行、明确不做）+ 5 项前置口径修正；数据边界经 Hikstor 公开文献逐项划线 | 口径修正并入阶段 A；L2a/L2c 可与阶段 B 并行；L1 与 1.7 布线同窗口 |
 
 ## 排程（答辩在先、期刊在后）
 

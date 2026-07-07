@@ -84,6 +84,12 @@
   - **统筹产出**：工作流 run `wf_82532f22-886`（5 读者→5 审稿视角 38 提案→去重 12→逐条联网对抗核验→综合）；12 候选全部存活（创新类均 partially-preempted 带存活范围）。落盘 `plans/`：README（排程+unverified 清单）+ 答辩加固 5 项（T3-1 表4.6 审计、T3-2 EOT 攻击审计、T3-3 真 IPC 正交化、T3-4 V_th 慢漂移、T3-5 确定性重放列级共仿）+ 创新点 4 项（T1-1 免复位马尔可夫采样、T1-2 位翻转闭式认证界、T1-3 PBNN 原生 UQ、T1-4 电报储备池 ESP 认证）+ 拓展 3 项（T2-1 逐层 T 预算、T2-2 全温度自洽、T2-3 计数式 RC 读出）。排程：阶段 A=T3-1(0)→T3-2→T3-1→T3-3→T3-4；阶段 B=T1-1→T1-3/T2-1；阶段 C=期刊（T1-2/T1-4 主力）。
   - **附带勘误**：核验发现既有记录对 arXiv:2601.21807 的描述有误（实为集合平均读出去噪理论，非「2–4bit ADC 够用」）——PLAN_execution §0d 与 2026-06-27_plan_validation.md 的 C3 复核沿用前须读原文；引用前再核清单见 `plans/README.md` 末节。
 
+- 2026-07-08: **MTJ 版图/结构可行性论证完成 → `plans/2026-07-08_mtj_layout_structure.md`。**
+  - **底线**：数据够做 L1 抽象 BEOL 集成版图（2T 单元 GDS + 黑盒，闭 PPA_grounding 精修项1、供 T3-5 单元模板）与 L2 结构物理研究（几何→保持Δ 自洽闭环、CD 设计窗+双CD双模候选、偶极串扰 pitch 界）；L3 可制造版图 = 生态不可行（开源 PDK 零 MRAM 模块；sky130B ReRAM 官方 DRC 五年未发布、仓库 2026-04 归档）+ sMTJ 堆叠专有，写成事实非自我设限。
+  - **数据边界（核验划线）**：Hikstor EDL 2024（DOI 10.1109/LED.2024.3454609，全文已读）公开了 CD≈80nm、SOT track 200nm、**W 层 4nm/ρ=250µΩ·cm/θ_SH=−0.3**、R_SOT=776Ω（与标定值逐位同）；sMTJ 组（D_elec=65nm=RA/R_P 之商、t_FL/MgO/RA/R_P/Δ）公开域零出处、只能标「合作方晶圆实测标定」。
+  - **口径修正 5 项**（详见计划文件）：ch4:233 「约100nm 归于第二章标定」误归属；[^hikstor_data] 数字须 IEDM 全文自查；ch2 应说明 D_elec 为派生量（跨仓库）；configs.py:42 「β-IrMn」注释陈旧（实为 β-W，Pai 2012 DOI 10.1063/1.4753947 已核）→ 并入 pending_vgsot_destale；θ_SH 材料值(−0.3) vs 器件有效值(0.066) 需一句区分。
+  - **量级底牌（主会话实算，项目实参）**：邻居偶极耦合 2.1µm 间距 ≈2.7×10⁻⁵ kT（可忽略）、0.2µm ≈3×10⁻² kT（p≈0.5 处 ~1.5% 偏移）——串扰界研究有真实拐点，定位小节级（partially-preempted：Caçoilo arXiv:2312.05245 已做确定性 MTJ 版；sMTJ/p-bit 阵列版 unverified-absence）。
+
 - 2026-07-03: **Global writing/workflow norms imported into project memory.** Source reviewed: `D:\Backups\Claude\CLAUDE-20260702.md` (UTF-8). Apply to this thesis project going forward:
   - Keep repo work on the canonical English path `D:\Documents\Graduation Project-2026\04PBNNSim\smtj_pbnn_sim`; run git from this subrepo root. Make meaningful local commits as checkpoints, but never push unless explicitly requested.
   - Use `.agents/MEMORY.md` for cross-agent memory and coordination; keep scratch plans, audits, and maintenance notes under `.agents/`, never inside user-facing manuscript folders.
