@@ -6,12 +6,11 @@ substrate is a generic temporal processor rather than a single-task construction
 
   (a) Mackey-Glass chaotic prediction -- target vs readout trace
   (b) Mackey-Glass NRMSE vs prediction horizon
-  (c) memory & nonlinear-capacity decomposition (linear / quadratic / cubic),
-      mean-field vs real device -- summed held-out r^2 by polynomial degree
-      (a practical capacity proxy, not the orthonormalised Dambre IPC; see
-      ``capacities`` below)
-  (d) total capacity vs operating-point bias -- linear capacity trades for
-      nonlinear capacity, total roughly conserved
+  (c) information-processing-capacity decomposition (linear / quadratic /
+      cubic), mean-field vs real device -- orthonormalised Legendre IPC
+      (Dambre 2012), shuffle-thresholded, with the rank upper bound printed
+  (d) total IPC vs operating-point bias -- how linear capacity trades for
+      nonlinear capacity under the canonical measure
 
 Run from the repo root:
 
@@ -21,7 +20,6 @@ Run from the repo root:
 from __future__ import annotations
 
 from pathlib import Path
-from itertools import combinations_with_replacement
 import sys
 import time
 
@@ -34,6 +32,8 @@ sys.path.insert(0, str(REPO / "src"))
 from smtj_pbnn_sim.reservoir import (                              # noqa: E402
     ReservoirConfig, SMTJReservoir, RidgeReadout, nrmse, memory_capacity)
 from smtj_pbnn_sim.reservoir import tasks                         # noqa: E402
+from smtj_pbnn_sim.reservoir.metrics import (                     # noqa: E402
+    information_processing_capacity)
 
 PURPLE, RED, DEEP, GREEN, LILAC = "#5E3F8C", "#A82038", "#9580BD", "#1A6B5A", "#C99FD4"
 
@@ -43,42 +43,14 @@ ST = dict(n_nodes=100, mode="stochastic", effective_spectral_radius=0.5,
           effective_input_scale=2.0, dt=25e-9, substeps=25, ensemble=128, seed=1)
 
 
-def _r2(X, y, *, alpha=1e-4, split=0.6):
-    n = X.shape[0]
-    n_tr = int(split * n)
-    if np.var(y[:n_tr]) < 1e-12:
-        return 0.0
-    ro = RidgeReadout(alpha=alpha).fit(X[:n_tr], y[:n_tr])
-    pred = ro.predict(X[n_tr:])
-    truth = y[n_tr:]
-    if np.var(truth) < 1e-12 or np.var(pred) < 1e-12:
-        return 0.0
-    return float(np.corrcoef(truth, pred)[0, 1] ** 2)
-
-
-def capacities(X, u, *, k_lin=20, k_nl=6):
-    """Practical capacity proxy: summed held-out r^2 by polynomial degree.
-
-    This sums held-out r^2 over RAW delayed monomials (u[t-k], u[t-k1]u[t-k2],
-    ...). It is a convenient, reproducible measure of how much linear and
-    nonlinear memory the reservoir exposes, but it is NOT the Dambre et al.
-    information-processing capacity (IPC): the raw monomials are non-orthogonal,
-    so the per-degree sums double-count shared variance and are not bounded by
-    the reservoir rank the way orthonormalised-Legendre IPC is. Reported as a
-    comparative proxy (mean-field vs device, bias sweep), not an absolute IPC.
-    """
-    c1 = sum(_r2(X[k:], u[:-k] if k else u) for k in range(1, k_lin + 1))
-    c2 = 0.0
-    for k1, k2 in combinations_with_replacement(range(1, k_nl + 1), 2):
-        m = max(k1, k2)
-        y = np.roll(u, k1)[m:] * np.roll(u, k2)[m:]
-        c2 += _r2(X[m:], y)
-    c3 = 0.0
-    for k1, k2, k3 in combinations_with_replacement(range(1, 4), 3):
-        m = max(k1, k2, k3)
-        y = np.roll(u, k1)[m:] * np.roll(u, k2)[m:] * np.roll(u, k3)[m:]
-        c3 += _r2(X[m:], y)
-    return c1, c2, c3
+def ipc_by_degree(X, u):
+    """Canonical Dambre IPC of states ``X`` driven by i.i.d. U(-1,1) ``u``,
+    returned as (C1, C2, C3, rank_bound, threshold)."""
+    r = information_processing_capacity(
+        X, u, max_delay=20, max_degree=3, max_variables=3, n_shuffles=200)
+    bd = r["by_degree"]
+    return (bd.get(1, 0.0), bd.get(2, 0.0), bd.get(3, 0.0),
+            r["rank_bound"], r["threshold"])
 
 
 def main() -> None:
@@ -103,26 +75,33 @@ def main() -> None:
     print("Mackey-Glass NRMSE by horizon: " +
           ", ".join(f"h={h}:{e:.3f}" for h, e in zip(horizons, mg_nrmse)))
 
-    # (c) capacity decomposition -------------------------------------------#
-    u = tasks.memory_capacity_inputs(2200, seed=2)
+    # (c) IPC decomposition --------------------------------------------------#
+    # Long i.i.d. U(-1,1) drive: the finite-sample noise floor of the
+    # orthonormalised IPC scales down with T, so the mean-field capacities
+    # need T ~ 1e4 to resolve degree-3 terms above the shuffle threshold.
+    u = tasks.memory_capacity_inputs(12100, seed=2)
     Xmf = SMTJReservoir(ReservoirConfig(**MF), 1).run(u, washout=100)
     Xst = SMTJReservoir(ReservoirConfig(**ST), 1).run(u, washout=100)
-    c_mf = capacities(Xmf, u[100:])
-    c_st = capacities(Xst, u[100:])
-    print(f"capacity (linear/quad/cubic) mean-field: {tuple(round(c,2) for c in c_mf)}")
-    print(f"capacity (linear/quad/cubic) device    : {tuple(round(c,2) for c in c_st)}")
+    *c_mf, rank_mf, thr_mf = ipc_by_degree(Xmf, u[100:])
+    *c_st, rank_st, thr_st = ipc_by_degree(Xst, u[100:])
+    print(f"IPC (lin/quad/cubic) mean-field: {tuple(round(c,2) for c in c_mf)} "
+          f"total={sum(c_mf):.2f} rank_bound={rank_mf} thr={thr_mf:.4f}")
+    print(f"IPC (lin/quad/cubic) device    : {tuple(round(c,2) for c in c_st)} "
+          f"total={sum(c_st):.2f} rank_bound={rank_st} thr={thr_st:.4f}")
 
-    # (d) total capacity vs bias -------------------------------------------#
+    # (d) IPC by degree vs bias ----------------------------------------------#
     biases = np.array([0.0, 0.03, 0.06, 0.1, 0.15, 0.22])
-    cap_lin, cap_nl = [], []
+    cap_d = {1: [], 2: [], 3: []}
     for vb in biases:
         cfg = dict(MF); cfg["V_bias"] = float(vb); cfg["effective_input_scale"] = 1.5
         Xb = SMTJReservoir(ReservoirConfig(**cfg), 1).run(u, washout=100)
-        c1, c2, c3 = capacities(Xb, u[100:])
-        cap_lin.append(c1)
-        cap_nl.append(c2 + c3)
-    cap_lin = np.array(cap_lin)
-    cap_nl = np.array(cap_nl)
+        c1, c2, c3, rank_b, _ = ipc_by_degree(Xb, u[100:])
+        cap_d[1].append(c1); cap_d[2].append(c2); cap_d[3].append(c3)
+        print(f"  bias {vb*1e3:5.0f} mV: C1={c1:.2f} C2={c2:.2f} C3={c3:.2f} "
+              f"total={c1+c2+c3:.2f} rank_bound={rank_b}")
+    cap_lin = np.array(cap_d[1])
+    cap_quad = np.array(cap_d[2])
+    cap_cubic = np.array(cap_d[3])
 
     # ----------------------------- figure ---------------------------------#
     fig, ax = plt.subplots(2, 2, figsize=(14, 10))
@@ -147,18 +126,19 @@ def main() -> None:
     ax[1, 0].bar(xpos + 0.2, c_st, width=0.4, color=LILAC, label="device (ens=128)")
     ax[1, 0].set_xticks(xpos)
     ax[1, 0].set_xticklabels(deg)
-    ax[1, 0].set_ylabel(r"summed held-out $r^2$ (capacity proxy)")
-    ax[1, 0].set_title("Memory & nonlinear capacity by degree")
+    ax[1, 0].set_ylabel("information processing capacity (Legendre IPC)")
+    ax[1, 0].set_title("IPC by polynomial degree")
     ax[1, 0].legend(fontsize=10)
     ax[1, 0].grid(alpha=0.3, axis="y")
 
     ax[1, 1].plot(biases * 1e3, cap_lin, "o-", color=DEEP, lw=2, label="linear C1")
-    ax[1, 1].plot(biases * 1e3, cap_nl, "s-", color=RED, lw=2, label="nonlinear C2+C3")
-    ax[1, 1].plot(biases * 1e3, cap_lin + cap_nl, "^--", color="grey", lw=1.4,
-                  label="total")
+    ax[1, 1].plot(biases * 1e3, cap_quad, "s-", color=GREEN, lw=2, label="quadratic C2")
+    ax[1, 1].plot(biases * 1e3, cap_cubic, "d-", color=RED, lw=2, label="cubic C3")
+    ax[1, 1].plot(biases * 1e3, cap_lin + cap_quad + cap_cubic, "^--", color="grey",
+                  lw=1.4, label="total (deg<=3)")
     ax[1, 1].set_xlabel(r"operating-point bias $V_{bias}$ (mV)")
-    ax[1, 1].set_ylabel("capacity")
-    ax[1, 1].set_title("Linear capacity trades for nonlinear")
+    ax[1, 1].set_ylabel("information processing capacity")
+    ax[1, 1].set_title("Bias populates the low-degree IPC window")
     ax[1, 1].legend(fontsize=9)
     ax[1, 1].grid(alpha=0.3)
 
