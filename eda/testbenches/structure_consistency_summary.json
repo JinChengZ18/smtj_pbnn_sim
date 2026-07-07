@@ -1,0 +1,29 @@
+{
+  "geometry": {
+    "D_elec_nm": 65.0,
+    "tf_nm": 1.0999999999999999,
+    "Nx": 0.013010565426336553,
+    "Nz": 0.9739788691473269
+  },
+  "retention_delta_geometry": 48.5,
+  "public_platform_band": [
+    59.3,
+    64.0
+  ],
+  "nb_switching_delta_smtj": 4.91,
+  "k_int_kJm3": 290.9,
+  "k_shape_kJm3": 235.9,
+  "compensation_pct": 81.1,
+  "delta_sens_pct_per_pct_Ki": 5.3,
+  "design_window": {
+    "D_star_nm": 17.2,
+    "Ki_trim_pct": 10.0
+  },
+  "dipolar": {
+    "moment_Am2": 2.2813362277435252e-18,
+    "dp_per_mT": 0.27539418391200143,
+    "dp_at_2T_pitch": 1.0180036134611327e-05,
+    "critical_pitch_nm_at_1pct": 211.0,
+    "lattice_factor": 1.5
+  }
+}
