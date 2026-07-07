@@ -4,7 +4,7 @@
 
 ## B.1 网络拓扑与训练设置
 
-PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$3\times 3$$、pad 1，每两层接一次$$2\times 2$$最大池化，分辨率$$28\to 14\to 7$$) 加$$128\!\times\!7\!\times\!7\to 1024\to 10$$两层全连接；对CIFAR-10在前面增加一组卷积扩展为$$3\to 64\to 64\to 128\to 128\to 256\to 256$$六层卷积 (三次池化，$$32\to 16\to 8\to 4$$) 加$$256\!\times\!4\!\times\!4\to 1024\to 10$$。两套网络的卷积主干与全连接层均以PBNNConv2d/PBNNLinear实现、激活为sign-STE，与Courbariaux等人的BinaryNet配置同构[^binarynet]；遵循二值网络在RGB输入上的通行做法，CIFAR-10网络的**首层卷积保留全精度** (直接二值化三通道原始像素会摧毁过多输入信息，使精度塌缩至接近随机)，其余卷积与全连接全部二值。BNN-CNN与FP-CNN基线共用同一拓扑，分别把二值层替换为带sign-STE的`_BinConv2d`/DeterministicBinaryLinear与`nn.Conv2d`/`nn.Linear`，FP-CNN同时给出FP32与INT8两档QAT变体。Fashion-MNIST四种网络以Adam $$\mathrm{lr}=10^{-3}$$、batch 128、20轮训练；CIFAR-10的二值网络收敛显著更慢 (BinaryNet文献常需数百轮)，故统一采用60轮配余弦退火学习率[^te_cifar] (正文4.5节末段已表明余弦/OneCycle调度对二值PBNN收益最大)。两数据集的训练曲线如图B.1、图B.2所示，最佳测试精度汇总于表B.1。
+PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$3\times 3$$、pad 1，每两层接一次$$2\times 2$$最大池化，分辨率$$28\to 14\to 7$$) 加$$128\!\times\!7\!\times\!7\to 1024\to 10$$两层全连接；对CIFAR-10在前面增加一组卷积扩展为$$3\to 64\to 64\to 128\to 128\to 256\to 256$$六层卷积 (三次池化，$$32\to 16\to 8\to 4$$) 加$$256\!\times\!4\!\times\!4\to 1024\to 10$$。两套网络的卷积主干与全连接层均以PBNNConv2d/PBNNLinear实现、激活为sign-STE，与Courbariaux等人的BinaryNet配置同构[^binarynet]；遵循二值网络在RGB输入上的通行做法，CIFAR-10网络的首层卷积保留全精度 (直接二值化三通道原始像素会摧毁过多输入信息，使精度塌缩至接近随机)，其余卷积与全连接全部二值。BNN-CNN与FP-CNN基线共用同一拓扑，分别把二值层替换为带sign-STE的`_BinConv2d`/DeterministicBinaryLinear与`nn.Conv2d`/`nn.Linear`，FP-CNN同时给出FP32与INT8两档QAT变体。Fashion-MNIST四种网络以Adam $$\mathrm{lr}=10^{-3}$$、batch 128、20轮训练；CIFAR-10的二值网络收敛显著更慢 (BinaryNet文献常需数百轮)，故统一采用60轮配余弦退火学习率[^te_cifar] (正文4.5节末段已表明余弦/OneCycle调度对二值PBNN收益最大)。两数据集的训练曲线如图B.1、图B.2所示，最佳测试精度汇总于表B.1。
 
 ![图B.1 Fashion-MNIST上PBNN-CNN与基线的训练曲线](figs/AppendixB_01.png)
 
@@ -27,11 +27,11 @@ PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$
 | CIFAR-10 | PBNN-CNN (二值，sMTJ) | 67.22% | $$-25.19$$pp |
 | CIFAR-10 | BNN-CNN (数字二值) | 66.01% | $$-26.40$$pp |
 
-表B.1与正文表4.2、表4.3合起来给出一条清晰的曲线：二值容量代价随任务难度单调放大，PBNN与FP32的差距从MLP-MNIST的约1.5pp、经CNN-Fashion-MNIST的约5.5pp、放大到CNN-CIFAR-10的约25pp。这与正文4.5节末段UCI实验 (差距随样本规模、类别数与判别难度变化) 一脉相承，说明二值权重的有限容量在简单任务上被网络冗余吸收、在自然图像这类高内蕴维度任务上才真正成为瓶颈。两端的一致性也延续了正文的两条结论：低位宽量化 (INT8) 不构成主要瓶颈，且BNN-CNN与PBNN-CNN在两数据集上差距均在1.3pp内、PBNN略占优——sMTJ随机性带来的训练精度损失对卷积拓扑同样微小，PBNN接受Bernoulli采样并未额外付出可观代价。
+表B.1与正文表4.2、表4.3合起来给出一条清晰的曲线：二值容量代价随任务难度单调放大，PBNN与FP32的差距从MLP-MNIST的约1.5pp、经CNN-Fashion-MNIST的约5.5pp、放大到CNN-CIFAR-10的约25pp。这与正文4.5节末段UCI实验 (差距随样本规模、类别数与判别难度变化) 一脉相承，说明二值权重的有限容量在简单任务上被网络冗余吸收、在自然图像这类高内蕴维度任务上才真正成为瓶颈。两端的一致性也延续了正文的两条结论：低位宽量化 (INT8) 不构成主要瓶颈，且BNN-CNN与PBNN-CNN在两数据集上差距均在1.3pp内、PBNN略占优，反映sMTJ随机性带来的训练精度损失对卷积拓扑同样微小，PBNN接受Bernoulli采样并未额外付出可观代价。
 
 ## B.2 时域展开在卷积拓扑上的采样-精度曲线
 
-把两数据集训练好的PBNN-CNN分别在$$T=1, 2, 4, \ldots, 64$$下做全栈推理评估，精度-T曲线如图B.3、图B.4所示，定量数据汇总于表B.2。两条曲线都复现了正文4.4节MLP-MNIST的对数饱和形态，确认时域展开的收敛特性由PBNN对Bernoulli样本均值的统计估计单独决定，与拓扑及数据集解耦。难度差异体现在两处：其一，难任务下FULL_STACK渐近精度略低于HARDWARE_AWARE (CIFAR-10约低5个百分点)，源于难任务学到的$$\theta$$置信度较低、放大后Bernoulli采样与解析均值间的截断误差更显著；其二，达到平台所需的采样深度随难度上升——Fashion-MNIST在$$T=4$$即达渐近值的0.3个百分点内，CIFAR-10则需$$T=16$$—$$32$$。因此正文以$$T=4$$为通用部署点的结论对Fashion-MNIST成立，对CIFAR-10这类难任务应上调采样深度；这量化了时域展开作为精度-能耗调控量的价值，即在部署期按任务难度单独调节采样深度、无需重新训练。
+把两数据集训练好的PBNN-CNN分别在$$T=1, 2, 4, \ldots, 64$$下做全栈推理评估，精度-T曲线如图B.3、图B.4所示，定量数据汇总于表B.2。两条曲线都复现了正文4.4节MLP-MNIST的对数饱和形态，确认时域展开的收敛特性由PBNN对Bernoulli样本均值的统计估计单独决定，与拓扑及数据集解耦。难度差异体现在两点：难任务下FULL_STACK渐近精度略低于HARDWARE_AWARE (CIFAR-10约低5个百分点)，源于其学到的$$\theta$$置信度较低、放大后Bernoulli采样与解析均值间的截断误差更显著；达到平台所需的采样深度也随难度上升，Fashion-MNIST在$$T=4$$即达渐近值的0.3个百分点内，CIFAR-10则需$$T=16$$—$$32$$。因此正文以$$T=4$$为通用部署点的结论对Fashion-MNIST成立，对CIFAR-10这类难任务应上调采样深度；这量化了时域展开作为精度-能耗调控量的价值，即在部署期按任务难度单独调节采样深度、无需重新训练。
 
 ![图B.3 Fashion-MNIST PBNN-CNN在全栈T扫描下的精度-T与精度-能耗曲线](figs/AppendixB_03.png)
 
@@ -43,7 +43,7 @@ PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$
 
 **表B.2** Fashion-MNIST与CIFAR-10的PBNN-CNN在不同采样次数$$T$$下的全栈推理测试精度 (单次推理能耗随$$T$$线性增长，绝对值见各自图B.3/B.4右栏)。
 
-| $$T$$ | Fashion-MNIST 精度 | CIFAR-10 精度 |
+| $$T$$ | Fashion-MNIST精度 | CIFAR-10精度 |
 |---|---|---|
 | 1 | 84.05% | 34.19% |
 | 2 | 86.30% | 45.38% |
@@ -55,7 +55,7 @@ PBNN-CNN对Fashion-MNIST采用$$1\to 64\to 64\to 128\to 128$$四层卷积 (核$$
 
 ## B.3 小结
 
-卷积拓扑扩展实验定性地确认了正文两个核心结论对一般PBNN-CNN设计同样成立：(1) sMTJ随机采样不引入可观的额外训练精度代价 (PBNN-CNN与确定性BNN-CNN在两个数据集上差距均小于1.3个百分点)；(2) 时域展开提供按需可调的精度-能耗折中。同时，实验量化了两点难度依赖的工程提示：二值架构相对全精度的容量差距随任务难度从MNIST的约1.5pp扩大到CIFAR-10的约25pp，而在难任务上达到FULL_STACK渐近精度所需的采样次数也相应上升 (CIFAR-10建议$$T=16$$—$$32$$而非MNIST的$$T=4$$)。这些结论与正文基于MNIST-MLP的分析互为补充，未改变正文的主线判断。
+卷积拓扑扩展实验定性地确认了正文两个核心结论对一般PBNN-CNN设计同样成立：sMTJ随机采样不引入可观的额外训练精度代价 (PBNN-CNN与确定性BNN-CNN在两个数据集上差距均小于1.3个百分点)，且时域展开提供按需可调的精度-能耗折中。实验同时量化了两点难度依赖的工程提示：二值架构相对全精度的容量差距随任务难度从MNIST的约1.5pp扩大到CIFAR-10的约25pp，而在难任务上达到FULL_STACK渐近精度所需的采样次数也相应上升 (CIFAR-10建议$$T=16$$—$$32$$而非MNIST的$$T=4$$)。这些结论与正文基于MNIST-MLP的分析互为补充。
 
 ## 脚注
 
