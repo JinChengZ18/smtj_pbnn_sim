@@ -1,5 +1,7 @@
 # 执行队列（合并排程，live 状态；2026-07-08 建）
 
+> **2026-07-08 循环执行收官**：阶段 A 六项全部完成（A1–A7，A4/A5/A6 的稿件段已随 49025bb 入正文）；阶段 B 四项核心完成（B1–B4）。**稿件整合已落**：ch4 得 [^vth_drift]/[^sample_timing]/[^layer_T]/[^eot_audit] 四脚注 + 表 4.4 修正口径单元；ch5 换正交 Legendre IPC 口径（题注/§5.2/[^ipc_proxy] 含订正记录）；两章 docx 同步，101 测试全绿。**剩余项均属答辩后/需用户定夺**：exp26 UQ 是否立小节（脚注承载不动）、exp25 三时序图是否入正文、8 种子稳健性尾巴、D2D-UQ 预案、CIFAR CNN 升级、T2-2/T2-3、T3-5、MTJ L1 版图（与 1.7 同窗口）、跨仓库口径修正（等 VA 同步窗口）。
+
 > 由 `README.md` 排程 + `2026-07-08_mtj_layout_structure.md` 前置口径修正合并而成的**唯一执行顺序清单**。每完成一项就地打勾并在 `../MEMORY.md` 记一行。规则：改 `article/*.md` 后运行 `python scripts/build_docx.py <chapter>` 手动重生 `.docx` 一起提交（watcher 已弃用）；数字改动必须以规范 run/入库脚本为准。
 
 ## 阶段 A（答辩前必做，当前窗口）
