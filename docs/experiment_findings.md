@@ -26,7 +26,7 @@ The ~2 V^-1 discrepancy in beta_s is within fitting noise on the 46-point datase
 
 ## Experiment 02: Wafer-Average Monte Carlo
 
-**Script:** `experiments/02_wafer_average_mc.py` (no torch) **Figure:** `figures/02_wafer_mc.png`
+**Script:** `experiments/02_wafer_average_mc.py` (no torch) **Figure:** `figures/02_wafer_average_mc.png`
 
 **Key finding:** The analytic NB->Sigmoid bridge correctly propagates Delta variation to the Sigmoid slope. At PDK-baseline CV(Delta) = 7.7%:
 
@@ -290,7 +290,7 @@ At p=0.10 the FP-NN collapses to **52.32%**, while PBNN T=64 is barely scratched
 
 ### Visual companion: encoding-mapping schematic
 
-**Demo:** `demo/04_encoding_comparison.py` **Figure:** `demo/figures/04_encoding_comparison.png`
+**Demo:** `demo/04_encoding_comparison.py` **Figure:** `demo/figures/04_encoding_comparison_fixed.png`
 
 A purely illustrative four-panel schematic that explains *why* the bit-flip robustness gap exists, before any data is plotted. Panel **(a)** shows the PBNN T=8 stochastic encoding as eight equal-width cells, each contributing ±1/T to the reconstructed weight; Panel **(b)** shows the digital MRAM 8-bit positional encoding with cell widths *proportional to 2^bit*, so the MSB cell is visually 128× wider than the LSB. Panel **(c)** is a log-y bar chart of per-cell contribution (PBNN flat at 12.5 %; MRAM ramping geometrically from 0.4 % to 50.2 %). Panel **(d)** is a histogram of the effective per-weight error from a single random cell flip — PBNN bounded at exactly 2/T = 25 %, MRAM up to 100 % when the flip lands on the MSB. This is the schematic counterpart to the quantitative figures 09a/b/c.
 
