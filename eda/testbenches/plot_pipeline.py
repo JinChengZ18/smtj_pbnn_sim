@@ -12,7 +12,8 @@ phase-enable waveforms Phi_W and Phi_R are drawn aligned to the sample boxes -- 
 exactly over each write box, Phi_R high exactly over each read box -- so the waveform IS the
 per-sample timing, with light guides tying the edges to the phase boundaries of sample 1.
 
-Run with Windows Python (matplotlib). Outputs article/figs/Chapter04_local_20.{png,svg,pdf}.
+Run with Windows Python (matplotlib). Outputs figures/mode_pipeline.{png,svg,pdf}
+(raw, unnumbered; the chapter deck adds the figure number).
 """
 import matplotlib
 matplotlib.use("Agg")
@@ -20,7 +21,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from pathlib import Path
 
-FIGS = Path(__file__).resolve().parent.parent.parent / "article" / "figs"
+FIGS = Path(__file__).resolve().parent.parent.parent / "figures"
 WR, RD, SET, OUT, EDGE = "#c0392b", "#2c5aa0", "#9aa0a6", "#3f7a4a", "#333333"
 TXT, MUT = "#1a1a1a", "#555555"
 PHI_W, PHI_R = r"$\Phi_\mathrm{W}$", r"$\Phi_\mathrm{R}$"
@@ -109,8 +110,8 @@ def main():
     fig.tight_layout()
     FIGS.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "svg", "pdf"):
-        fig.savefig(FIGS / f"Chapter04_local_20.{ext}", dpi=200, bbox_inches="tight")
-    print("wrote Chapter04_local_20.{png,svg,pdf}")
+        fig.savefig(FIGS / f"mode_pipeline.{ext}", dpi=200, bbox_inches="tight")
+    print("wrote mode_pipeline.{png,svg,pdf}")
 
 
 if __name__ == "__main__":

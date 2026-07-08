@@ -293,7 +293,7 @@ ax.add_patch(
 ax.text(11.62, legend_y, "conceptual / device-sharing link", fontsize=8.3, color=GRAY, va="center")
 
 out_dir = Path(__file__).resolve().parent
-png_path = out_dir / "Chapter01_local_02.png"
+png_path = out_dir / "fig_lineage.png"
 pdf_path = out_dir / "fig_lineage.pdf"
 fig.savefig(png_path, dpi=320, bbox_inches="tight", facecolor="white")
 fig.savefig(pdf_path, bbox_inches="tight", facecolor="white")

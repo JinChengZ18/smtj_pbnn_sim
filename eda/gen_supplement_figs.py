@@ -24,6 +24,7 @@ TB = REPO / "eda" / "testbenches"
 HERO = REPO / "eda" / "hero"
 WL = REPO / "eda" / "extraction" / "writeline"
 OUT = REPO / "article" / "figs"
+FIGDIR = REPO / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 # Raw UNNUMBERED per-panel exports (no (a)(b)(c)); the PPT (article/ppt/, via
 # eda/build_ppt_figs.py) composes these, adds the panel letters + figure number,
@@ -84,7 +85,7 @@ def fig1():
     ax.set_xlabel(r"write voltage $V$ (V)"); ax.set_ylabel(r"switching probability $P_{sw}$")
     ax.set_title(r"LLG vs behavioral $P_{sw}$ validation")
     ax.legend(fontsize=9, loc="upper left")
-    fig.tight_layout(); fig.savefig(OUT / "Chapter04_local_21.png", dpi=200, bbox_inches="tight")
+    fig.tight_layout(); fig.savefig(FIGDIR / "dual_model_consistency.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
 
 

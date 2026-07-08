@@ -27,12 +27,11 @@ Python 3.10 及以上，编辑式安装即可导入仿真包：`pip install -e .
 - **Family B — EDA 电路图/表**：`eda/` 下的电路原理图脚本与器件-电路协同分析脚本，需要 WSL EDA 工具链重算底层数值，但由已入库结果 JSON 可离线重画。
 - **Family C — 概念/原理图**：`demo/*.py` 与 `article/figs/make_fig_*.py`，纯 matplotlib 绘制，数据点取自文献并硬编码，无需 torch/数据集。
 
-原始图变为编号资产的几条路径：
+原始图变为编号资产的路径 (2026-07-08 起统一)：
 
-1. **章节 deck 合成 (最常见)**：原始无字母面板经 `article/ppt/Chapter0*_local.pptx` 合成，面板字母 `(a)(b)(c)` 在 deck 中添加、不烘焙进原图，再裁剪导出为编号 PNG。第 4、5 章绝大多数 Family A 图为此路径 (由用户手工维护的 deck 合成)。
-2. **脚本直接写编号资产**：少数脚本直接写出 `Chapter0*_local_NN.png`，不经 deck，见下表标注。
-3. **附录 B/C 复制改名**：附录图不经任何 deck，`figures/…png` 与 `article/figs/Appendix{B,C}_NN.png` 字节完全一致，为手工复制改名编号。
-4. **附录 D / 电路原理图**：由 `postprocess_schematic_svg.py` 直接写出编号 SVG，再由 cairosvg 光栅化，不经 deck。
+1. **章节 deck 导出 (第 1/4/5 章全部编号光栅资产)**：`python eda/build_ppt_figs.py` 维护三个章节 deck——每张 slide 以备注 `FIG:NN` 标记图号，**slide 位置 = 章节图号**；手工合成 slide 保留原样，多面板分析图 (4.15/4.16/4.17/5.9) 由脚本按 `figures/panels/` 重建并加 `(a)(b)(c)`，单图 (如 4.19/4.20/4.21) 自动以原始无编号图插入，电路原理图 (4.14/4.18/5.8/5.10) 只插占位 slide、其编号资产仍由 SVG 管线产出；随后 LibreOffice→PDF→按页自动裁剪导出全部编号 PNG (dpi 419)。生成器脚本一律只写无编号原始图。
+2. **附录 B/C 复制改名**：附录图不经 deck，`figures/…png` 与 `article/figs/Appendix{B,C}_NN.png` 字节完全一致。
+3. **附录 D / 电路原理图**：由 `postprocess_schematic_svg.py` 直接写出编号 SVG，再由 cairosvg 光栅化，不经 deck。
 
 ### 2.1 电路原理图通用流程 (Family B，需 WSL)
 
@@ -53,7 +52,7 @@ Python 3.10 及以上，编辑式安装即可导入仿真包：`pip install -e .
 python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 ```
 
-`gen_supplement_figs.py` 从已入库的结果 JSON 确定性地画出无字母面板到 `figures/panels/ch0*_NN_*.png` (headless matplotlib，无需 WSL)，并把无字母的合成图直接写入 `article/figs/` 作占位。`build_ppt_figs.py` 把面板追加进 `article/ppt/Chapter0*_local.pptx`，在 deck 中加 `(a)(b)(c)`，经 LibreOffice→PDF→PyMuPDF 裁剪，覆盖写出带字母的编号资产。必须按顺序跑两条命令；只跑第一条会在 `article/figs/` 留下无字母占位图。重算底层 JSON 才需 WSL 下的 ngspice / Magic / vgsot-sim；由已入库 JSON 重画则完全离线。例外：图 4.21 为单面板，`gen_supplement_figs.py` 直接写入 `article/figs/Chapter04_local_21.png`，不进 deck。
+`gen_supplement_figs.py` 从已入库的结果 JSON 确定性地画出无字母面板到 `figures/panels/ch0*_NN_*.png` (headless matplotlib，无需 WSL)，并把无字母的合成图写入 `article/figs/` 作占位；图 4.21 的单面板原始图写到 `figures/dual_model_consistency.png`。`build_ppt_figs.py` 在对应图号的 slide 位置重建这些多面板 slide 并加 `(a)(b)(c)`，随后统一导出全部编号资产 (见 §2 路径 1)。必须按顺序跑两条命令；只跑第一条会在 `article/figs/` 留下无字母占位图。重算底层 JSON 才需 WSL 下的 ngspice / Magic / vgsot-sim；由已入库 JSON 重画则完全离线。
 
 ### 2.3 表格数值的核对
 
@@ -64,7 +63,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 | 编号 | 标题 | 生成脚本 · 命令 | 原始产出 → 编号资产 | 依赖/备注 |
 |---|---|---|---|---|
 | 图 1.1 | AI 规模演进与冯诺依曼架构的能耗结构 | `article/figs/make_fig_scaling.py` · `cd article/figs && python make_fig_scaling.py` | `fig_scaling_gap.png` → (Chapter01_local.pptx) → `Chapter01_local_01.png` | matplotlib/numpy；数据点硬编码 (Horowitz 2014 / Sze 2020 / NVIDIA)；按相对路径写出，须先 cd |
-| 图 1.2 | 二值随机模型的发展脉络与两类用法 | `article/figs/make_fig_lineage.py` · `python article/figs/make_fig_lineage.py` | 直接写 `Chapter01_local_02.png` (+`fig_lineage.pdf`) | 纯手绘概念图；不经 deck |
+| 图 1.2 | 二值随机模型的发展脉络与两类用法 | `article/figs/make_fig_lineage.py` · `python article/figs/make_fig_lineage.py` | `fig_lineage.png` → (deck) → `Chapter01_local_02.png` | 纯手绘概念图 |
 | 图 1.3 | PBNN 前向流水线及空间/时域展开对比 | `article/figs/make_fig_spacetime.py` · `cd article/figs && python make_fig_spacetime.py` | `fig_space_time.png` → (Chapter01_local.pptx) → `Chapter01_local_03.png` | 同图 1.1；须先 cd |
 | 表 1.1 | PBNN 算法需求与 sMTJ 器件物理属性的对应关系 | 无生成器 (手写) | `article/chapter01.md` 内联表 (L199–206) | 定性概念表，文献引用支撑，无数据源 |
 
@@ -74,7 +73,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 
 | 编号 | 标题 | 生成脚本 · 命令 | 原始产出 → 编号资产 | 依赖/备注 |
 |---|---|---|---|---|
-| 图 4.1 | 单层闭环前向的硬件实现示意 | `demo/04_pbnn_hardware_principle.py` · `python demo/04_pbnn_hardware_principle.py` | 直接写 `Chapter04_local_01.png` (+.pdf) | 概念图，纯 matplotlib |
+| 图 4.1 | 单层闭环前向的硬件实现示意 | `demo/04_pbnn_hardware_principle.py` · `python demo/04_pbnn_hardware_principle.py` | `demo/figures/04_pbnn_hardware_principle.png` → (deck) → `Chapter04_local_01.png` | 概念图，纯 matplotlib |
 | 图 4.2 | 分层硬件仿真器的模块组织 | `demo/01_simulator_framework.py` · `python demo/01_simulator_framework.py` | `demo/figures/01_simulator_framework.png` → (Chapter04_local.pptx，编辑后合成) → `Chapter04_local_02.png` | ⚠ 现 HEAD 脚本输出与已入库资产不一致，重跑不能精确复现；见 §7 |
 | 图 4.3 | MNIST 上 PBNN-MLP 的端到端验证 (a/b/c) | `experiments/05_mnist_pbnn.py` + `experiments/06_sweep_T_vs_accuracy.py` (+ `demo/02_pbnn_mlp_architecture.py`) | 面板 b=`figures/05_mnist_training_curves.png`，c=`figures/06_sweep_T.png`，a=`demo/figures/02_pbnn_mlp_architecture.png` → (deck) → `Chapter04_local_03.png` | 多源合成图；torch + MNIST |
 | 图 4.4 | UCI 六类表格任务上的训练曲线 | `experiments/10_uci_benchmarks.py` | `figures/10_uci_accuracy_curves.png` → `Chapter04_local_04.png` | torch；首次联网下载 UCI；另产 `10_uci_residual_curves.png` (副产物，未入图) |
@@ -92,9 +91,9 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 | 图 4.16 | 写通路能量与供电完整性 (a/b) | EDA 分析面板流程，`gen_supplement_figs.py` fig3 | `figures/panels/ch04_16_*` → `Chapter04_local_16.png` | 数据源 `eda/extraction/writeline/ir_drop_summary.json`；面板 b 的驱动数为 fig3 内联 ngspice 实测数组 |
 | 图 4.17 | IR 感知逐行写预畸变 (a/b/c) | EDA 分析面板流程，`gen_supplement_figs.py` fig5 | `figures/panels/ch04_17_*` → `Chapter04_local_17.png` | 数据源 `eda/hero/ir_aware_writedac_summary.json` + `comparison_results.json`；配套实验 `experiments/20_write_ir_drop.py` (非本图生成器) |
 | 图 4.18 | 写通路电路 | 电路原理图流程 (§2.1)，`<base>=writepath` | → `Chapter04_local_18.{svg,png,pdf}` | WSL EDA 工具链 |
-| 图 4.19 | 三类操作的瞬态波形 | `eda/testbenches/plot_waveforms.py` · `python eda/testbenches/plot_waveforms.py` | 脚本写 `Supplement_local_11.{png,svg,pdf}`，须改名为 `Chapter04_local_19.*` | ⚠ 目标名陈旧，见 §7；数据源 `write_tran.csv`/`sa_tran.csv` (ngspice 瞬态) |
-| 图 4.20 | 工作模式流水线与相位时序 | `eda/testbenches/plot_pipeline.py` · `python eda/testbenches/plot_pipeline.py` | 直接写 `Chapter04_local_20.{png,svg,pdf}` | 概念/时序图，纯 matplotlib |
-| 图 4.21 | 器件双模型一致性 | `eda/gen_supplement_figs.py` fig1 · `python eda/gen_supplement_figs.py` | 直接写 `Chapter04_local_21.png` (单面板，不经 deck) | 数据源 `eda/testbenches/llg_validate_summary.json` + `golden_psw.csv`；底层重算需 `eda/vendor/vgsot-sim` (LLG)，不需 ngspice |
+| 图 4.19 | 三类操作的瞬态波形 | `eda/testbenches/plot_waveforms.py` · `python eda/testbenches/plot_waveforms.py` | `figures/waveforms_3ops.png` → (deck) → `Chapter04_local_19.png` | 数据源 `write_tran.csv`/`sa_tran.csv` (ngspice 瞬态)；2026-07-08 起并入 deck 管线 |
+| 图 4.20 | 工作模式流水线与相位时序 | `eda/testbenches/plot_pipeline.py` · `python eda/testbenches/plot_pipeline.py` | `figures/mode_pipeline.png` → (deck) → `Chapter04_local_20.png` | 概念/时序图，纯 matplotlib |
+| 图 4.21 | 器件双模型一致性 | `eda/gen_supplement_figs.py` fig1 · `python eda/gen_supplement_figs.py` | `figures/dual_model_consistency.png` → (deck) → `Chapter04_local_21.png` | 数据源 `eda/testbenches/llg_validate_summary.json` + `golden_psw.csv`；底层重算需 `eda/vendor/vgsot-sim` (LLG)，不需 ngspice |
 
 ### 4.2 表 4.1–4.6
 
@@ -161,7 +160,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 
 1. **表 4.6 / 图 4.13 数值陈旧 — 已于 2026-07-08 修正**：文章旧值 (PBNN sMTJ 11.91 J、前向 7.09 J) 取自旧 run `runs/13_training_energy_20260511_214859`；规范 run `20260706_225408` (与 2026-07-08 重跑逐字节一致，模型确定性) 为 12.73 J (前向 7.90 J)。注意本条早先"仅 sMTJ 一行变动"的比对结论**不完整**：stoch-ReRAM 行同样变动 (前向 447.97→448.40 J、总 452.80→453.22 J)。已传播：表 4.6 两行、图 4.13 题注与 4.5 节末正文 (排名改为"仅次于 STT-MRAM 与 FeRAM"、1.14×→1.22×、4.2×→3.9×)、脚注 [^nv_ranking] (含旧占位值的来历说明)；图 4.13 经 deck 换图重导出 (slide 13 内嵌图替换为新 `13a_*.png` 并修正纵横比，LibreOffice→PDF→dpi 419 裁剪)。
 2. **图 4.2 不能由当前 HEAD 精确复现**：`demo/01_simulator_framework.py` 现输出 `demo/figures/01_simulator_framework.png`，与已入库 `Chapter04_local_02.png` 不一致 (标题已去除、模块标签改动、并新增 training_energy 项)——该资产由在 `Chapter04_local.pptx` 中编辑后的渲染合成，重跑脚本得到的是旧版式。
-3. **图 4.19 生成脚本目标名陈旧**：`eda/testbenches/plot_waveforms.py` 仍写 `Supplement_local_11.{png,svg,pdf}`，而文章资产为 `Chapter04_local_19`。内容一致；运行后须把三个文件改名为 `Chapter04_local_19.*`，或改脚本第 90 行的目标名。
+3. **图 4.19 生成脚本目标名陈旧——已于 2026-07-08 修正**：`plot_waveforms.py` 改写 `figures/waveforms_3ops.*`，编号资产经 deck 导出；`article/figs/Supplement_local_11.*` 孤儿文件已删除。同日起第 1/4/5 章全部编号光栅资产统一为 deck 导出 (dpi 419 自动裁剪)，此前直写编号或复制改名的图 (1.2、4.1、4.20、4.21、5.2–5.7) 均已并入。
 4. **表 4.2 BNN 行 (97.05%) 数据源缺口**：该行不在任一已保存的 05 run 目录 (`20260509_092543` 缺 `bnn_metrics.csv`、`20260506_181751` 为旧格式)。同表 PBNN 与四档 QAT 行已精确核对。重跑 `experiments/05_mnist_pbnn.py` 可重新生成 BNN 行 (脚本第 261 行确写 `bnn_metrics.csv`)。
 5. **表 B.1 / 表 B.2 数据源 CSV 未入库**：仓库只保留稳定检查点 `runs/{fashion_mnist_pbnn_cnn,cifar10_pbnn_cnn}/best.pt`，05a/06a 的时间戳 run 目录不在库。表 B.2 可用已入库 best.pt 直接重跑 06a 复现；表 B.1 需重跑 05a。另注：05a 脚本不写 `summary.json`，只写 `metrics.csv`/`bnn_metrics.csv`/`fp_*_metrics.csv`。
 6. **`docs/experiment_findings.md` 两处图名陈旧**：第 29 行写 `figures/02_wafer_mc.png` (实际 `figures/02_wafer_average_mc.png`)；第 293 行写 `demo/figures/04_encoding_comparison.png` (实际 `demo/04_encoding_comparison.py` 输出 `demo/figures/04_encoding_comparison_fixed.png`)。

@@ -16,7 +16,8 @@ sMTJ substrate:
 x^(r+1) feeds back as the next input; spatial / temporal averaging across
 cycles delivers the approximated expectation E[s].
 
-Output: article/figs/Chapter04_local_01.png (and a sibling .pdf).
+Output: demo/figures/04_pbnn_hardware_principle.png (raw, unnumbered;
+the chapter deck adds the figure number — see eda/build_ppt_figs.py).
 """
 from pathlib import Path
 
@@ -404,9 +405,9 @@ ax.annotate("", xy=(0.98, INPUT_Y + 0.04), xytext=(0.98, INPUT_Y - 0.30),
             arrowprops=dict(arrowstyle="-|>", color=INK, lw=2.2), zorder=3)
 
 # ===== Save =====
-out_dir = Path(__file__).resolve().parents[1] / "article" / "figs"
-png_path = out_dir / "Chapter04_local_01.png"
-pdf_path = out_dir / "Chapter04_local_01.pdf"
+out_dir = Path(__file__).resolve().parent / "figures"
+png_path = out_dir / "04_pbnn_hardware_principle.png"
+pdf_path = out_dir / "04_pbnn_hardware_principle.pdf"
 fig.savefig(png_path, dpi=320, bbox_inches="tight", facecolor="white")
 fig.savefig(pdf_path, bbox_inches="tight", facecolor="white")
 print(f"saved {png_path.name}")

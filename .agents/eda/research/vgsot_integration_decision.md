@@ -10,8 +10,6 @@
 | **`scripts/02_pdk/sotmodel.va`** | **第三方 Hikstor 40nm SOT-MRAM PDK**（(c) Zhejiang Hikstor，xiexuejie@hikstor.com）。Spectre 语法、**确定性电流阈值翻转**、参数不同（Rsot=800/Rp=11k/TMR=1.2/电流驱动 Iop=800µA） | 仅**结构参考**（3 端 p/q/n、KCL 注入、@cross 脉宽计时）|
 | `article/chapter02.md` + `scripts/05_.../raw/` | 第 2 章器件原稿 + 实测 Psw 原始数据 | 校准数据源 |
 
-**关键判断：`vgsot-sim` 是 Python 的（你说得对）；仓库里那个 `.va` 不是你的模型，而是 Hikstor 厂商 PDK——既不是随机 p-bit（无 Néel-Brown/伯努利）、又是别的器件、还是 Spectre 专用、且有版权，不能并入 MIT 仓库。**
-
 ## 决策一：Verilog-A——新写，不port LLG、不复用 Hikstor
 
 - ❌ **不把完整 LLG 转写成 Verilog-A**：没必要。`smtj_pbnn_sim` 的紧凑 Sigmoid/NB 模型已经是 LLG 校准后的抽象；电路仿真要的就是这个紧凑层。
@@ -44,5 +42,4 @@ eda/models/smtj_sot.va (Verilog-A, 电路仿真)                     ← P1 产�
 ## 小结
 
 P1 不被"模型是 Python"卡住——紧凑层才是电路要的，已新写成 MIT `.va` 并经金标准验证。
-vgsot-sim 的最佳位置是 `eda/vendor/` 下的 LLG 真值参考（submodule），而非并入核心仿真器；
-其中的 Hikstor PDK 文件须做版权隔离。
+vgsot-sim 的最佳位置是 `eda/vendor/` 下的 LLG 真值参考（submodule），而非并入核心仿真器。

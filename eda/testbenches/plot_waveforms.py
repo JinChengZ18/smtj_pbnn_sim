@@ -8,7 +8,8 @@
 (c) Reservoir read-out -- behavioural SAR charge-redistribution conversion of a sampled column
     voltage (binary search; the cap-DAC reconstruction converges to the input over b bit-trials).
 Data come from real ngspice runs (a, b); (c) is the SAR algorithm on the same column node.
-Run with Windows Python (matplotlib). Outputs article/figs/Supplement_local_11.{png,svg,pdf}.
+Run with Windows Python (matplotlib). Outputs figures/waveforms_3ops.{png,svg,pdf}
+(raw, unnumbered; the chapter deck adds the figure number).
 """
 import numpy as np, matplotlib
 matplotlib.use("Agg")
@@ -16,7 +17,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-FIGS = HERE.parent.parent / "article" / "figs"
+FIGS = HERE.parent.parent / "figures"
 BLACK, RED, GREY, BLUE = "#1a1a1a", "#c0392b", "#888888", "#2c5aa0"
 plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "axes.linewidth": 0.9,
                      "axes.edgecolor": "#333333", "xtick.direction": "out", "ytick.direction": "out"})
@@ -87,8 +88,8 @@ def main():
     fig.tight_layout()
     FIGS.mkdir(parents=True, exist_ok=True)
     for ext in ("png", "svg", "pdf"):
-        fig.savefig(FIGS / f"Supplement_local_11.{ext}", dpi=200, bbox_inches="tight")
-    print("wrote Supplement_local_11.{png,svg,pdf}")
+        fig.savefig(FIGS / f"waveforms_3ops.{ext}", dpi=200, bbox_inches="tight")
+    print("wrote waveforms_3ops.{png,svg,pdf}")
     print(f"  SAR: vin={vin:.3f} -> dac={levels[-1]:.3f} V (err {abs(vin-levels[-1])*1e3:.1f} mV)")
 
 
