@@ -47,37 +47,29 @@ def main():
     ax.set_aspect("equal")
     ax.axis("off")
 
-    # ---- title ----
-    ax.text(8.0, 11,
-            "Layered hardware simulator for stochastic SOT-MTJ PBNNs",
-            ha="center", va="center", fontsize=18, fontweight="bold",
-            color=PURPLE_DARK)
-    ax.text(8.0, 10.50,
-            r"physics-grounded $P_\mathrm{sw}(V, t_p)$  $\rightarrow$  "
-            "MNIST / UCI training  $\\rightarrow$  PPA estimation",
-            ha="center", va="center", fontsize=12.5, style="italic",
-            color="#444")
-
     # ---- Layer boxes (vertical stack) ----
+    # Module labels use the actual source identifiers so the block diagram
+    # doubles as a module map (matches the numbered article asset). The figure
+    # carries no in-figure title -- the caption supplies it.
     layers = [
         (8.4, "Device",
          "tmr · variation · calibration · llg",
          r"compact $P_\mathrm{sw}(V, t_p)$ + Néel–Brown bridge",
          PURPLE_DARK),
         (6.8, "Array",
-         "crossbar · periphery · tile · ir drop",
+         "crossbar · periphery · tile · ir_drop",
          "XNOR-popcount column current sum, DAC + counter",
          PURPLE_MED),
         (5.2, "Network",
-         "pbnn · ste · clt · bn · losses",
-         "Torch Modules · STE backward · CLT forward",
+         "pbnn_linear · ste · clt · bn · losses",
+         "torch nn.Modules · STE backward · CLT forward",
          PURPLE_LIGHT),
         (3.6, "Sampling",
-         "bernoulli smtj · unfold · schedules",
+         "bernoulli_smtj · unfold · schedules",
          r"T-step Bernoulli accumulator · $\beta$ / T schedules",
          GREEN),
         (2.0, "PPA",
-         "energy · latency · area",
+         "energy · latency · area · training_energy",
          "per-MAC energy, T-scaling, MRAM baseline",
          ORANGE),
         (0.4, "Experiment",

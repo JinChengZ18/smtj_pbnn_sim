@@ -1,6 +1,6 @@
 # 图表复现指南
 
-本文把学位论文正文 (第 1、4、5 章) 与附录 B/C/D 中的每一张图、每一张表对应到仓库中可运行的生成脚本、运行命令、原始产出文件与 (对表而言) 已入库的数据源，供复核与重跑。面向读者的简版复现入口见 `article/appendix_A_code_availability.md` §A.3；本文是其完整对照。所有命令均从仓库根目录运行 (电路原理图的 WSL 步骤除外，另见对应小节)。
+本文把学位论文正文 (第 1、4、5 章) 与附录 B/C/D 中的每一张图、每一张表对应到仓库中可运行的生成脚本、运行命令、原始产出文件与 (对表而言) 数据源，供复核与重跑。数据源是否随仓库分发见 §2.3 (EDA 结果 JSON 已跟踪，实验 `runs/` 数据在 `.gitignore` 中)。面向读者的简版复现入口见 `article/appendix_A_code_availability.md` §A.3；本文是其完整对照。所有命令均从仓库根目录运行 (电路原理图的 WSL 步骤除外，另见对应小节)。
 
 ## 1. 运行环境
 
@@ -56,7 +56,9 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 
 ### 2.3 表格数值的核对
 
-`runs/` 下已入库对应实验的结果 CSV/JSON，因此表格数值可直接从已入库文件核对，无需重跑 torch/GPU 实验。同一实验有多个时间戳 run 时，下表给出与文章口径一致的规范 run 目录。附录 D 的比较表由 `eda/design_survey/comparison_results.json` 及各 `*_summary.json` 重建，同样无需重跑电路仿真。
+仓库中**已跟踪**的数据源可离线核对，无需重跑：附录 D 的比较表 (表 D.1–D.4) 由 `eda/design_survey/comparison_results.json` 及各 `*_summary.json` 重建；第 4、5 章的 EDA 分析图 (4.15/4.16/4.17/4.21/5.9) 与器件标定数据 (`data/smtj_psw_curves/measured_0p75ns.csv`) 同理；`figures/` 与 `article/figs/` 下的图本身亦已跟踪。
+
+Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<时间戳>/*.csv`，但 `runs/` 与 `*.pt` 均在 `.gitignore` 中——这些结果**不随仓库分发**，仅存于生成机器；下表列出的规范 run 目录是本机路径。要从零复现某表，须重跑对应实验。训练类实验并非逐位可复现 (`set_global_seed` 固定种子，但未开启 `use_deterministic_algorithms`)：重跑得到的精度落在附录 C 的种子分布内 (如 PBNN-MNIST 97.01%±0.17%)，与文章值同量级而非逐位一致；仅在已有检查点上做的纯推理扫描 (如表 B.2) 复现得更紧。
 
 ## 3. 第 1 章 (Family C，概念图)
 
@@ -74,7 +76,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 | 编号 | 标题 | 生成脚本 · 命令 | 原始产出 → 编号资产 | 依赖/备注 |
 |---|---|---|---|---|
 | 图 4.1 | 单层闭环前向的硬件实现示意 | `demo/04_pbnn_hardware_principle.py` · `python demo/04_pbnn_hardware_principle.py` | `demo/figures/04_pbnn_hardware_principle.png` → (deck) → `Chapter04_local_01.png` | 概念图，纯 matplotlib |
-| 图 4.2 | 分层硬件仿真器的模块组织 | `demo/01_simulator_framework.py` · `python demo/01_simulator_framework.py` | `demo/figures/01_simulator_framework.png` → (Chapter04_local.pptx，编辑后合成) → `Chapter04_local_02.png` | ⚠ 现 HEAD 脚本输出与已入库资产不一致，重跑不能精确复现；见 §7 |
+| 图 4.2 | 分层硬件仿真器的模块组织 | `demo/01_simulator_framework.py` · `python demo/01_simulator_framework.py` | `demo/figures/01_simulator_framework.png` → (deck) → `Chapter04_local_02.png` | 2026-07-08 起脚本内容已对齐编号资产 (去内嵌标题、模块标签改用源标识符)，重跑即复现；见 §7 |
 | 图 4.3 | MNIST 上 PBNN-MLP 的端到端验证 (a/b/c) | `experiments/05_mnist_pbnn.py` + `experiments/06_sweep_T_vs_accuracy.py` (+ `demo/02_pbnn_mlp_architecture.py`) | 面板 b=`figures/05_mnist_training_curves.png`，c=`figures/06_sweep_T.png`，a=`demo/figures/02_pbnn_mlp_architecture.png` → (deck) → `Chapter04_local_03.png` | 多源合成图；torch + MNIST |
 | 图 4.4 | UCI 六类表格任务上的训练曲线 | `experiments/10_uci_benchmarks.py` | `figures/10_uci_accuracy_curves.png` → `Chapter04_local_04.png` | torch；首次联网下载 UCI；另产 `10_uci_residual_curves.png` (副产物，未入图) |
 | 图 4.5 | 优化器与学习率调度的对比 (a/b) | `experiments/11_optimizer_scheduler_study.py` | `figures/11a_optimizers.png` + `11b_schedulers.png` → `Chapter04_local_05.png` | torch + MNIST |
@@ -97,7 +99,7 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 
 ### 4.2 表 4.1–4.6
 
-| 编号 | 标题 | 生成脚本 · 命令 | 数据来源 (已入库 run) | 依赖/备注 |
+| 编号 | 标题 | 生成脚本 · 命令 | 数据来源 (`runs/`，gitignore；见 §2.3) | 依赖/备注 |
 |---|---|---|---|---|
 | 表 4.1 | 不同采样次数下 MNIST PBNN-MLP 全栈推理精度与能耗 | `experiments/06_sweep_T_vs_accuracy.py` | `runs/06_sweep_T_20260502_054343/results.csv` (列 T, accuracy, energy_uJ) | 逐行核对一致；依赖 `runs/mnist_pbnn_mlp/best.pt` |
 | 表 4.2 | MNIST 上 PBNN-MLP、BNN-MLP 与 QAT FP-MLP 的最佳测试精度 | `experiments/05_mnist_pbnn.py` | `runs/05_mnist_pbnn_20260509_092543/{summary.json, fp_*_metrics.csv}` | PBNN 96.98%、FP32/INT8/INT4/INT2=98.51/98.33/98.43/98.21% 已核对；⚠ BNN 行 97.05% 数据源缺口，见 §7 |
@@ -129,17 +131,17 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 |---|---|---|---|---|
 | 图 B.1 | Fashion-MNIST 上 PBNN-CNN 与基线的训练曲线 | `experiments/05a_fashion_mnist_pbnn_cnn.py` | `figures/05a_fashion_mnist_training_curves.png` →(复制改名)→ `article/figs/AppendixB_01.png` | torch + Fashion-MNIST |
 | 图 B.2 | CIFAR-10 上 PBNN-CNN 与基线的训练曲线 | `experiments/05a_cifar10_pbnn_cnn.py` | `figures/05a_cifar10_training_curves.png` → `AppendixB_02.png` | 60 轮，实际需 GPU |
-| 图 B.3 | Fashion-MNIST PBNN-CNN 全栈 T 扫描 | `experiments/06a_fashion_mnist_sweep_T_vs_accuracy.py` | `figures/06a_fashion_mnist_sweep_T.png` → `AppendixB_03.png` | 依赖 `runs/fashion_mnist_pbnn_cnn/best.pt` (已入库) |
-| 图 B.4 | CIFAR-10 PBNN-CNN 全栈 T 扫描 | `experiments/06a_cifar10_sweep_T_vs_accuracy.py` | `figures/06a_cifar10_sweep_T.png` → `AppendixB_04.png` | 依赖 `runs/cifar10_pbnn_cnn/best.pt` (已入库) |
+| 图 B.3 | Fashion-MNIST PBNN-CNN 全栈 T 扫描 | `experiments/06a_fashion_mnist_sweep_T_vs_accuracy.py` | `figures/06a_fashion_mnist_sweep_T.png` → `AppendixB_03.png` | 依赖 `runs/fashion_mnist_pbnn_cnn/best.pt` (本机；`*.pt` 不入库) |
+| 图 B.4 | CIFAR-10 PBNN-CNN 全栈 T 扫描 | `experiments/06a_cifar10_sweep_T_vs_accuracy.py` | `figures/06a_cifar10_sweep_T.png` → `AppendixB_04.png` | 依赖 `runs/cifar10_pbnn_cnn/best.pt` (本机；`*.pt` 不入库) |
 | 表 B.1 | 两数据集 CNN 的最佳测试精度 | `05a_fashion_mnist_pbnn_cnn.py` + `05a_cifar10_pbnn_cnn.py` | `runs/05a_*_<ts>/{metrics.csv, bnn_metrics.csv, fp_*_metrics.csv}` | ⚠ 数据源 CSV 未入库，须重跑 05a，见 §7 |
-| 表 B.2 | 两数据集 CNN 在 T=1..64 下的全栈精度 | `06a_fashion_mnist_sweep_T_vs_accuracy.py` + `06a_cifar10_sweep_T_vs_accuracy.py` | `runs/06a_*_sweep_T_<ts>/results.csv` (列 T, accuracy, energy_uJ) | ⚠ CSV 未入库；用已入库 best.pt 重跑 06a 可复现 |
+| 表 B.2 | 两数据集 CNN 在 T=1..64 下的全栈精度 | `06a_fashion_mnist_sweep_T_vs_accuracy.py` + `06a_cifar10_sweep_T_vs_accuracy.py` | `runs/06a_*_sweep_T_<ts>/results.csv` (列 T, accuracy, energy_uJ) | ⚠ CSV 不入库；用本机 best.pt 重跑 06a 可复现 (纯推理扫描，复现较紧) |
 
 ### 6.2 附录 C (种子稳健性，Family A)
 
 | 编号 | 标题 | 生成脚本 · 命令 | 产出/数据源 | 依赖/备注 |
 |---|---|---|---|---|
 | 图 C.1 | 主要结论的随机数种子稳健性 (4 面板) | `experiments/21_seed_independence.py` · `python experiments/21_seed_independence.py 8` | `figures/21_seed_independence.png` →(复制改名)→ `AppendixC_01.png` | torch + MNIST；8 个种子各训练一次 |
-| 表 C.1 | 头部结论在 8 个种子下的均值±标准差 | `experiments/21_seed_independence.py` · `python experiments/21_seed_independence.py 8` | `runs/21_seed_independence/seed_independence.json` (`summary` 块) | 已入库，五行均值/标准差与文章逐项吻合 |
+| 表 C.1 | 头部结论在 8 个种子下的均值±标准差 | `experiments/21_seed_independence.py` · `python experiments/21_seed_independence.py 8` | `runs/21_seed_independence/seed_independence.json` (`summary` 块) | 数据源在 `runs/` (gitignore)，不随仓库分发；本机核对五行均值/标准差与文章逐项吻合，重跑 `21` 重新生成 |
 
 ### 6.3 附录 D (电路比较)
 
@@ -159,12 +161,11 @@ python eda/gen_supplement_figs.py && python eda/build_ppt_figs.py
 ## 7. 已知偏差与注意事项
 
 1. **表 4.6 / 图 4.13 数值陈旧 — 已于 2026-07-08 修正**：文章旧值 (PBNN sMTJ 11.91 J、前向 7.09 J) 取自旧 run `runs/13_training_energy_20260511_214859`；规范 run `20260706_225408` (与 2026-07-08 重跑逐字节一致，模型确定性) 为 12.73 J (前向 7.90 J)。注意本条早先"仅 sMTJ 一行变动"的比对结论**不完整**：stoch-ReRAM 行同样变动 (前向 447.97→448.40 J、总 452.80→453.22 J)。已传播：表 4.6 两行、图 4.13 题注与 4.5 节末正文 (排名改为"仅次于 STT-MRAM 与 FeRAM"、1.14×→1.22×、4.2×→3.9×)、脚注 [^nv_ranking] (含旧占位值的来历说明)；图 4.13 经 deck 换图重导出 (slide 13 内嵌图替换为新 `13a_*.png` 并修正纵横比，LibreOffice→PDF→dpi 419 裁剪)。
-2. **图 4.2 不能由当前 HEAD 精确复现**：`demo/01_simulator_framework.py` 现输出 `demo/figures/01_simulator_framework.png`，与已入库 `Chapter04_local_02.png` 不一致 (标题已去除、模块标签改动、并新增 training_energy 项)——该资产由在 `Chapter04_local.pptx` 中编辑后的渲染合成，重跑脚本得到的是旧版式。
+2. **图 4.2 生成器已对齐编号资产——已于 2026-07-08 修正**：`demo/01_simulator_framework.py` 此前绘制内嵌标题、模块标签陈旧 (`pbnn`/`bernoulli smtj`/`ir drop`、缺 `training_energy`、"Torch Modules")，与已入库 `Chapter04_local_02.png` 不一致。现已去除内嵌标题、把模块标签改为源标识符 (`pbnn_linear`/`bernoulli_smtj`/`ir_drop`/`training_energy`、"torch nn.Modules")，重跑 `demo/01` 即复现编号资产内容，经 deck 导出编号。
 3. **图 4.19 生成脚本目标名陈旧——已于 2026-07-08 修正**：`plot_waveforms.py` 改写 `figures/waveforms_3ops.*`，编号资产经 deck 导出；`article/figs/Supplement_local_11.*` 孤儿文件已删除。同日起第 1/4/5 章全部编号光栅资产统一为 deck 导出 (dpi 419 自动裁剪)，此前直写编号或复制改名的图 (1.2、4.1、4.20、4.21、5.2–5.7) 均已并入。
-4. **表 4.2 BNN 行 (97.05%) 数据源缺口**：该行不在任一已保存的 05 run 目录 (`20260509_092543` 缺 `bnn_metrics.csv`、`20260506_181751` 为旧格式)。同表 PBNN 与四档 QAT 行已精确核对。重跑 `experiments/05_mnist_pbnn.py` 可重新生成 BNN 行 (脚本第 261 行确写 `bnn_metrics.csv`)。
-5. **表 B.1 / 表 B.2 数据源 CSV 未入库**：仓库只保留稳定检查点 `runs/{fashion_mnist_pbnn_cnn,cifar10_pbnn_cnn}/best.pt`，05a/06a 的时间戳 run 目录不在库。表 B.2 可用已入库 best.pt 直接重跑 06a 复现；表 B.1 需重跑 05a。另注：05a 脚本不写 `summary.json`，只写 `metrics.csv`/`bnn_metrics.csv`/`fp_*_metrics.csv`。
-6. **`docs/experiment_findings.md` 两处图名陈旧**：第 29 行写 `figures/02_wafer_mc.png` (实际 `figures/02_wafer_average_mc.png`)；第 293 行写 `demo/figures/04_encoding_comparison.png` (实际 `demo/04_encoding_comparison.py` 输出 `demo/figures/04_encoding_comparison_fixed.png`)。
-7. **第 5 章实验-图号偏移**：脚本按撰写顺序编号，与章节图号不一致——exp 14→图 5.2、exp 15→图 5.3、exp 19→图 5.4、exp 17→图 5.5、exp 18→图 5.6、exp 16→图 5.7。
-8. **储备池实验 14–19 不写 CSV**：指标仅打印到 stdout。`runs/rc/` 下的 CSV 为原型日志，非任何编号图的数据源。
-9. **EDA 分析面板须按序跑两条命令**：只跑 `gen_supplement_figs.py` 会在 `article/figs/` 留下无字母占位图，须接着跑 `build_ppt_figs.py` 覆盖为带 `(a)(b)(c)` 的规范资产 (图 4.15/4.16/4.17/5.9)。
-10. **表 4.4 PGD 行与图 4.8(h) 的口径差 (2026-07-08 起)**：exp07 旧代码对 PBNN 的 PGD 终评误用 CLT 路径 (HARDWARE_AWARE)，与表内其余行的全栈 T=4 终评口径不一致——代码已修 (`_eval_pgd` 攻击/终评口径分离)，表 4.4 的 PBNN 单元改为 exp23 修正口径值 53.22 (52.12 为规范 run 旧口径值；BNN/FP 单元保持规范 run 出处)。图 4.8(h) 面板仍为规范 run 旧口径曲线，与新单元差约 1.1 pp、在线宽内；下次全量重跑 exp07 时自然对齐 (注意重训基线的对抗精度对训练实例敏感，±5 pp 量级，见 exp23 审计)。EOT/迁移/多重启审计细节 = `runs/23_eot_attack_20260708_053712/attack_matrix.csv`。
+4. **表 4.2 BNN 行 (97.05%) 已由重跑复现 (2026-07-08)**：该行原缺已保存的 `bnn_metrics.csv` (`20260509_092543` 缺该文件、`20260506_181751` 为旧格式)。以固定种子重跑 `experiments/05_mnist_pbnn.py` (seed 0、torch 2.9.1、GPU) 重新生成 BNN 行并逐值对照：BNN 97.05% (与文章一致)、FP32/INT8/INT4/INT2 = 98.51/98.33/98.43/98.21% (均逐值一致)；PBNN 得 97.10% (文章 96.98%，差 0.12pp，落在附录 C 的种子分布 97.01%±0.17% 内)。确定性的 BNN/FP/QAT 路径逐值复现，PBNN 前向因器件变异/Bernoulli 采样 (未开 `use_deterministic_algorithms`) 不逐位复现。故 BNN 行数值可信；`runs/` 不入库 (见 §2.3)，须重跑重新生成其 CSV。
+5. **表 B.1 / 表 B.2 数据源不随仓库分发**：`runs/` 与 `*.pt` 均在 `.gitignore` 中——B 系列的稳定检查点 `runs/{fashion_mnist_pbnn_cnn,cifar10_pbnn_cnn}/best.pt` 与 05a/06a 的时间戳 run 目录仅存于生成机器。表 B.2 可用本机 best.pt 重跑 06a 复现 (纯推理扫描，复现较紧)；表 B.1 需重跑 05a (训练类，非逐位复现，见 §2.3 与本节第 4 条)。另注：05a 脚本不写 `summary.json`，只写 `metrics.csv`/`bnn_metrics.csv`/`fp_*_metrics.csv`。
+6. **第 5 章实验-图号偏移**：脚本按撰写顺序编号，与章节图号不一致——exp 14→图 5.2、exp 15→图 5.3、exp 19→图 5.4、exp 17→图 5.5、exp 18→图 5.6、exp 16→图 5.7。
+7. **储备池实验 14–19 不写 CSV**：指标仅打印到 stdout。`runs/rc/` 下的 CSV 为原型日志，非任何编号图的数据源。
+8. **EDA 分析面板须按序跑两条命令**：只跑 `gen_supplement_figs.py` 会在 `article/figs/` 留下无字母占位图，须接着跑 `build_ppt_figs.py` 覆盖为带 `(a)(b)(c)` 的规范资产 (图 4.15/4.16/4.17/5.9)。
+9. **表 4.4 PGD 行与图 4.8(h) 的口径差 (2026-07-08 起)**：exp07 旧代码对 PBNN 的 PGD 终评误用 CLT 路径 (HARDWARE_AWARE)，与表内其余行的全栈 T=4 终评口径不一致——代码已修 (`_eval_pgd` 攻击/终评口径分离)，表 4.4 的 PBNN 单元改为 exp23 修正口径值 53.22 (52.12 为规范 run 旧口径值；BNN/FP 单元保持规范 run 出处)。图 4.8(h) 面板仍为规范 run 旧口径曲线，与新单元差约 1.1 pp、在线宽内；下次全量重跑 exp07 时自然对齐 (注意重训基线的对抗精度对训练实例敏感，±5 pp 量级，见 exp23 审计)。EOT/迁移/多重启审计细节 = `runs/23_eot_attack_20260708_053712/attack_matrix.csv`。
