@@ -2,17 +2,22 @@
 
 The analytic chain predicts the switching threshold tracks K_eff(T)
 through the 81%-compensated anisotropy: I_th(T)/I_th(300) = keff_ratio(T)
-(0.928 at 330 K, 1.073 at 270 K). The full LLG stack applies the SAME
+(0.9263 at 330 K, 1.0731 at 270 K). The full LLG stack applies the SAME
 Bloch/Callen-Callen material laws internally (time_series_cases scales
 Ms/Ki by the instantaneous temperature, thermal field included, ambient +
 self-heating), but through the complete dynamics rather than the
-Neel-Brown reduction -- so agreement here is a genuine two-model check of
-the temperature DIRECTION and MAGNITUDE, not a tautology.
+Neel-Brown reduction. Honest scope: the temperature DIRECTION is forced
+by construction (identical material laws), so the check constrains only
+the MAGNITUDE of the propagation through the dynamics -- and at 200
+trials the I_50 ratios carry ~1% statistical uncertainty, so the
+0.3-0.4% central agreement should be quoted as 'within the ~1% MC
+uncertainty', a ~1.7-2 sigma consistency, not a precision match.
 
 Device caveat (stated wherever this is cited): the LLG stack is the
 Chapter-2 VGSOT device (Delta ~ 48 kT retention), not the sMTJ variant;
-the check validates the platform-level K_eff(T) propagation that both
-variants share.
+the check anchors the K_eff(T) propagation of the AS-BUILT stack only --
+the variant realization (trim vs shrink) changes the compensation ratio
+and is bracketed as a scenario band in exp30.
 
 Method: SER vs I_SOT at T_ambient in {270, 300, 330} K, 200 trials/point,
 self-heating ON (calibration point), generator RNG; I_50 extracted by

@@ -30,11 +30,35 @@ interface term falls FASTER, so warming deepens the compensation.
 
 Scenario band: the full Neel-Brown chain is the PESSIMISTIC end
 (thermal-activation picture); the OPTIMISTIC end treats the switching
-threshold as athermal (ballistic-regime evidence at sub-ns pulses) and
-keeps only the statistical quantities (Delta, V_T). The 0.75 ns
-operating pulse sits in the crossover, so the two ends bracket reality;
-the single 300 K anchor plus literature-band framing must be stated
-wherever these numbers are used.
+threshold as athermal (ballistic-regime evidence at sub-ns pulses,
+Rehm et al., arXiv:2310.18779) and keeps only the statistical
+quantities (Delta, V_T). The 0.75 ns operating pulse sits in the
+crossover, so the two ends bracket reality; the single 300 K anchor
+plus literature-band framing must be stated wherever these numbers are
+used.
+
+Stated assumptions (each moves the V_th slope, none moves V_T):
+
+1. REALIZATION of the superparamagnetic variant. keff_ratio uses the
+   as-built memory-grade stack (compensation 0.811). The variant itself
+   is not fabricated; the structure analysis offers two routes to
+   Delta = 4.91, and the compensation - hence the temperature slope -
+   differs strongly between them:
+     as_built  c = 0.811  dV_th/dT ~ -2.1 mV/K  (this module's default)
+     trim      c = 0.977  ~ -7.0 mV/K  (17% Ki trim, pessimistic)
+     shrink    c = 0.726  ~ -1.9 mV/K  (17 nm electrode, mildest)
+   Use trim_route()/shrink_route() for the band ends.
+2. Callen-Callen exponent n = 2.18 (FMR fit). Literature band
+   n in [1.8, 2.8] scales the slope ~0.3x-2.1x; pass cc_exponent to
+   ThermalStack for the endpoints.
+3. The 52.6 mV offset between the calibrated anchor V_th = 0.8958 and
+   the NB-law P = 1/2 point V_c0 (1 - c_p/Delta) = 0.8432 is treated as
+   athermal (only the NB shift is propagated).
+
+Identity worth knowing: vt_of_T reduces EXACTLY to V_T * (T/300) -- the
+keff_ratio cancels between V_c0(T) and Delta(T) -- so the decision
+window (and any slope-only scenario built on it) is independent of the
+compensation realization and of n.
 """
 from __future__ import annotations
 
@@ -65,6 +89,17 @@ class ThermalStack:
     TMR: float = 1.0
     t_p: float = 0.75e-9
     tau_0: float = 1e-9
+
+
+def trim_route(**kw) -> ThermalStack:
+    """Variant realized by a 17% Ki trim (compensation 0.977)."""
+    return ThermalStack(Ki=0.32e-3 * 0.8299, **kw)
+
+
+def shrink_route(**kw) -> ThermalStack:
+    """Variant realized by a 17.2 nm electrode (nz-nx = 0.8606,
+    compensation 0.726)."""
+    return ThermalStack(nz_minus_nx=0.8606, **kw)
 
 
 def bloch(T, s: ThermalStack = ThermalStack()):

@@ -96,14 +96,20 @@ def main() -> None:
     ds = np.linspace(10e-9, c.D_elec, 400)
     d_of_D = np.array([retention_delta(c, d_elec=d)[0] for d in ds])
     d_star = float(np.interp(DELTA_SMTJ, d_of_D, ds))
-    # (b) fixed diameter, trim Ki
-    kis = np.linspace(0.9, 1.0, 400) * c.Ki
+    # (b) fixed diameter, trim Ki: scan wide enough to bracket the target
+    # and ASSERT the root is interior (an earlier 0.9-1.0 scan clamped at
+    # the grid edge and silently reported a 10% trim; the true root is
+    # ~17%, deepening the compensation to ~0.977)
+    kis = np.linspace(0.70, 1.0, 1200) * c.Ki
     d_of_ki = np.array([retention_delta(c, ki=k)[0] for k in kis])
+    assert d_of_ki[0] < DELTA_SMTJ < d_of_ki[-1], "trim target not bracketed"
     ki_star = float(np.interp(DELTA_SMTJ, d_of_ki, kis))
+    assert kis[0] < ki_star < kis[-1], "trim root clamped at scan edge"
     print(f"design window to Delta={DELTA_SMTJ}: shrink D_elec to "
           f"{d_star*1e9:.1f} nm at fixed stack, or trim Ki by "
           f"{(1-ki_star/c.Ki)*100:.2f}% at fixed D "
-          f"(the sMTJ variant plausibly = slightly closer-compensated stack)")
+          f"(trim deepens the compensation to ~0.98: the sMTJ variant = a "
+          f"markedly closer-compensated stack, not a slight tuning)")
 
     # ----- Part 2: dipolar crosstalk ---------------------------------------
     m = c.Ms * c.tf * np.pi * (c.D_elec / 2) ** 2      # moment [A m^2]

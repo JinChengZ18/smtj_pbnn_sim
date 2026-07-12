@@ -17,7 +17,7 @@
   "delta_sens_pct_per_pct_Ki": 5.3,
   "design_window": {
     "D_star_nm": 17.2,
-    "Ki_trim_pct": 10.0
+    "Ki_trim_pct": 17.01
   },
   "dipolar": {
     "moment_Am2": 2.2813362277435252e-18,

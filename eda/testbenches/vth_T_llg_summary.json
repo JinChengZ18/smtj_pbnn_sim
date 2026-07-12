@@ -124,5 +124,5 @@
    "chain_keff_ratio": 0.92629805594511
   }
  },
- "note": "LLG stack = Chapter-2 VGSOT device; validates the platform K_eff(T) propagation shared by both variants"
+ "note": "LLG stack = Chapter-2 VGSOT device; direction is forced by the shared material laws -- the check constrains the magnitude of the K_eff(T) propagation through the full dynamics, within ~1% MC uncertainty at 200 trials. Applies to the as-built stack; the sMTJ-variant realization (trim/shrink) changes the compensation ratio and is bracketed in exp30."
 }
