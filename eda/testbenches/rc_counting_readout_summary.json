@@ -3,7 +3,8 @@
   "E_dev": 5.0,
   "E_comp": 48.0,
   "E_cnt": 19.44,
-  "E_capDAC0": 1.1
+  "E_capDAC0": 1.1,
+  "e_cnt_caliber": "sky130 standard-cell capacitance estimate, ~2x uncertainty pending Liberty (dac_counter_energy.py; its ngspice grounds only the DAC analog core)"
  },
  "dt_ns": 25.0,
  "taus_ns": {
@@ -16,385 +17,610 @@
  },
  "n_nodes": 100,
  "substeps": 25,
- "mc_meanfield_ref": 4.9239602005652205,
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "mc_meanfield_ref": {
+  "mean": 4.918150816403921,
+  "half_range": 0.027076137921759003
+ },
  "rows": [
   {
    "readout": "counting-1",
    "E": 16,
    "b": null,
-   "MC": 1.1468225654433082,
+   "MC": 1.1362267460751705,
+   "MC_half_range": 0.009796922036246714,
    "E_read_fJ": 107904.0,
+   "E_read_avg_fJ": 92352.0,
+   "E_tot_fJ": 115904.0
+  },
+  {
+   "readout": "counting-1sc",
+   "E": 16,
+   "b": null,
+   "MC": 1.0614145668914312,
+   "MC_half_range": 0.06986361613244751,
+   "E_read_fJ": 107904.0,
+   "E_read_avg_fJ": 92352.0,
    "E_tot_fJ": 115904.0
   },
   {
    "readout": "counting-S",
    "E": 16,
    "b": null,
-   "MC": 1.5937116388934705,
+   "MC": 1.548756549141831,
+   "MC_half_range": 0.04166702933994737,
    "E_read_fJ": 2697600.0,
+   "E_read_avg_fJ": 2308800.0,
    "E_tot_fJ": 2705600.0
   },
   {
    "readout": "sar",
    "E": 16,
    "b": 2,
-   "MC": 1.3409033392810388,
+   "MC": 1.2779699100014141,
+   "MC_half_range": 0.06024490291362572,
    "E_read_fJ": 10040.0,
+   "E_read_avg_fJ": 10040.0,
    "E_tot_fJ": 18040.0
   },
   {
    "readout": "sar",
    "E": 16,
    "b": 3,
-   "MC": 1.4777760231434314,
+   "MC": 1.4554265519098397,
+   "MC_half_range": 0.020476326162412684,
    "E_read_fJ": 15280.000000000002,
+   "E_read_avg_fJ": 15280.000000000002,
    "E_tot_fJ": 23280.0
   },
   {
    "readout": "sar",
    "E": 16,
    "b": 4,
-   "MC": 1.5628798379076976,
+   "MC": 1.5385211517041053,
+   "MC_half_range": 0.020013999259555604,
    "E_read_fJ": 20960.0,
+   "E_read_avg_fJ": 20960.0,
    "E_tot_fJ": 28960.0
   },
   {
    "readout": "sar",
    "E": 16,
    "b": 5,
-   "MC": 1.5891117973880369,
+   "MC": 1.5488227177452252,
+   "MC_half_range": 0.03707712310118971,
    "E_read_fJ": 27520.0,
+   "E_read_avg_fJ": 27520.0,
    "E_tot_fJ": 35520.0
   },
   {
    "readout": "sar",
    "E": 16,
    "b": 6,
-   "MC": 1.599294708548457,
+   "MC": 1.5536807099702212,
+   "MC_half_range": 0.0417261296099769,
    "E_read_fJ": 35840.0,
+   "E_read_avg_fJ": 35840.0,
    "E_tot_fJ": 43840.0
   },
   {
    "readout": "sar",
    "E": 16,
+   "b": 7,
+   "MC": 1.5464759304792794,
+   "MC_half_range": 0.0425619878896335,
+   "E_read_fJ": 47680.0,
+   "E_read_avg_fJ": 47680.0,
+   "E_tot_fJ": 55680.0
+  },
+  {
+   "readout": "sar",
+   "E": 16,
    "b": 8,
-   "MC": 1.591041187892235,
+   "MC": 1.5469128900142142,
+   "MC_half_range": 0.04171839272285249,
    "E_read_fJ": 66560.0,
+   "E_read_avg_fJ": 66560.0,
    "E_tot_fJ": 74560.0
   },
   {
    "readout": "counting-1",
    "E": 64,
    "b": null,
-   "MC": 1.7384692241848092,
+   "MC": 1.6959167492914917,
+   "MC_half_range": 0.07391199807589077,
    "E_read_fJ": 431616.0,
+   "E_read_avg_fJ": 369408.0,
+   "E_tot_fJ": 463616.0
+  },
+  {
+   "readout": "counting-1sc",
+   "E": 64,
+   "b": null,
+   "MC": 1.4635645330230043,
+   "MC_half_range": 0.08088612758786173,
+   "E_read_fJ": 431616.0,
+   "E_read_avg_fJ": 369408.0,
    "E_tot_fJ": 463616.0
   },
   {
    "readout": "counting-S",
    "E": 64,
    "b": null,
-   "MC": 2.176078808250908,
+   "MC": 2.087981211290067,
+   "MC_half_range": 0.06654260572022919,
    "E_read_fJ": 10790400.0,
+   "E_read_avg_fJ": 9235200.0,
    "E_tot_fJ": 10822400.0
   },
   {
    "readout": "sar",
    "E": 64,
    "b": 2,
-   "MC": 1.4584515998532024,
+   "MC": 1.359139639163202,
+   "MC_half_range": 0.09841965042406087,
    "E_read_fJ": 10040.0,
+   "E_read_avg_fJ": 10040.0,
    "E_tot_fJ": 42040.0
   },
   {
    "readout": "sar",
    "E": 64,
    "b": 3,
-   "MC": 1.875007467892792,
+   "MC": 1.8624858533665354,
+   "MC_half_range": 0.08042377551421542,
    "E_read_fJ": 15280.000000000002,
+   "E_read_avg_fJ": 15280.000000000002,
    "E_tot_fJ": 47280.0
   },
   {
    "readout": "sar",
    "E": 64,
    "b": 4,
-   "MC": 2.16158201828641,
+   "MC": 2.0533189946206196,
+   "MC_half_range": 0.08584508157464787,
    "E_read_fJ": 20960.0,
+   "E_read_avg_fJ": 20960.0,
    "E_tot_fJ": 52960.0
   },
   {
    "readout": "sar",
    "E": 64,
    "b": 5,
-   "MC": 2.177836755011811,
+   "MC": 2.082264191059767,
+   "MC_half_range": 0.07739685266169527,
    "E_read_fJ": 27520.0,
+   "E_read_avg_fJ": 27520.0,
    "E_tot_fJ": 59520.0
   },
   {
    "readout": "sar",
    "E": 64,
    "b": 6,
-   "MC": 2.1847560331663307,
+   "MC": 2.091864845030442,
+   "MC_half_range": 0.07606796945685002,
    "E_read_fJ": 35840.0,
+   "E_read_avg_fJ": 35840.0,
    "E_tot_fJ": 67840.0
   },
   {
    "readout": "sar",
    "E": 64,
+   "b": 7,
+   "MC": 2.0918262038425133,
+   "MC_half_range": 0.06714986925968525,
+   "E_read_fJ": 47680.0,
+   "E_read_avg_fJ": 47680.0,
+   "E_tot_fJ": 79680.0
+  },
+  {
+   "readout": "sar",
+   "E": 64,
    "b": 8,
-   "MC": 2.1768986764449307,
+   "MC": 2.088624981178622,
+   "MC_half_range": 0.0664017629867073,
    "E_read_fJ": 66560.0,
+   "E_read_avg_fJ": 66560.0,
    "E_tot_fJ": 98560.0
   },
   {
    "readout": "counting-1",
    "E": 96,
    "b": null,
-   "MC": 1.9946804969963765,
+   "MC": 1.8725621362432234,
+   "MC_half_range": 0.12281639350415285,
    "E_read_fJ": 647424.0,
+   "E_read_avg_fJ": 554112.0,
+   "E_tot_fJ": 695424.0
+  },
+  {
+   "readout": "counting-1sc",
+   "E": 96,
+   "b": null,
+   "MC": 1.593150607932916,
+   "MC_half_range": 0.1666924832294827,
+   "E_read_fJ": 647424.0,
+   "E_read_avg_fJ": 554112.0,
    "E_tot_fJ": 695424.0
   },
   {
    "readout": "counting-S",
    "E": 96,
    "b": null,
-   "MC": 2.3316927914806698,
+   "MC": 2.265100047475643,
+   "MC_half_range": 0.09914030284500286,
    "E_read_fJ": 16185600.0,
+   "E_read_avg_fJ": 13852800.0,
    "E_tot_fJ": 16233600.0
   },
   {
    "readout": "sar",
    "E": 96,
    "b": 2,
-   "MC": 1.5395091926551474,
+   "MC": 1.428976630643308,
+   "MC_half_range": 0.09794361494098924,
    "E_read_fJ": 10040.0,
+   "E_read_avg_fJ": 10040.0,
    "E_tot_fJ": 58040.0
   },
   {
    "readout": "sar",
    "E": 96,
    "b": 3,
-   "MC": 2.0978107032266236,
+   "MC": 2.0584837276607386,
+   "MC_half_range": 0.03260963967118635,
    "E_read_fJ": 15280.000000000002,
+   "E_read_avg_fJ": 15280.000000000002,
    "E_tot_fJ": 63280.0
   },
   {
    "readout": "sar",
    "E": 96,
    "b": 4,
-   "MC": 2.3320788562867047,
+   "MC": 2.2095705319637684,
+   "MC_half_range": 0.1314291574381321,
    "E_read_fJ": 20960.0,
+   "E_read_avg_fJ": 20960.0,
    "E_tot_fJ": 68960.0
   },
   {
    "readout": "sar",
    "E": 96,
    "b": 5,
-   "MC": 2.3277812085643963,
+   "MC": 2.232622675560316,
+   "MC_half_range": 0.11927555758231034,
    "E_read_fJ": 27520.0,
+   "E_read_avg_fJ": 27520.0,
    "E_tot_fJ": 75520.0
   },
   {
    "readout": "sar",
    "E": 96,
    "b": 6,
-   "MC": 2.3405014123331047,
+   "MC": 2.264287518039704,
+   "MC_half_range": 0.10797967472790782,
    "E_read_fJ": 35840.0,
+   "E_read_avg_fJ": 35840.0,
    "E_tot_fJ": 83840.0
   },
   {
    "readout": "sar",
    "E": 96,
+   "b": 7,
+   "MC": 2.2672350701672648,
+   "MC_half_range": 0.09582186856944785,
+   "E_read_fJ": 47680.0,
+   "E_read_avg_fJ": 47680.0,
+   "E_tot_fJ": 95680.0
+  },
+  {
+   "readout": "sar",
+   "E": 96,
    "b": 8,
-   "MC": 2.332298729769686,
+   "MC": 2.26359706337703,
+   "MC_half_range": 0.10143763545164841,
    "E_read_fJ": 66560.0,
+   "E_read_avg_fJ": 66560.0,
    "E_tot_fJ": 114560.0
   },
   {
    "readout": "counting-1",
    "E": 256,
    "b": null,
-   "MC": 2.4306905214732835,
+   "MC": 2.3625480590183288,
+   "MC_half_range": 0.15966236480505858,
    "E_read_fJ": 1726464.0,
+   "E_read_avg_fJ": 1477632.0,
+   "E_tot_fJ": 1854464.0
+  },
+  {
+   "readout": "counting-1sc",
+   "E": 256,
+   "b": null,
+   "MC": 1.9818754915300867,
+   "MC_half_range": 0.07436916131837235,
+   "E_read_fJ": 1726464.0,
+   "E_read_avg_fJ": 1477632.0,
    "E_tot_fJ": 1854464.0
   },
   {
    "readout": "counting-S",
    "E": 256,
    "b": null,
-   "MC": 2.6841224295298742,
+   "MC": 2.6889983000379947,
+   "MC_half_range": 0.07021265593134607,
    "E_read_fJ": 43161600.0,
+   "E_read_avg_fJ": 36940800.0,
    "E_tot_fJ": 43289600.0
   },
   {
    "readout": "sar",
    "E": 256,
    "b": 2,
-   "MC": 1.6256489040736282,
+   "MC": 1.506488120330595,
+   "MC_half_range": 0.09220823615135698,
    "E_read_fJ": 10040.0,
+   "E_read_avg_fJ": 10040.0,
    "E_tot_fJ": 138040.0
   },
   {
    "readout": "sar",
    "E": 256,
    "b": 3,
-   "MC": 2.278222869228897,
+   "MC": 2.2053771060818548,
+   "MC_half_range": 0.05569795223881213,
    "E_read_fJ": 15280.000000000002,
+   "E_read_avg_fJ": 15280.000000000002,
    "E_tot_fJ": 143280.0
   },
   {
    "readout": "sar",
    "E": 256,
    "b": 4,
-   "MC": 2.5622040377680833,
+   "MC": 2.5360534844228666,
+   "MC_half_range": 0.07377830400638374,
    "E_read_fJ": 20960.0,
+   "E_read_avg_fJ": 20960.0,
    "E_tot_fJ": 148960.0
   },
   {
    "readout": "sar",
    "E": 256,
    "b": 5,
-   "MC": 2.7553872366469196,
+   "MC": 2.699131700000075,
+   "MC_half_range": 0.07142556883656681,
    "E_read_fJ": 27520.0,
+   "E_read_avg_fJ": 27520.0,
    "E_tot_fJ": 155520.0
   },
   {
    "readout": "sar",
    "E": 256,
    "b": 6,
-   "MC": 2.678160046939572,
+   "MC": 2.6890084197664934,
+   "MC_half_range": 0.0801621021910881,
    "E_read_fJ": 35840.0,
+   "E_read_avg_fJ": 35840.0,
    "E_tot_fJ": 163840.0
   },
   {
    "readout": "sar",
    "E": 256,
+   "b": 7,
+   "MC": 2.678087789104122,
+   "MC_half_range": 0.08340363274243612,
+   "E_read_fJ": 47680.0,
+   "E_read_avg_fJ": 47680.0,
+   "E_tot_fJ": 175680.0
+  },
+  {
+   "readout": "sar",
+   "E": 256,
    "b": 8,
-   "MC": 2.675481497119018,
+   "MC": 2.686721448186193,
+   "MC_half_range": 0.0728260461314465,
    "E_read_fJ": 66560.0,
+   "E_read_avg_fJ": 66560.0,
    "E_tot_fJ": 194560.0
   },
   {
    "readout": "counting-1",
    "E": 1024,
    "b": null,
-   "MC": 2.9946679184562752,
+   "MC": 2.858597442224229,
+   "MC_half_range": 0.11483899082941029,
    "E_read_fJ": 6905856.0,
+   "E_read_avg_fJ": 5910528.0,
+   "E_tot_fJ": 7417856.0
+  },
+  {
+   "readout": "counting-1sc",
+   "E": 1024,
+   "b": null,
+   "MC": 2.493226904184493,
+   "MC_half_range": 0.18233107266794524,
+   "E_read_fJ": 6905856.0,
+   "E_read_avg_fJ": 5910528.0,
    "E_tot_fJ": 7417856.0
   },
   {
    "readout": "counting-S",
    "E": 1024,
    "b": null,
-   "MC": 3.2347830771239114,
+   "MC": 3.2026949677739958,
+   "MC_half_range": 0.03704446142866691,
    "E_read_fJ": 172646400.0,
+   "E_read_avg_fJ": 147763200.0,
    "E_tot_fJ": 173158400.0
   },
   {
    "readout": "sar",
    "E": 1024,
    "b": 2,
-   "MC": 1.6776751053384993,
+   "MC": 1.6357075538288826,
+   "MC_half_range": 0.054451732163186106,
    "E_read_fJ": 10040.0,
+   "E_read_avg_fJ": 10040.0,
    "E_tot_fJ": 522040.0
   },
   {
    "readout": "sar",
    "E": 1024,
    "b": 3,
-   "MC": 2.254574452043592,
+   "MC": 2.319136589817904,
+   "MC_half_range": 0.05166856254301666,
    "E_read_fJ": 15280.000000000002,
+   "E_read_avg_fJ": 15280.000000000002,
    "E_tot_fJ": 527280.0
   },
   {
    "readout": "sar",
    "E": 1024,
    "b": 4,
-   "MC": 2.8582526058770767,
+   "MC": 2.817224429932692,
+   "MC_half_range": 0.031564787878705314,
    "E_read_fJ": 20960.0,
+   "E_read_avg_fJ": 20960.0,
    "E_tot_fJ": 532960.0
   },
   {
    "readout": "sar",
    "E": 1024,
    "b": 5,
-   "MC": 3.0392591343338444,
+   "MC": 3.056414442575452,
+   "MC_half_range": 0.04611379418069417,
    "E_read_fJ": 27520.0,
+   "E_read_avg_fJ": 27520.0,
    "E_tot_fJ": 539520.0
   },
   {
    "readout": "sar",
    "E": 1024,
    "b": 6,
-   "MC": 3.1666217807128083,
+   "MC": 3.146637430031854,
+   "MC_half_range": 0.02062552494973846,
    "E_read_fJ": 35840.0,
+   "E_read_avg_fJ": 35840.0,
    "E_tot_fJ": 547840.0
   },
   {
    "readout": "sar",
    "E": 1024,
+   "b": 7,
+   "MC": 3.2172295041604406,
+   "MC_half_range": 0.03163586226299375,
+   "E_read_fJ": 47680.0,
+   "E_read_avg_fJ": 47680.0,
+   "E_tot_fJ": 559680.0
+  },
+  {
+   "readout": "sar",
+   "E": 1024,
    "b": 8,
-   "MC": 3.254847829745317,
+   "MC": 3.2097046658242445,
+   "MC_half_range": 0.04964201081505348,
    "E_read_fJ": 66560.0,
+   "E_read_avg_fJ": 66560.0,
    "E_tot_fJ": 578560.0
   }
  ],
+ "ablation": {
+  "16": {
+   "readout_noise_only": {
+    "mean": 1.4571893894078378,
+    "half_range": 0.06599752016297933
+   },
+   "noise_through_both": {
+    "mean": 1.548756549141831,
+    "half_range": 0.04166702933994737
+   }
+  },
+  "96": {
+   "readout_noise_only": {
+    "mean": 2.153069595254929,
+    "half_range": 0.11704152021825931
+   },
+   "noise_through_both": {
+    "mean": 2.265100047475643,
+    "half_range": 0.09914030284500286
+   }
+  },
+  "1024": {
+   "readout_noise_only": {
+    "mean": 3.0092937345907824,
+    "half_range": 0.08829395591401834
+   },
+   "noise_through_both": {
+    "mean": 3.2026949677739958,
+    "half_range": 0.03704446142866691
+   }
+  }
+ },
  "iso_information": [
   {
    "E": 16,
    "b_eff": 2.0,
    "b_star": 3,
-   "mc_counting1": 1.1468225654433082,
-   "mc_countingS": 1.5937116388934705,
-   "mc_sar_bstar": 1.4777760231434314,
-   "integration_gain": 0.44688907345016227,
+   "mc_counting1": 1.1362267460751705,
+   "mc_counting1sc": 1.0614145668914312,
+   "mc_countingS": 1.548756549141831,
+   "mc_sar_bstar": 1.4554265519098397,
    "ratio_readout_c1": 7.061780104712041,
+   "ratio_readout_c1_avg": 6.043979057591622,
    "ratio_total_c1": 4.9786941580756015
   },
   {
    "E": 64,
    "b_eff": 3.0,
    "b_star": 4,
-   "mc_counting1": 1.7384692241848092,
-   "mc_countingS": 2.176078808250908,
-   "mc_sar_bstar": 2.16158201828641,
-   "integration_gain": 0.43760958406609873,
+   "mc_counting1": 1.6959167492914917,
+   "mc_counting1sc": 1.4635645330230043,
+   "mc_countingS": 2.087981211290067,
+   "mc_sar_bstar": 2.0533189946206196,
    "ratio_readout_c1": 20.59236641221374,
+   "ratio_readout_c1_avg": 17.62442748091603,
    "ratio_total_c1": 8.754078549848943
   },
   {
    "E": 96,
    "b_eff": 3.292481250360578,
    "b_star": 5,
-   "mc_counting1": 1.9946804969963765,
-   "mc_countingS": 2.3316927914806698,
-   "mc_sar_bstar": 2.3277812085643963,
-   "integration_gain": 0.33701229448429326,
+   "mc_counting1": 1.8725621362432234,
+   "mc_counting1sc": 1.593150607932916,
+   "mc_countingS": 2.265100047475643,
+   "mc_sar_bstar": 2.232622675560316,
    "ratio_readout_c1": 23.525581395348837,
+   "ratio_readout_c1_avg": 20.134883720930233,
    "ratio_total_c1": 9.208474576271186
   },
   {
    "E": 256,
    "b_eff": 4.0,
    "b_star": 5,
-   "mc_counting1": 2.4306905214732835,
-   "mc_countingS": 2.6841224295298742,
-   "mc_sar_bstar": 2.7553872366469196,
-   "integration_gain": 0.25343190805659077,
+   "mc_counting1": 2.3625480590183288,
+   "mc_counting1sc": 1.9818754915300867,
+   "mc_countingS": 2.6889983000379947,
+   "mc_sar_bstar": 2.699131700000075,
    "ratio_readout_c1": 62.734883720930235,
+   "ratio_readout_c1_avg": 53.693023255813955,
    "ratio_total_c1": 11.924279835390946
   },
   {
    "E": 1024,
    "b_eff": 5.0,
    "b_star": 6,
-   "mc_counting1": 2.9946679184562752,
-   "mc_countingS": 3.2347830771239114,
-   "mc_sar_bstar": 3.1666217807128083,
-   "integration_gain": 0.24011515866763622,
+   "mc_counting1": 2.858597442224229,
+   "mc_counting1sc": 2.493226904184493,
+   "mc_countingS": 3.2026949677739958,
+   "mc_sar_bstar": 3.146637430031854,
    "ratio_readout_c1": 192.68571428571428,
+   "ratio_readout_c1_avg": 164.9142857142857,
    "ratio_total_c1": 13.540186915887851
   }
  ],
- "conclusion": "Counting readout reuses the PBNN popcount periphery and reads the ensemble losslessly, but pays per-device sensing energy: at the canonical E = 96 a single-strobe popcount costs 24x the shot-noise-matched SAR conversion (b* = 5) for lower MC (counting-1 1.99 vs SAR 2.33; the single strobe also FORFEITS the window-integration gain of +0.34 MC that the analog integrator collects passively, N_eff <= 1.57 at dt = 25 ns). Every effective bit costs 4x devices AND 4x sensing energy (b_eff = 0.5 log2 E), while the SAR price is b-linear. Verdict: the seemingly obvious 'reuse the PBNN counters for RC' route is energetically excluded whenever a column-shared SAR is available; it survives only as the area-minimal single-periphery option. Side finding: the mean-field MC at this same operating point (4.92) is an infinite-ensemble ceiling; at physical E the ensemble noise -- acting through readout AND recurrence -- binds MC, not ADC resolution."
+ "conclusion": "Counting readout reuses the PBNN popcount periphery and reads the ensemble losslessly, but pays per-device sensing energy: at the canonical E = 96 the honest single-periphery system (recurrence AND readout from one popcount strobe) reaches MC 1.59 vs 2.23 for the shot-noise-matched SAR (b* = 5) at 24x the readout energy (20x under average-increment billing; the SAR's unbilled integrator front-end would only widen the gap). Every effective bit costs 4x devices AND 4x sensing energy (b_eff = 0.5 log2 E), while the SAR price is b-linear. Verdict: the seemingly obvious 'reuse the PBNN counters for RC' route is energetically excluded whenever a column-shared SAR is available; it survives only as the area-minimal single-periphery option, and even there gives up the integration gain. Noise-channel ablation at E = 96: readout-noise-only MC 2.15 +- 0.12 vs noise-through-both 2.27 +- 0.10 -- the recurrence channel's contribution is within estimator noise; ensemble noise binds MC through the READOUT channel (mean-field ceiling 4.92 +- 0.03)."
 }
