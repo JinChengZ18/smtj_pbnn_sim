@@ -2,8 +2,13 @@
 
 Metal write-line resistance droops the delivered write voltage along a column: a cell at row ``r``
 sees ``V_target - I_wr * R_par(r)``, where ``R_par(r)`` is the cumulative line resistance to that
-row. At the thesis *read* operating point the popcount-path droop is negligible (256x256, R_P in the
-kohm range), but the *write* line is significant at tall columns. sky130 ``extresist`` extraction
+row. At the thesis *read* operating point the popcount VOLTAGE droop across a cell is small (R_P in
+the kohm range), but the popcount SLOPE compares wire resistance against the column Norton impedance
+(R_P/N, ~100 ohm at N=64), not against R_P: the T3-5 replay co-simulation measured a 0.68x popcount
+slope compression and 12.7 mV far-end drop on a met1/0.23 um/2 um-pitch bit-line at N=64
+(eda/hero/replay_column_cosim.py) -- read-path negligibility therefore holds only with wider or
+higher-metal bit-lines (met2/met3) or slope-aware calibration. The *write* line is significant at
+tall columns. sky130 ``extresist`` extraction
 (``eda/extraction/writeline/``; poly self-check 47.96 vs 48.2 ohm/sq) gives a round-trip (BL+SL)
 write-line resistance of ~128 ohm at N=256 on met2 / 1 um width -- 16.5% of the 776 ohm SOT branch,
 about 148 mV -- which pulls the remote write point below the calibrated 0.896 V threshold and shifts
@@ -90,7 +95,8 @@ def apply_write_ir(p: Tensor, v_target: float,
     The nominal target probability ``p`` is realised at ``v_target``; rows farther from the driver
     receive less voltage and a lower switching probability (unless ``predistort`` restores it).
     Returns a new tensor; the input is unchanged. Default off in the accuracy path -- this models a
-    tall-column write-fidelity effect, not the negligible read-path droop.
+    tall-column write-fidelity effect; the read-path slope compression is a separate effect,
+    measured in the T3-5 replay co-simulation (see module docstring).
     """
     import torch
     rows = p.shape[0]
