@@ -9,6 +9,8 @@
 | `cell2t_summary.json` | 单元几何/面积/pitch 口径 + 黑盒规格（生成器写出） |
 | `check_layers.sh` | 黑盒层空位核查（sky130A.lyp + magic tech 中 ≥128 仅 235/4 被占用） |
 | `run_drc.sh` / `run_drc_2t.sh` | sky130 DRC（`sky130A_mr.drc`）——**必须传特性开关**，见下 |
+| `mk_drc_control.py` | DRC 阳性对照：向 cell2t.gds 注入已知 met1 宽度违例产出 `cell2t_control.gds`——deck 调用若对它报 0 即为假阴性，勿采信任何 0 违例结论 |
+| `render_2t.py` | 无 GUI 的 GDS 顶视渲染（`QT_QPA_PLATFORM=offscreen klayout -z -nc -r render_2t.py`）→ `figures/panels/ch04_22_a.png`（sky130 lyp 配色 + 黑盒层高亮） |
 | `run_pex.sh` / `run_pex_2t.sh` | Magic 寄生提取（`gds read → extract → ext2spice`） |
 | `LVS_GUI_CHECKLIST.md` | SA 互连 / LVS 的逐网连接表与步骤 |
 

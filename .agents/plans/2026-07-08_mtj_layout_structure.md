@@ -37,7 +37,7 @@
 ## L2 · 器件结构自洽与设计窗研究 ◑（核心已执行，见 EXECUTION.md B4；2026-07-08 状态同步）
 
 > **B4 完成（`eda/testbenches/structure_consistency.py` + summary JSON + `figures/structure_consistency.png`，commit 5d8567f）**：L2a ✅（保持 Δ=48.5 kT vs 公开带 59.3–64，K_eff 81.1% 补偿的敏感度解读 + CV(Δ)=7.7% 的微观离散解释）；L2c ✅（dp/dB=0.275/mT；2T 间距 δp≈1e-5；1% 临界间距 211 nm，含 ×1.5 点阵和裕量）；L2b 设计窗已算出但**双 CD 候选被修正降格**——同叠层达 Δ≈4.9 需 D_elec→17.2 nm（非早前按面积线性猜的 ~70 nm），17 nm 级光刻使空间双模阵列吸引力大降，sMTJ 更可能是近补偿叠层变体。
-> **残留（按价值排序）**：(1) 稿件整合——版图/结构小节入 ch4，等并行编辑落定（EXECUTION B4 余步；**须含口径修正 #5 的 θ_SH 区分句**）；(2) L2c 的 LLG 侧交叉核验未做——`replace(constants, h_ex_z=...)` 重放 ser case 对 dp/dB=0.275/mT 做独立核对（可选但兑现双模型锚，半天量级）；(3) L2b 双 CD 新颖性查证降为「先决定去留」——若保留只作设计窗图的一句讨论，不再作候选贡献点；(4) ✅ 2026-07-08 随 L1 落实：L2c 证书已以实绘 pitch 4.06 µm 回灌（δp=1.4e-6，`structure_consistency.py` 自动读 cell2t_summary.json）。
+> **残留（按价值排序）**：(1) 稿件整合——版图/结构小节入 ch4，等并行编辑落定（EXECUTION B4 余步；**须含口径修正 #5 的 θ_SH 区分句**）；(2) ✅ 2026-07-12 LLG 侧交叉核验完成（`dpdb_llg_check.py`）：写域实测 0.030±0.018/mT ≪ 平稳证书基 0.275/mT（最坏情形确认），与补偿修正 Hk 的脉冲域解析 0.054/mT 一致；(3) L2b 双 CD 新颖性查证降为「先决定去留」——若保留只作设计窗图的一句讨论，不再作候选贡献点；(4) ✅ 2026-07-08 随 L1 落实：L2c 证书已以实绘 pitch 4.06 µm 回灌（δp=1.4e-6，`structure_consistency.py` 自动读 cell2t_summary.json）。
 
 ### L2a 结构↔电学自洽闭环（S）✅ 2026-07-08
 

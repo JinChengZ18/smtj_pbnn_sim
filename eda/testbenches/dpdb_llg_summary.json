@@ -1,0 +1,32 @@
+{
+ "V_point": 0.895783,
+ "R_SOT": 776.0,
+ "trials": 1500,
+ "fields_oe": [
+  -10.0,
+  0.0,
+  10.0
+ ],
+ "psw": [
+  0.45999999999999996,
+  0.5213333333333333,
+  0.5206666666666666
+ ],
+ "ci95": [
+  0.025222390053284006,
+  0.025280448903656168,
+  0.025281867150925327
+ ],
+ "dpdB_llg_per_mT": 0.030333333333333323,
+ "dpdB_llg_ci95": 0.017855963756102867,
+ "dpdB_stationary_per_mT": 0.27539418391200143,
+ "dpdB_pulse_analytic_per_mT": {
+  "config_H_k_eff_RT": 0.15222729419695308,
+  "compensated_2Keff_mu0Ms": 0.05429370011905471
+ },
+ "note": "Certificate (structure_consistency) uses the stationary m/2kT sensitivity = free-running/RC regime, the worst case; the write regime senses field through the critical-voltage shift. LLG measures the pulse regime directly.",
+ "hk_candidates_Am": {
+  "config_H_k_eff_RT": 50000.0,
+  "compensated_2Keff_mu0Ms": 140188.72711120307
+ }
+}

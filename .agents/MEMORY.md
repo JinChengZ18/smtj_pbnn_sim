@@ -106,6 +106,12 @@
 
 - 2026-07-08 (later): **执行队列建立 + 阶段 A 前三项落地（A1/A2/A3）。** 队列=`plans/EXECUTION.md`（合并两份计划的唯一执行顺序清单，live 状态）。(1) **A1 表 4.6 陈旧修正**：实际**两行**变动（sMTJ 7.90/12.73 J + stoch-ReRAM 448.40/453.22 J；复现指南 §7.1 原「仅 sMTJ 一行」diff 不完整已订正）；正文排名改「仅次于 STT-MRAM 与 FeRAM」、1.14×→1.22×、4.2×→3.9×；[^nv_ranking] 附旧占位值来历；图 4.13 经 deck 换图重导出（slide 13 blob 替换+纵横比修正+dpi419 裁剪，工作树其余 13 张用户重导出 PNG 未动）。(2) **A2**：ch4 标定器件 CD 改约 80 nm（第二章口径），无沟道工艺以约 100 nm 括注保留。(3) **A3 敏感性审计**：新增 `experiments/22_energy_sensitivity.py`（18 参数三档带宽、基线对规范 run 自校验、闭式名次反转点）→ 实测 p-bit/sMTJ 包络 1.5–10.9×（方向稳健）、sMTJ/STT 0.72–1.64×（跨 1 → 改口同档）；§4.5 增包络句 + [^energy_sens] 脚注（并列 6.4×/3.1× 口径，**errata R5 残余口径就此闭环**）。发现并挂芯片：复现指南「已入库 run」措辞与 runs/ 整体 gitignore 矛盾（task_27021e46）。龙卷风图暂为仓库级证据（figures/22_*），是否收正文待用户定夺。PPA 12 测试全过。
 
+- 2026-07-12 (later): **三项计算余步全部收口（B1 8种子 / B2 D2D-UQ / L2c LLG 场核对）+ L2b 决定执行。**
+  - **B1 ✅**（`experiments/25b_resetfree_d2d.py`）：读后择极性在标定 CV=7.7% D2D 失配下 96.47%±0.22 vs 复位基线（同场写误差）96.31%±0.22，配对差 +0.16±0.34 pp 不可分辨——46.9% 省写能优势零精度代价地在 D2D 下存活（共模 V_th 假设已注明）。
+  - **B2 D2D 分支 ✅（诚实负结果）**（`experiments/26b_uq_d2d.py`）：每成员重抽器件场的 M 集成不复活 OOD（AUROC(MI) 0.857→0.838 与 nominal 0.867→0.835 重合），θ 饱和下 D2D logit 扰动太小、与 exp08 前向不敏感一致；仍开 CIFAR 预案/退化谱/conformal×SPRT。
+  - **L2c LLG ✅**（`eda/testbenches/dpdb_llg_check.py`，±10 Oe×1500 trials 自热 ON）：写域 dP_sw/dB_z=+0.030±0.018/mT——**证书平稳基 0.275/mT 为最坏情形、对写域超覆盖 ~9×**；与补偿修正 Hk=140 kA/m（=L2a 的 K_eff）的脉冲域解析 0.054/mT 一致（~1.3σ），FMR 基线 Hk 高估 5×——**81% 补偿物理在场响应通道独立复现**。响应不对称（反向场 −1 mT 拉低 P_sw 至 0.460，助向侧饱和）。
+  - **L2b ✅**：按建议执行降格——不再作候选贡献点、不查新颖性；设计窗以一句讨论+图4.23(a) 入正文。A5/A6 行级状态与队列头对齐（余步均已核验在场）。EXECUTION 阶段 B 至此全部收口（B2 留 CIFAR 等三个低优先开口）。
+
 - 2026-07-12: **MTJ L1/L2 稿件整合完成（绘图 + 撰写）——B4 稿件段、GDS 渲染残留、口径修正 #5 全部闭环。**
   - **绘图**：offscreen KLayout（`QT_QPA_PLATFORM=offscreen klayout -z`，`eda/hero/layout/render_2t.py`）实现无 GUI 的 GDS 顶视渲染——「GDS 渲染图需 GUI」残留就此关闭；图4.22 =（a）版图顶视 +（b）剖面示意（`figures/panels/ch04_22_a/b.png`，autofig 注册）、图4.23 = structure_consistency 双面板（overlay (1,2) 注册），经 `build_ppt_figs.py` deck 管线出 `article/figs/Chapter04_local_22/23.png`（manifest n_figs 21→23）。
   - **撰写**：§4.6 新增版图/结构两段（图4.20 与方法学段之间）：2T 单元版图（脚本化生成、CMOS 零违例、~3 fF、22.7 µm² 从上方界定 4.6 µm² 摊销估算）、黑盒 met2–met3 插层与公开几何锚、θ_SH 材料值 −0.3 vs 器件级有效效率的口径句（修正 #5 落地）；保持 Δ=48.5 kT 自洽 + 81% 补偿敏感度 + CV(Δ) 微观解释、17 nm 设计窗、偶极串扰 211 nm 临界间距 vs 确定性存储 30 nm 规则。[^drc_control] 试错-修正脚注承载 DRC 假阴性教训（符合试错记录规范）。方法学段「绝对面积仍俟版图细化」已按实绘版图更新。
