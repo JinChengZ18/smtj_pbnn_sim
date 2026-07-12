@@ -75,7 +75,7 @@
   + ngspice/OpenVAF/sky130A/KLayout 全齐，IIC-OSIC-TOOLS Docker 改为可选。
 - **本会话已落地的真实提取数**：写线 IR-drop（R3，`eda/extraction/writeline/`：N=256→16.5%·776Ω，
   li1 灾难）、SA 版后寄生/能量（R1/R5，`eda/hero/sa_postlayout.py`：35.25fF，23–74fJ/决策）、
-  SA 器件集 9→11 + DRC 0 违例 + netgen LVS 工具链打通。
+  SA 器件集 9→11 + ~~DRC 0 违例~~（⚠️ 2026-07-08 勘误：该 DRC 结论为无开关假阴性，带开关实为 ~542 条 PCell 偏格/压线伪影，见 eda/hero/layout/README.md「DRC 特性开关」；提取数不受影响） + netgen LVS 工具链打通。
 - **可分步执行清单（带 DoD + 状态）= [`eda/PLAN_execution.md`](eda/PLAN_execution.md)**（创新主线
   A0/A1+A2 Hero/A3 第二篇拆成步骤 + "立即可开工 5 动作"）。**SA 的 routing→全 LVS 是 GUI 收尾**
   （`eda/hero/layout/LVS_GUI_CHECKLIST.md`）。续传真相源仍是 `.agents/eda/STATUS.md`。

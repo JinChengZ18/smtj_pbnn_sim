@@ -9,7 +9,7 @@
 - **工具链已原生齐备**（无需 Docker）：`Ubuntu-24.04-EDA` 内 ngspice-46 + OpenVAF-Reloaded +
   sky130A + KLayout + **Magic 8.3.668** + **netgen 1.5.321 (LVS, `~/eda/netgen/bin`)**。
 - **真实提取数已落地**：写线 IR-drop（R3，`extraction/writeline/`）、SA 版后寄生/能量（R1/R5，
-  `hero/sa_postlayout.py`）、SA 器件集 9→11 + DRC 0 违例 + LVS 工具链打通。
+  `hero/sa_postlayout.py`）、SA 器件集 9→11 + ~~DRC 0 违例~~（⚠️ 2026-07-08 勘误：该 DRC 结论为无开关假阴性，带开关实为 ~542 条 PCell 偏格/压线伪影，见 eda/hero/layout/README.md「DRC 特性开关」；提取数不受影响） + LVS 工具链打通。
 - **闭环基础设施在位**：`hero/readout_mapping.py`（mV→popcount→精度）、`hero/hero_mnist_sweep.py`、
   `interface/load_tech_params.py`、`device/variation.py` 的 `sigma_sense_offset` 通道。
 

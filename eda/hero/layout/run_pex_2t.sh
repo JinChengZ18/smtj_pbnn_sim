@@ -33,7 +33,16 @@ puts "PEX_DONE devices+C extracted"
 quit -noprompt
 EOF
 
+rm -f cell2t_pex.spice                       # never show a stale netlist
 magic -dnull -noconsole -rcfile .magicrc pex2t.tcl > pex2t.log 2>&1
+rc=$?
+if [ $rc -ne 0 ] || [ ! -s cell2t_pex.spice ]; then
+  echo "ERROR: PEX did not produce a netlist (magic rc=$rc)"
+  tail -8 pex2t.log; exit 1
+fi
 echo "--- pex2t.log tail ---"; tail -8 pex2t.log
-echo "--- extracted netlist ---"; cat cell2t_pex.spice 2>/dev/null || echo "(no spice produced)"
+echo "--- extracted netlist ---"; cat cell2t_pex.spice
 echo "  netlist: $BUILD/cell2t_pex.spice"
+echo "NOTE: the BE2/SL met2 island is floating BY DESIGN (black-box-only"
+echo "      connection); any testbench using this netlist must attach the"
+echo "      SOT/MTJ black-box elements or shunt that node before DC analysis."

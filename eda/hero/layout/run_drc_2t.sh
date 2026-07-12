@@ -27,11 +27,19 @@ echo "staged $sz bytes -> $BUILD/cell2t.gds"
 # violations (false negative). Cell-level set: feol+beol+offgrid. seal is a
 # seal-ring rule (n/a); floating_met flags the black-box-connected met islands
 # by design (run it separately as informative if needed).
+rm -f "$BUILD/cell2t_drc.xml" "$BUILD/drc2t.log"   # never count stale reports
 export PDK_ROOT=/opt/pdk PDK=sky130A
 klayout -b -r "$DECK" \
   -rd input="$BUILD/cell2t.gds" -rd report="$BUILD/cell2t_drc.xml" -rd top_cell="$TOP" \
   -rd feol=1 -rd beol=1 -rd offgrid=1 \
   > "$BUILD/drc2t.log" 2>&1
+rc=$?
+if [ $rc -ne 0 ] || [ ! -s "$BUILD/cell2t_drc.xml" ]; then
+  echo "ERROR: DRC did not produce a report (klayout rc=$rc) -- do NOT read this as 0 violations"
+  tail -5 "$BUILD/drc2t.log" 2>/dev/null
+  exit 1
+fi
+grep -q "Total elapsed" "$BUILD/drc2t.log" || { echo "ERROR: no elapsed sentinel in log; rules may not have run"; exit 1; }
 v=$(grep -c "<item>" "$BUILD/cell2t_drc.xml" 2>/dev/null || true)
 echo "DRC done: ${v:-0} violations"
 echo "  report: $BUILD/cell2t_drc.xml"

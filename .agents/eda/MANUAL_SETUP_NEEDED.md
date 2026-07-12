@@ -2,7 +2,7 @@
 
 Items that need a hands-on step before the corresponding EDA work can proceed. Everything
 **not** listed here is already automated/working (P1 regression, P2–P7 first-cuts, Hero A1
-SA + offset MC + closed-loop + B5 readout mapping + GDS export + **DRC 0-violations**).
+SA + offset MC + closed-loop + B5 readout mapping + GDS export + ~~DRC 0-violations~~ [CORRECTED 2026-07-08: that DRC pass was a false negative (deck ran no rules without feature flags); with flags ~542 PCell off-grid/edge artifacts, see layout README 'DRC feature flags'; extraction numbers unaffected]).
 
 Last updated: 2026-06-26 (Magic upgrade done; repo on English path).
 
@@ -56,7 +56,7 @@ The repository has been moved from the old non-ASCII Windows parent path
 
 This avoids the KLayout `-rd input=<path>` UTF-8 parsing issue at the Windows path level. The EDA
 flow still stages into the ASCII ext4 build dir `~/smtj_eda_build` on the distro
-(`eda/hero/layout/run_drc.sh` — DRC passes 0 violations through it), and Python scripts continue to
+(`eda/hero/layout/run_drc.sh` — DRC runs through it; [CORRECTED 2026-07-08: that DRC pass was a false negative (deck ran no rules without feature flags); with flags ~542 PCell off-grid/edge artifacts, see layout README 'DRC feature flags'; extraction numbers unaffected]), and Python scripts continue to
 use `Path(__file__).resolve()` so they remain path-independent.
 
 Post-move maintenance already performed:

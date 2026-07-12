@@ -20,7 +20,7 @@
 
 **学术合法性（引用锚，均已核验）**：混合 CMOS/磁性 PDK 惯例——MTJ = 未改动 CMOS 之上经 via 连接的 BEOL 附加层 + abstract view 进标准流程（Prenat ICCAD 2011, DOI 10.1109/ICCAD.2011.6105334；SOT 标准单元直接对口先例 Di Pendina ASP-DAC 2014, DOI 10.1109/ASPDAC.2014.6742971）；开源学术 PDK 上叠 MTJ 层的先例 MagPDK（SBCCI 2016, DOI 10.1109/SBCCI.2016.7724055，基于本就不可制造的 FreePDK45——学术版图研究不以可流片为前提）；sky130 生态官方口径「NVM 是不动 FEOL 的 BEOL 模块」（sky130_fd_pr_reram 官方文档）。对照 NVSim/NeuroSim（DOI 10.1109/TCAD.2012.2185930、10.1109/TCAD.2018.2789723）零版图的领域常规，本项目做到 CMOS 部分 DRC-clean 属超出常规的严谨性。
 
-- **依托设施**：`eda/hero/layout/gen_sa_layout.py` 的 Sky130()+place() PCell 模式可直接复用（两个 nmos18，w=2.2/0.42 µm，WSL `klayout -b -r`）；DRC/PEX 流程已验证（器件级 0 违例、35.25 fF）；ch4:299 已有黑盒+不可制造声明口径。
+- **依托设施**：`eda/hero/layout/gen_sa_layout.py` 的 Sky130()+place() PCell 模式可直接复用（两个 nmos18，w=2.2/0.42 µm，WSL `klayout -b -r`）；DRC/PEX 流程已验证（PEX 35.25 fF；~~器件级 0 违例~~ ⚠️ 2026-07-08 勘误：无开关假阴性，见 layout/README「DRC 特性开关」）；ch4:299 已有黑盒+不可制造声明口径。
 - **执行草案**：(1) 2T 单元 GDS：写管 W≈2.2 µm + 读管 0.42 µm（`area_estimate.py:71-79` 推导链），FEOL+金属 DRC-clean；(2) 伪 BEOL 黑盒层：MTJ 柱（80 nm 包络，公开 CD）+ SOT track（200 nm 宽，公开）画在保留 GDS 层，插层位置参照 sky130B ReRAM 的 met1–met2（via1 加倍）模板或 IHP MEMRES 的 M2–M3 方案作类比论证；(3) Magic PEX 提取（黑盒除外），报提取面积 vs 4.6 µm² 估算；(4) **输出单元 pitch**（写管宽 2.2 µm 定 x 向、5×MET1_PITCH=1.7 µm 定下限、√4.6≈2.1 µm 方形假设三口径并报）——L2c 的输入；(5) 剖面示意图（结构叙事用，标注公开/标定两类参数来源）；(6) 可选抬升：把黑盒方法整理成最小「sMTJ 抽象层」套件（层定义+pcell+提取 deck，MagPDK 交付形态），须明示与 MagPDK 差异（sky130A 底座、SOT 三端、超顺磁无稳态）。
 - **措辞约束**：只声称 CMOS 部分 DRC-clean，全文不出现「全芯片 DRC-clean」；「不可制造声明」写成方法学选择（sky130A 无 MRAM 模块、MTJ 层无官方 DRC deck），是综合既有先例的归纳、非引用某文献的既定术语。
 - **DoD**：GDS + DRC 报告（CMOS 层 0 违例）+ 提取面积对比 + pitch 三口径 + 剖面图入库；题注含不可制造声明。
@@ -37,7 +37,7 @@
 ## L2 · 器件结构自洽与设计窗研究 ◑（核心已执行，见 EXECUTION.md B4；2026-07-08 状态同步）
 
 > **B4 完成（`eda/testbenches/structure_consistency.py` + summary JSON + `figures/structure_consistency.png`，commit 5d8567f）**：L2a ✅（保持 Δ=48.5 kT vs 公开带 59.3–64，K_eff 81.1% 补偿的敏感度解读 + CV(Δ)=7.7% 的微观离散解释）；L2c ✅（dp/dB=0.275/mT；2T 间距 δp≈1e-5；1% 临界间距 211 nm，含 ×1.5 点阵和裕量）；L2b 设计窗已算出但**双 CD 候选被修正降格**——同叠层达 Δ≈4.9 需 D_elec→17.2 nm（非早前按面积线性猜的 ~70 nm），17 nm 级光刻使空间双模阵列吸引力大降，sMTJ 更可能是近补偿叠层变体。
-> **残留（按价值排序）**：(1) 稿件整合——版图/结构小节入 ch4，等并行编辑落定（EXECUTION B4 余步；**须含口径修正 #5 的 θ_SH 区分句**）；(2) L2c 的 LLG 侧交叉核验未做——`replace(constants, h_ex_z=...)` 重放 ser case 对 dp/dB=0.275/mT 做独立核对（可选但兑现双模型锚，半天量级）；(3) L2b 双 CD 新颖性查证降为「先决定去留」——若保留只作设计窗图的一句讨论，不再作候选贡献点；(4) L1 完成后用提取 pitch 回灌 L2c 证书（现用 √4.6≈2.1 µm 假设，一行更新）。
+> **残留（按价值排序）**：(1) 稿件整合——版图/结构小节入 ch4，等并行编辑落定（EXECUTION B4 余步；**须含口径修正 #5 的 θ_SH 区分句**）；(2) L2c 的 LLG 侧交叉核验未做——`replace(constants, h_ex_z=...)` 重放 ser case 对 dp/dB=0.275/mT 做独立核对（可选但兑现双模型锚，半天量级）；(3) L2b 双 CD 新颖性查证降为「先决定去留」——若保留只作设计窗图的一句讨论，不再作候选贡献点；(4) ✅ 2026-07-08 随 L1 落实：L2c 证书已以实绘 pitch 4.06 µm 回灌（δp=1.4e-6，`structure_consistency.py` 自动读 cell2t_summary.json）。
 
 ### L2a 结构↔电学自洽闭环（S）✅ 2026-07-08
 

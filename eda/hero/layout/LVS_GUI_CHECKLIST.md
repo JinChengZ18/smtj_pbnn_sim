@@ -2,7 +2,7 @@
 
 **Status (2026-06-26, scripted best-effort done):**
 - ✅ Device set reconciled to **11** (added Mp3/Mp4); matches `../strongarm_sa_core.spice`.
-- ✅ **DRC 0 violations** (`run_drc.sh`); 11 devices extract (`run_pex.sh`, 35.25 fF device C).
+- ~~DRC 0 violations~~ [CORRECTED 2026-07-08: that DRC pass was a false negative (deck ran no rules without feature flags); with flags ~542 PCell off-grid/edge artifacts, see layout README 'DRC feature flags'; extraction numbers unaffected] (`run_drc.sh`); 11 devices extract (`run_pex.sh`, 35.25 fF device C).
 - ✅ **LVS toolchain validated** end-to-end: Magic `ext2spice lvs` (cap-free) → netgen 1.5.321 +
   `sky130A_setup.tcl` runs and recognizes nfet/pfet.
 - ⏳ **GAP = inter-device ROUTING.** The layout devices are isolated, so net topology can't match
