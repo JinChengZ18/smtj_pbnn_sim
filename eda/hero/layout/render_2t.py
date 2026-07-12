@@ -14,6 +14,12 @@ REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
 OUT = os.path.join(REPO, "figures", "panels", "ch04_22_a.png")
 LYP = "/opt/pdk/sky130A/libs.tech/klayout/tech/sky130A.lyp"
 
+app = pya.Application.instance()
+# clean render for the article figure: no display grid, no mini scale ruler
+# (a large 1 um scale bar is stamped afterwards by add_scalebar.py)
+app.set_config("grid-visible", "false")
+app.set_config("grid-show-ruler", "false")
+
 mw = pya.MainWindow.instance()
 view = mw.view(mw.create_view())
 cell_index = view.create_layout(True)

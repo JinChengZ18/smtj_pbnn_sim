@@ -91,8 +91,25 @@ def plot_sar(ax):
     ax.set_xticks(list(x)); ax.set_xticklabels(labels)
     ax.set_ylabel("energy per conversion (fJ)")
     ax.set_title(f"SAR readout ({rows[0]['b']}-bit)")
-    ax.set_ylim(0, max(r["E_total_fJ"] for r in rows) * 1.2)
+    y_top = max(r["E_total_fJ"] for r in rows) * 1.2
+    ax.set_ylim(0, y_top)
     ax.legend(fontsize=8, loc="upper right")
+    # tapered improvement arrow: thin at the worse scheme, growing to the better one
+    import numpy as np
+    x0, y0 = 0.30, (rows[0]["E_total_fJ"] + 60) / y_top
+    x1, y1 = 0.70, (rows[1]["E_total_fJ"] + 60) / y_top
+    w0, w1, head_l, head_w = 0.006, 0.032, 0.055, 0.066
+    p0, p1 = np.array([x0, y0]), np.array([x1, y1])
+    u = (p1 - p0) / np.hypot(*(p1 - p0)); nrm = np.array([-u[1], u[0]])
+    ph = p1 - u * head_l
+    pts = [p0 + nrm * w0 / 2, ph + nrm * w1 / 2, ph + nrm * head_w / 2, p1,
+           ph - nrm * head_w / 2, ph - nrm * w1 / 2, p0 - nrm * w0 / 2]
+    ax.add_patch(plt.Polygon(pts, closed=True, transform=ax.transAxes,
+                             facecolor=GREEN, edgecolor="none", alpha=0.9, zorder=5))
+    dpct = (1 - rows[1]["E_total_fJ"] / rows[0]["E_total_fJ"]) * 100
+    ax.text((x0 + x1) / 2, (y0 + y1) / 2 + 0.10, "−%.0f%%" % dpct,
+            transform=ax.transAxes, ha="center", fontsize=11, color=GREEN,
+            fontweight="bold")
 
 
 def main():

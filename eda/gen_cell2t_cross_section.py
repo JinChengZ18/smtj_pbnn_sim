@@ -89,9 +89,7 @@ rect(2.1, 2.72, 2.7, 0.25, C["sot"], "SOT track (W, 200 nm wide)", fs=9)
 rect(3.28, 2.97, 0.44, 0.55, C["mtj"], "MTJ\npillar", fs=8)
 ax.add_patch(Rectangle((2.0, 2.66), 2.9, 0.95, fill=False, edgecolor=C["box"],
                        linewidth=1.4, linestyle=(0, (4, 3)), zorder=4))
-ax.text(3.5, 4.0, "abstract black box (SOT track + MTJ pillar) - declared non-manufacturable\n"
-                  "(no MRAM module in any open PDK; annotation GDS layers 201/0, 200/0;\n"
-                  "BE/TE pads are real met2/met3)",
+ax.text(1.55, 4.28, "non-manufacturable black box\n(annotation layers 201/0, 200/0)",
         ha="center", fontsize=9, style="italic")
 
 # ---- met3: TE / read line ----

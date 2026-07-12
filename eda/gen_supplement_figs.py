@@ -139,6 +139,9 @@ def fig2():
     ax[1].set_title("Offset-cancellation Pareto")
     ax[1].legend(fontsize=8.5)
     cmp.plot_readout_sa(ax[2])
+    # zero-based y so relative offsets are not visually exaggerated
+    ax[1].set_ylim(bottom=0)
+    ax[2].set_ylim(bottom=0)
     fig.tight_layout()
     save_panels(fig, ax, "ch04_15")
     fig.savefig(OUT / "Chapter04_local_15.png", dpi=200, bbox_inches="tight")
@@ -229,10 +232,20 @@ def fig5():
     v_nopd = Vt - Iw * rpar
     psw = lambda v: 1.0 / (1.0 + np.exp(-(v - VTH) / VT))
     fig, ax = plt.subplots(1, 3, figsize=(16.6, 4.6))
+    # quantized per-row operating points from the committed write-DAC run
+    rows = d["rows"]
+    rr = [q["row"] for q in rows]
+    v_drive = [q["v_cell_pd"] + q["IR_mV"] * 1e-3 for q in rows]   # applied at column head
+    v_cell = [q["v_cell_pd"] for q in rows]                        # arrives at the cell
+    psw_pd = [q["psw_pd"] for q in rows]
     # (a) per-row write voltage: droop vs flattened, with the calibrated V_th crossing
     ax[0].plot(r, v_nopd, "-", color=RED, lw=2, label="no compensation (base-driven)")
     ax[0].axhline(Vt, color=PURPLE, lw=2, ls="--", label="IR-aware pre-distortion")
     ax[0].axhline(VTH, color=GREEN, lw=1.6, ls=":", label=r"calibrated $V_\mathrm{th}=%.3f$ V" % VTH)
+    ax[0].plot(rr, v_drive, "^-", color=GOLD, lw=1.4, ms=6, mec="black", mew=0.5,
+               label="row-addressed drive (5-bit code)")
+    ax[0].plot(rr, v_cell, "o", color=PURPLE, ms=6, mec="black", mew=0.5,
+               label="at-cell voltage after pre-distortion")
     ax[0].fill_between(r, v_nopd, VTH, where=(v_nopd < VTH), color=RED, alpha=0.16)
     below = np.where(v_nopd < VTH)[0]
     if len(below):
@@ -242,14 +255,15 @@ def fig5():
                        xy=(rc, VTH), xytext=(max(rc - 150, 5), VTH - 0.045), fontsize=8, color=RED)
     ax[0].set_xlabel("cell row in column"); ax[0].set_ylabel("write voltage at cell (V)")
     ax[0].set_title("Per-row write voltage")
-    ax[0].legend(fontsize=8, loc="lower left")
+    ax[0].legend(fontsize=8, loc="upper left")
     # (b) P_sw for three target operating points; pre-distortion holds each at target
     for pt, c in zip((0.5, 0.9, 0.99), (DEEP, RED, PURPLE)):
         Vtgt = VTH + VT * np.log(pt / (1 - pt))
         v = Vtgt - (Vtgt / 776.0) * rpar
         ax[1].plot(r, psw(v), "-", color=c, lw=1.9, label=r"$P_\mathrm{target}=%.2f$" % pt)
         ax[1].axhline(pt, color=c, lw=1.1, ls="--", alpha=0.7)
-    ax[1].plot([], [], color="0.5", ls="--", label="IR-aware pre-distortion")
+    ax[1].plot(rr, psw_pd, "o", color=RED, ms=6, mec="black", mew=0.5, zorder=5,
+               label="quantized pre-distortion (5-bit)")
     ax[1].set_xlabel("cell row in column"); ax[1].set_ylabel(r"write probability $P_\mathrm{sw}$")
     ax[1].set_title(r"Pre-distortion holds $P_\mathrm{sw}$ on target")
     ax[1].legend(fontsize=7.5, loc="center left")

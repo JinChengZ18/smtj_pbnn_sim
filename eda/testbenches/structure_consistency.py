@@ -168,16 +168,32 @@ def main() -> None:
     plt.rcParams.update({"font.family": "Arial", "font.size": 12})
     fig, ax = plt.subplots(1, 2, figsize=(12.5, 5.0))
 
+    # +/-1% Ki sensitivity envelope and the trimmed-stack curve, from the same
+    # forward model (near-compensation amplification made visible)
+    d_lo = np.array([retention_delta(c, ki=0.99 * c.Ki, d_elec=d)[0] for d in ds])
+    d_hi = np.array([retention_delta(c, ki=1.01 * c.Ki, d_elec=d)[0] for d in ds])
+    d_trim = np.array([retention_delta(c, ki=ki_star, d_elec=d)[0] for d in ds])
+    trim_pct = (1 - ki_star / c.Ki) * 100
+    ax[0].fill_between(ds * 1e9, d_lo, d_hi, color="#5E3F8C", alpha=0.18, lw=0)
     ax[0].plot(ds * 1e9, d_of_D, color="#5E3F8C", lw=2)
+    ax[0].plot(ds * 1e9, d_trim, color="#D4A017", lw=1.8, ls="--")
     ax[0].axhspan(*DELTA_PUBLIC, color="#1A6B5A", alpha=0.15)
     ax[0].text(12, np.mean(DELTA_PUBLIC), "published retention band\n"
                "(memory-grade platform)", fontsize=9, color="#1A6B5A",
                va="center")
     ax[0].axhline(DELTA_SMTJ, color="#A82038", ls="--", lw=1.6)
-    ax[0].text(12, DELTA_SMTJ + 1.5, f"superparamagnetic variant "
-               f"(NB Delta = {DELTA_SMTJ})", fontsize=9, color="#A82038")
+    ax[0].text(44, 1.6, r"NB $\Delta$ = %.2f (superparamagnetic)" % DELTA_SMTJ,
+               fontsize=9, color="#A82038")
     ax[0].plot([c.D_elec * 1e9], [d_ret], "o", color="#5E3F8C", ms=8)
+    ax[0].text(c.D_elec * 1e9 - 1.2, d_ret + 2.0, f"{d_ret:.1f} kT",
+               fontsize=9, color="#5E3F8C", ha="right")
     ax[0].plot([d_star * 1e9], [DELTA_SMTJ], "s", color="#A82038", ms=8)
+    ax[0].text(d_star * 1e9 + 1.0, DELTA_SMTJ + 2.4,
+               f"{d_star*1e9:.0f} nm", fontsize=9, color="#A82038")
+    ax[0].text(33, 25, "as-built stack\n" + r"$K_i\pm1\%$ envelope",
+               fontsize=9, color="#5E3F8C", ha="right")
+    ax[0].text(46, 11.2, r"$K_i$ trimmed $-$%.0f%%" % trim_pct,
+               fontsize=9, color="#B8860B")
     ax[0].set_xlabel(r"electrical diameter $D_\mathrm{elec}$ (nm)")
     ax[0].set_ylabel(r"retention $\Delta = E_b/k_BT$ (geometry)")
     ax[0].set_title("Retention barrier from the structural set")
@@ -185,13 +201,25 @@ def main() -> None:
 
     ax[1].loglog(pitches * 1e9, dp, color="#5E3F8C", lw=2)
     ax[1].axhline(DP_BUDGET, color="grey", ls=":", lw=1.2)
+    ax[1].axvspan(24, pitch_star * 1e9, color="#A82038", alpha=0.06)
+    ax[1].text(np.sqrt(24 * pitch_star * 1e9), 2.5e-6, "budget region\n(FET-less BEOL)",
+               fontsize=8.5, color="#A82038", ha="center")
+    ax[1].axvline(30, color="0.35", ls="-.", lw=1.4)
+    ax[1].text(30, dp.max() * 0.3, " conventional-memory rule (~30 nm)",
+               rotation=90, fontsize=9, color="0.35", va="top")
     ax[1].axvline(PITCH_2T * 1e9, color="#1A6B5A", ls="--", lw=1.6)
     ax[1].text(PITCH_2T * 1e9, dp.max() * 0.3, " 2T cell pitch", rotation=90,
                fontsize=9, color="#1A6B5A", va="top")
+    ax[1].plot([PITCH_2T * 1e9], [dp_2t], "o", color="#1A6B5A", ms=7, zorder=5)
+    ax[1].annotate(r"$\delta p \approx 10^{%d}$" % np.round(np.log10(dp_2t)),
+                   xy=(PITCH_2T * 1e9, dp_2t), xytext=(PITCH_2T * 1e9 * 0.16, dp_2t * 2.2),
+                   fontsize=9, color="#1A6B5A",
+                   arrowprops=dict(arrowstyle="->", color="#1A6B5A", lw=1.0))
     ax[1].axvline(pitch_star * 1e9, color="#A82038", ls="--", lw=1.6)
     ax[1].text(pitch_star * 1e9, dp.min() * 3, f" 1% shift at "
                f"{pitch_star*1e9:.0f} nm", rotation=90, fontsize=9,
                color="#A82038", va="bottom")
+    ax[1].set_xlim(left=24)
     ax[1].set_xlabel("array pitch (nm)")
     ax[1].set_ylabel(r"worst-case neighbour $\delta p$ at $p=1/2$")
     ax[1].set_title("Dipolar crosstalk pitch rule")

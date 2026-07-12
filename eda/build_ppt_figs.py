@@ -78,7 +78,9 @@ MANIFESTS = {
                     21: FIGS / "dual_model_consistency.png"},
         "vector": {14: OUT / "Chapter04_local_14.png",
                    18: OUT / "Chapter04_local_18.png"},
-        "refresh": {13: FIGS / "13a_training_energy_breakdown.png"},
+        "refresh": {13: FIGS / "13a_training_energy_breakdown.png",
+                    20: FIGS / "mode_pipeline.png",
+                    21: FIGS / "dual_model_consistency.png"},
     },
     "Chapter05_local": {
         "n_figs": 10,

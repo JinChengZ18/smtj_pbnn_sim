@@ -18,6 +18,7 @@ Run with Windows Python (matplotlib). Outputs figures/mode_pipeline.{png,svg,pdf
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.patches import Rectangle
 from pathlib import Path
 
@@ -46,23 +47,23 @@ def waveform(ax, x0, x1, ylo, h, highs, label, color):
 
 
 def main():
-    fig, ax = plt.subplots(figsize=(13.0, 5.6))
-    ax.set_xlim(0, 27); ax.set_ylim(0, 11.4); ax.axis("off")
+    fig, ax = plt.subplots(figsize=(13.0, 7.0))
+    ax.set_xlim(0, 27); ax.set_ylim(0, 14.2); ax.axis("off")
 
     # ---- (a) p-bit inference lane ----
-    ax.text(0, 10.7, "(a)  p-bit inference   —   one decision = T Bernoulli samples", fontsize=11.5,
+    ax.text(0, 13.5, "(a)  p-bit inference   —   one decision = T Bernoulli samples", fontsize=11.5,
             color=TXT, fontweight="bold")
 
-    y = 6.7                                   # sample-box row
+    y = 9.5                                   # sample-box row
     starts = (0.6, 5.0, 9.4)
     w_wr, w_set, w_rd = 1.5, 0.9, 1.5
     write_hi = [(x0, x0 + w_wr) for x0 in starts]
     read_hi = [(x0 + w_wr + w_set, x0 + w_wr + w_set + w_rd) for x0 in starts]
     xend = 13.3
     # phase-enable waveforms, aligned to the boxes below (this replaces the old free clock)
-    waveform(ax, 0.6, xend, 9.7, 0.7, write_hi, PHI_W, WR)
-    waveform(ax, 0.6, xend, 8.6, 0.7, read_hi, PHI_R, RD)
-    ax.text(0.6, 8.15, "phase enables high over the matching phase below (one sample shown gated)",
+    waveform(ax, 0.6, xend, 12.5, 0.7, write_hi, PHI_W, WR)
+    waveform(ax, 0.6, xend, 11.4, 0.7, read_hi, PHI_R, RD)
+    ax.text(0.6, 10.95, "phase enables high over the matching phase below (one sample shown gated)",
             fontsize=7.6, color=MUT)
 
     for k, x0 in enumerate(starts):
@@ -72,7 +73,7 @@ def main():
         ax.text(x0 + 1.95, y - 0.35, f"sample {k+1}", ha="center", fontsize=8, color=TXT)
     # light guides tying sample-1 waveform edges to the phase boundaries
     for gx in (0.6, 0.6 + w_wr, 0.6 + w_wr + w_set, 0.6 + w_wr + w_set + w_rd):
-        ax.plot([gx, gx], [y + 1.0, 9.7], color="#bbbbbb", lw=0.7, ls=":", zorder=0)
+        ax.plot([gx, gx], [y + 1.0, 12.5], color="#bbbbbb", lw=0.7, ls=":", zorder=0)
 
     ax.text(13.9, y + 0.5, "···  × T", ha="center", va="center", fontsize=12, color=TXT)
     box(ax, 15.6, y, 2.4, 1.0, OUT, "average\n" + r"$\Sigma/T$")
@@ -84,12 +85,43 @@ def main():
             + PHI_R + ";  confidence early-exit shortens T", fontsize=8, color=MUT)
 
     # ---- (b) reservoir processing lane ----
-    ax.text(0, 4.2, "(b)  reservoir processing   —   column-shared, time-multiplexed read-out",
+    ax.text(0, 7.0, "(b)  reservoir processing   —   column-shared, time-multiplexed read-out",
             fontsize=11.5, color=TXT, fontweight="bold")
     yb = 2.2
+    x0 = 9.0; slot = 1.45
+    # phase-enable waveforms for the three stages, aligned to the boxes below
+    load_hi = [(0.6, 3.2)]
+    col_hi = [(x0 + j * slot + 0.12, x0 + j * slot + slot - 0.22) for j in range(5)]
+    waveform(ax, 0.6, x0 + 5 * slot, 5.95, 0.6, load_hi, PHI_W, WR)
+    waveform(ax, 0.6, x0 + 5 * slot, 5.10, 0.6, col_hi, PHI_R, RD)
+    # one node's stochastic telegraph state m(t) during the free evolution
+    rng = np.random.default_rng(7)
+    t0, t1, ylo_m, h_m = 3.6, 8.6, 3.95, 0.85
+    edges = [t0]
+    while edges[-1] < t1:
+        edges.append(edges[-1] + float(rng.uniform(0.25, 0.85)))
+    edges[-1] = t1
+    lvl = int(rng.integers(0, 2))
+    xs, ys = [t0], [ylo_m + lvl * h_m]
+    for a, b in zip(edges[:-1], edges[1:]):
+        yv = ylo_m + lvl * h_m
+        xs += [a, b]; ys += [yv, yv]
+        lvl = 1 - lvl
+    ax.plot(xs, ys, color="#5E3F8C", lw=1.6, solid_joinstyle="miter",
+            drawstyle="steps-post", clip_on=False)
+    ax.text(0.35, ylo_m + h_m / 2, r"$m(t)$", ha="right", va="center", fontsize=9.5,
+            color="#5E3F8C")
+    ax.text(8.85, ylo_m + h_m / 2 - 0.05, "one node's telegraph state —\ndwell times are the computed memory",
+            fontsize=7.6, color=MUT, va="center")
+    ax.text(3.4, ylo_m + h_m + 0.12, "+1", fontsize=7.5, color="#5E3F8C", ha="right")
+    ax.text(3.4, ylo_m - 0.02, "−1", fontsize=7.5, color="#5E3F8C", ha="right")
+    # guides tying the load box and first column slot to their enable pulses
+    for gx in (0.6, 3.2):
+        ax.plot([gx, gx], [yb + 1.0, 5.95], color="#bbbbbb", lw=0.7, ls=":", zorder=0)
+    for gx in (x0, x0 + slot - 0.08):
+        ax.plot([gx, gx], [yb + 1.0, 5.10], color="#bbbbbb", lw=0.7, ls=":", zorder=0)
     box(ax, 0.6, yb, 2.6, 1.0, WR, "load inputs\n(write)")
     box(ax, 3.6, yb, 5.0, 1.0, SET, "free stochastic\nevolution  (low " + r"$\Delta$" + ")", tc=TXT, fs=9)
-    x0 = 9.0; slot = 1.45
     for j in range(5):
         box(ax, x0 + j * slot, yb, slot - 0.08, 1.0, RD, f"col {j+1}" if j < 4 else "col M", fs=8)
     ax.text(x0 + 2.5 * slot, yb + 1.35, "1 SAR  ·  time-multiplexed over M columns", ha="center",
