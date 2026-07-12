@@ -44,7 +44,7 @@ def main():
     a2.plot(t, psw, color=RED, lw=1.8, label="P$_{sw}$(t)")
     a2.set_ylabel("switching prob. P$_{sw}$", color=RED); a2.tick_params(axis="y", colors=RED)
     a2.set_ylim(-0.03, 1.03)
-    a.set_title("(a) write pulse delivery + stochastic switching", fontsize=10.5)
+    a.set_title("write pulse delivery + stochastic switching", fontsize=10.5)
     h1, l1 = a.get_legend_handles_labels(); h2, l2 = a2.get_legend_handles_labels()
     a.legend(h1 + h2, l1 + l2, fontsize=8, loc="center right", framealpha=0.9)
 
@@ -59,7 +59,7 @@ def main():
     b.axvline(1.0, color="#bbbbbb", lw=0.8, zorder=0)
     b.set_xlabel("time (ns)"); b.set_ylabel("voltage (V)")
     b.set_xlim(0, ts.max()); b.set_ylim(-0.1, 1.95)
-    b.set_title("(b) StrongARM regeneration (10 mV input)", fontsize=10.5)
+    b.set_title("StrongARM regeneration (10 mV input)", fontsize=10.5)
     b.legend(fontsize=8, loc="center right", framealpha=0.9)
 
     # ---- (c) SAR conversion (behavioural binary search) ----
@@ -79,7 +79,7 @@ def main():
     c.plot(idx, levels, "o", color=BLACK, ms=4)
     c.set_xlabel("SAR bit-trial (MSB → LSB)"); c.set_ylabel("DAC voltage (V)")
     c.set_xlim(0, nb); c.set_ylim(0, vfs)
-    c.set_title("(c) column-shared SAR conversion (%d-bit)" % nb, fontsize=10.5)
+    c.set_title("column-shared SAR conversion (%d-bit)" % nb, fontsize=10.5)
     c.legend(fontsize=8, loc="lower right", framealpha=0.9)
 
     for x in ax:

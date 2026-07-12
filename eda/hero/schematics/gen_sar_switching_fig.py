@@ -14,7 +14,8 @@ The figure is purely illustrative of WHY monotonic dissipates less switching ene
 quantitative claims are the transient-measured b=8 cap-DAC switching energies, taken verbatim from
 eda/testbenches/sar_capdac_tran_summary.json (b=8 rows, read at runtime).
 
-Headless render to article/figs/AppendixD_08.{png,svg}.
+Headless render of the raw plot to figures/sar_capdac_switching.{png,svg};
+the AppendixD deck overlays the (a)(b) letters and exports AppendixD_08.png.
 """
 from __future__ import annotations
 import os
@@ -175,11 +176,14 @@ def main():
 
     fig.tight_layout(rect=(0, 0.045, 1, 0.96))
 
+    # Write the raw, unlettered plot to figures/; the AppendixD deck overlays
+    # the (a)(b) panel letters and exports the numbered article/figs/AppendixD_08.png
+    # (panel letters live in the deck, never baked into the plot).
     here = os.path.dirname(os.path.abspath(__file__))
-    out_dir = os.path.normpath(os.path.join(here, "..", "..", "..", "article", "figs"))
+    out_dir = os.path.normpath(os.path.join(here, "..", "..", "..", "figures"))
     os.makedirs(out_dir, exist_ok=True)
-    png = os.path.join(out_dir, "AppendixD_08.png")
-    svg = os.path.join(out_dir, "AppendixD_08.svg")
+    png = os.path.join(out_dir, "sar_capdac_switching.png")
+    svg = os.path.join(out_dir, "sar_capdac_switching.svg")
     fig.savefig(png, dpi=200)
     fig.savefig(svg)
     plt.close(fig)

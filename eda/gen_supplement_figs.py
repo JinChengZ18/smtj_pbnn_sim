@@ -43,17 +43,33 @@ import plot_comparison as cmp
 
 def save_panels(fig, axes, stem):
     """Save each axes of `fig` as its own PNG (no panel letter) to figures/panels/.
-    Unions any twin/overlapping axes (e.g. twinx) so secondary labels aren't clipped."""
+    Unions any twin/overlapping axes (e.g. twinx) so secondary labels aren't
+    clipped, and clamps each crop horizontally to the mid-gap toward the
+    neighbouring subplot so an adjacent axes' spine can't bleed in as a stray
+    vertical line at the panel edge."""
     from matplotlib.transforms import Bbox
     fig.canvas.draw()
     rend = fig.canvas.get_renderer()
     for i, axx in enumerate(axes):
         pos = tuple(round(v, 4) for v in axx.get_position().bounds)
-        sibs = [a for a in fig.axes if tuple(round(v, 4) for v in a.get_position().bounds) == pos]
-        bb = Bbox.union([a.get_tightbbox(rend) for a in sibs])
-        ext = bb.transformed(fig.dpi_scale_trans.inverted())
-        fig.savefig(PANELS / f"{stem}_{'abcdef'[i]}.png", dpi=200,
-                    bbox_inches=ext.expanded(1.06, 1.10))
+        sibs = [a for a in fig.axes
+                if tuple(round(v, 4) for v in a.get_position().bounds) == pos]
+        bb = Bbox.union([a.get_tightbbox(rend) for a in sibs])       # display px
+        this = Bbox.union([a.get_window_extent(rend) for a in sibs])  # plot area
+        left_lim, right_lim = 0.0, float(fig.bbox.width)
+        for a in fig.axes:
+            if a in sibs:
+                continue
+            w = a.get_window_extent(rend)
+            if w.x1 <= this.x0:                       # neighbour to the left
+                left_lim = max(left_lim, 0.5 * (w.x1 + this.x0))
+            elif w.x0 >= this.x1:                     # neighbour to the right
+                right_lim = min(right_lim, 0.5 * (w.x0 + this.x1))
+        exp = bb.expanded(1.06, 1.10)
+        exp = Bbox.from_extents(max(exp.x0, left_lim), exp.y0,
+                                min(exp.x1, right_lim), exp.y1)
+        ext = exp.transformed(fig.dpi_scale_trans.inverted())
+        fig.savefig(PANELS / f"{stem}_{'abcdef'[i]}.png", dpi=200, bbox_inches=ext)
 
 PURPLE, RED, DEEP, GREEN, LILAC, GOLD = \
     "#5E3F8C", "#A82038", "#9580BD", "#1A6B5A", "#C99FD4", "#D4A017"

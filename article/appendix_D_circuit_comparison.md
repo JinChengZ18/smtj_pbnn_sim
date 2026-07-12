@@ -95,7 +95,7 @@ sMTJ经二端SOT栅写入，有效负载约$$776\ \Omega$$；写电流流经此�
 
 ![图D.8 SAR两种电容DAC开关方案的能耗对照](figs/AppendixD_08.png)
 
-**图D.8** conventional与monotonic两种SAR电容DAC开关方案的底极板电压轨迹与单次转换能 ($$b=8$$)。conventional每位先充后可能回拉、浪费电荷，monotonic仅作下拉，故开关能低约$$4.3$$倍。
+**图D.8** 两种SAR电容DAC开关方案的底极板电压轨迹与单次转换能 ($$b=8$$)。(a) conventional每位先充后可能回拉、浪费电荷；(b) monotonic仅作下拉，故开关能低约$$4.3$$倍。
 
 **表D.4** 两种SAR开关方案在同一sky130暂态电荷积分下的单次转换能 ($$b=8$$，单位电容$$1.5\ \mathrm{fF}$$，比较器为版图提取的$$48\ \mathrm{fJ}$$/次)。
 

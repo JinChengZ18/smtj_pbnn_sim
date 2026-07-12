@@ -20,7 +20,10 @@ experiments/data/
 .claude/worktrees/
 # PPT figure pipeline: generated PDFs (LibreOffice export) + one-time deck backups
 article/ppt/Chapter0*_local.pdf
+article/ppt/Appendix*.pdf
 article/ppt/*.pptx.bak
+# per-slide PNG export directories (regenerable from the decks)
+article/ppt/Chapter0*_local/
 
 # MS Office lock/temp files (e.g. ~$chapter04.docx) -- never commit
 ~$*
