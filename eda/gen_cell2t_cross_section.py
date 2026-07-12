@@ -16,7 +16,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Rectangle
 
-plt.rcParams.update({"font.family": "Arial", "font.size": 11})
+plt.rcParams.update({
+    "font.family": "Arial", "font.size": 11,
+    "mathtext.fontset": "custom", "mathtext.rm": "Arial",
+    "mathtext.it": "Arial:italic", "mathtext.bf": "Arial:bold",
+    "svg.hashsalt": "cell2t",           # deterministic clip-path ids (repro)
+})
 
 REPO = Path(__file__).resolve().parents[1]
 OUT = REPO / "figures"
@@ -59,6 +64,7 @@ ax.text(7.6, 0.72, "read FET  MR\n$W$=0.42 µm", ha="center", fontsize=9)
 
 # ---- li1 / met1 ----
 for x, w in [(0.7, 0.5), (2.1, 0.5), (6.9, 0.4), (8.0, 0.3)]:
+    rect(x + 0.1, 1.28, w - 0.2, 0.22, C["via"])   # licon posts (diff -> li1)
     rect(x, 1.5, w, 0.18, C["li1"])
 rect(0.7, 1.9, 0.5, 0.2, C["met1"])
 rect(2.1, 1.9, 0.5, 0.2, C["met1"])
@@ -81,10 +87,11 @@ ax.text(0.35, 2.61, "met2", fontsize=9, ha="right")
 # ---- abstract black box: SOT track + MTJ pillar ----
 rect(2.1, 2.72, 2.7, 0.25, C["sot"], "SOT track (W, 200 nm wide)", fs=9)
 rect(3.28, 2.97, 0.44, 0.55, C["mtj"], "MTJ\npillar", fs=8)
-ax.add_patch(Rectangle((1.9, 2.28), 3.3, 1.5, fill=False, edgecolor=C["box"],
+ax.add_patch(Rectangle((2.0, 2.66), 2.9, 0.95, fill=False, edgecolor=C["box"],
                        linewidth=1.4, linestyle=(0, (4, 3)), zorder=4))
-ax.text(3.5, 4.0, "abstract black box - declared non-manufacturable\n"
-                  "(no MRAM module in any open PDK; annotation GDS layers 200/0, 201/0)",
+ax.text(3.5, 4.0, "abstract black box (SOT track + MTJ pillar) - declared non-manufacturable\n"
+                  "(no MRAM module in any open PDK; annotation GDS layers 201/0, 200/0;\n"
+                  "BE/TE pads are real met2/met3)",
         ha="center", fontsize=9, style="italic")
 
 # ---- met3: TE / read line ----
@@ -96,14 +103,19 @@ rect(7.0, 2.96, 0.3, 0.56, C["via"])
 rect(6.7, 3.52, 1.6, 0.24, C["met3"])
 ax.text(0.35, 3.64, "met3", fontsize=9, ha="right")
 
-# current-path arrows
-ax.add_patch(FancyArrowPatch((0.95, 2.61), (2.4, 2.83), connectionstyle="arc3,rad=-0.25",
-                             arrowstyle="->", mutation_scale=12, color="#b71c1c", lw=1.3, zorder=5))
-ax.text(1.05, 3.25, "write current\n(WBL $\\to$ MW $\\to$ BE$_1$ $\\to$ SOT $\\to$ SL)",
+# current-path arrows (write path follows the actual route: WBL down through
+# MW, back up to BE1, along the SOT track to BE2/SL)
+for p0, p1, rad in [((0.95, 2.55), (1.6, 1.15), 0.3),
+                    ((1.8, 1.15), (2.45, 2.72), 0.3),
+                    ((2.6, 2.85), (4.2, 2.85), -0.15)]:
+    ax.add_patch(FancyArrowPatch(p0, p1, connectionstyle=f"arc3,rad={rad}",
+                                 arrowstyle="->", mutation_scale=11,
+                                 color="#b71c1c", lw=1.2, zorder=5))
+ax.text(0.85, 3.35, "write current\n(WBL $\\to$ MW $\\to$ BE$_1$ $\\to$ SOT $\\to$ BE$_2$/SL)",
         fontsize=8, color="#b71c1c", ha="center")
 ax.add_patch(FancyArrowPatch((3.5, 3.76), (6.9, 3.76), connectionstyle="arc3,rad=0.0",
                              arrowstyle="<-", mutation_scale=12, color="#1a237e", lw=1.3, zorder=5))
-ax.text(5.6, 4.35, "read current (TE $\\to$ MTJ $\\to$ SOT $\\to$ BE, sensed via MR)",
+ax.text(5.6, 4.35, "read current (RBL $\\to$ MR $\\to$ TE $\\to$ MTJ $\\to$ SOT $\\to$ BE$_2$/SL)",
         fontsize=8, color="#1a237e", ha="center")
 
 ax.set_xlim(-0.9, 10.2)
@@ -113,5 +125,6 @@ fig.tight_layout()
 OUT.mkdir(exist_ok=True)
 for ext in ("png", "svg"):
     fig.savefig(OUT / f"cell2t_cross_section.{ext}", dpi=300 if ext == "png" else None,
-                bbox_inches="tight")
+                bbox_inches="tight",
+                metadata=({"Date": None} if ext == "svg" else None))
     print(f"saved figures/cell2t_cross_section.{ext}")

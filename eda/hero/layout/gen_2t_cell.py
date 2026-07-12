@@ -153,7 +153,9 @@ rect("met1", 2.800, 0.35, 3.090, 1.40)
 rect("met1", -0.60, 2.42, 0.10, 3.03)
 
 # -- RWL: MR gate word line (pad faces south), met1 stub east --
-rect("met1", 3.50, -0.72, 4.10, -0.33)
+# (left edge 3.30 -> >=0.23 um overlap with the gate pad met1 (2.80..3.53);
+#  an earlier 3.50 start left only 0.03 um overlap -- audit fix 2026-07-08)
+rect("met1", 3.30, -0.72, 4.10, -0.33)
 
 # -- ptap strip (body tie) west of MW --
 rect("psdm", -1.495, 0.075, -0.835, 1.925)
@@ -164,7 +166,29 @@ rect("li1", -1.34, 0.30, -0.99, 1.70)
 rect("mcon", -1.25, 0.60, -1.08, 0.77)
 rect("met1", -1.34, -0.20, -1.04, 0.90)                   # BODY pad + stub south
 
-# ---- 5-dbu (0.005 um) grid snap of ALL layers ----
+# ---- port labels (sky130 label datatypes: met1 68/5, met2 69/5, met3 70/5) ----
+# Magic picks these up and emits a named-port subckt (enables LVS / testbench
+# instantiation; audit fix 2026-07-08).
+LBL = {"met1": ly.layer(68, 5), "met2": ly.layer(69, 5), "met3": ly.layer(70, 5)}
+
+
+def label(layer_key, txt, x_um, y_um):
+    top.shapes(LBL[layer_key]).insert(
+        pya.Text(txt, pya.Trans(pya.Point(int(x_um / ly.dbu), int(y_um / ly.dbu)))))
+
+
+label("met2", "WBL", 0.15, 1.50)
+label("met2", "BE1", 1.14, 1.89)
+label("met2", "SL", 1.66, 2.30)
+label("met3", "TE", 1.40, 1.89)
+label("met1", "RBL", 2.95, 1.20)
+label("met1", "WWL", -0.40, 2.72)
+label("met1", "RWL", 3.90, -0.52)
+label("met1", "BODY", -1.19, -0.10)
+
+# ---- 5-dbu (0.005 um) grid snap of ALL polygon layers ----
+# (labels are Text objects on the */5 datatypes and are skipped by the
+#  Region round-trip below: rebuild only layers that carry polygons)
 # The sky130 KLayout PCell emits 0.001-um-offset shape edges at some widths
 # (e.g. w=0.42), which the deck flags as *_OFFGRID; snapping every layer to the
 # 0.005 um manufacturing grid restores compliance (uniform +-0.001 shifts, so
@@ -178,7 +202,9 @@ for li in ly.layer_indexes():
     top.shapes(li).clear()
     top.shapes(li).insert(r2)
 
-ly.write(OUT)
+opt = pya.SaveLayoutOptions()
+opt.gds2_write_timestamps = False        # byte-reproducible GDS (audit fix)
+ly.write(OUT, opt)
 bb = top.bbox()
 w_um, h_um = bb.width() * ly.dbu, bb.height() * ly.dbu
 area = w_um * h_um
