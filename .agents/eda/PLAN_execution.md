@@ -58,7 +58,7 @@
 |---|---|---|---|---|
 |0.1| ngspice+OpenVAF→OSDI→DC 回归 | ngspice-46 | `run_regression.py` R²=1.0 | ✅ |
 |0.2| Magic ≥8.3.306 + sky130A techfile 加载 | Magic 8.3.668 | techfile 无版本错 | ✅ |
-|0.3| KLautout sky130 PCell DRC | KLayout | `run_drc.sh` 0 违例 | ✅ |
+|0.3| KLautout sky130 PCell DRC | KLayout | `run_drc.sh` 0 违例 | ⚠️ 2026-07-08 更正：当时未传 deck 特性开关（无开关=不跑规则、恒 0），属假阴性；带开关重跑 SA 得 ~542 条（绝大多数 OFFGRID + m1.5/li.3 的 PCell 压线伪影，非设计错误；修复=全层 5-dbu 吸附，随 1.7 做）。工具链本身可用（deck 经阳性对照验证），2T 单元已在正确调用下真 0 违例 |
 |0.4| Magic 提取链 (extract→ext2spice / extresist) | Magic | `run_pex.sh`/`run_extresist.sh` 通 | ✅ |
 |0.5| LVS netgen (Tim Edwards) | netgen 1.5.321 | `-batch lvs` 跑通 sky130A_setup | ✅ |
 > 结论：Phase 0 **满足**。IIC-OSIC-TOOLS Docker 仅作可移植性备份，非阻塞。
@@ -74,7 +74,7 @@
 |1.2| SA 输入折合失调 MC | ngspice MC | σ_offset/V_T | ✅ `run_offset_mc.py` **N=120 firmed: σ=9.21mV=0.39·V_T**（N=24 早值 0.47 偏高）|
 |1.3| 闭环 σ_offset→MNIST | PyTorch | per-column σ→精度曲线 | ✅ `hero_mnist_sweep.py`(97.0→96.35%) |
 |1.4| 读出跨阻映射 mV→popcount→精度 | Python | 协同律 + 设计边界 | ✅ `readout_mapping.py` |
-|1.5| SA 器件版图 GDS + DRC | KLayout | 11 器件 DRC 0 违例 | ✅ `layout/`(23.1×18.7µm) |
+|1.5| SA 器件版图 GDS + DRC | KLayout | 11 器件 DRC 0 违例 | ◑ `layout/`(23.1×18.7µm)；⚠️ 2026-07-08 更正：原「0 违例」为无开关假阴性，实有 PCell 偏格/压线伪影 ~542 条（见 layout/README「DRC 特性开关」），网格吸附修复随 1.7 |
 |1.6| SA 版后寄生 C + 能量/失调估算 | Magic PEX | 器件 C 提取 + 能量量级 | ◑ `sa_postlayout.py`(35.25fF;23–74fJ) |
 |1.7| **SA 器件间布线 (tail/交叉耦合/输入栅/precharge)** | KLayout/Magic GUI | 连通且 DRC 0 | 🖱️ `layout/LVS_GUI_CHECKLIST.md` |
 |1.8| **Netgen LVS = layout vs `strongarm_sa_core.spice`** | netgen | "Circuits match uniquely" | 🖱️ 待 1.7 |

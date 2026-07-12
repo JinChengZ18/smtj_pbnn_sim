@@ -10,7 +10,11 @@
 
 **只能以「合作方晶圆实测标定」身份出现、不得画进可复现版图的**：D_elec=65 nm（实为专有 RA/R_P 之商：16.6/4900 µm² → 65.7 nm，派生量）；t_FL=1.1 nm、MgO 1.4 nm、RA=16.6 Ω·µm²、R_P=4.9 kΩ、Δ=4.91——Hikstor 无任何公开 sMTJ 论文（公开器件是 RA=36、R_P=10.89 kΩ、Δ≈59–64 的记忆级堆叠，不同产品线）。SOT 沟道 240×200×4.3 nm+ρ=278 µΩ·cm 的拆分是拟合标定（构造性复出 776 Ω），其中仅宽 200 nm 与标称 4 nm/250 µΩ·cm 公开。
 
-## L1 · 2T 单元抽象 BEOL 集成版图 ⬜（数据充分；规模 S–M）
+## L1 · 2T 单元抽象 BEOL 集成版图 ✅（2026-07-08 完成，全脚本、未动 GUI）
+
+> **执行结果**：`eda/hero/layout/gen_2t_cell.py` → `cell2t.gds`（写管 w=2.2 + 读管 w=0.42 R180 + ptap 条 + 纯脚本布线；PCell gr=0 自带 S/D 与栅的 li1+mcon+met1，布线只需 via1/met2/via2/met3 + met1 延伸）。CMOS 部分 **DRC 真 0 违例**（`run_drc_2t.sh`，feol+beol+offgrid，**经阳性对照验证**）；PEX 提出 2 FET（w=2.2/0.42 精确对应）+ ~3.1 fF 寄生（`run_pex_2t.sh`；BE2/SL 岛按设计浮空、Magic 明确忽略黑盒层——皆为方法学证据）。面积：设计层 bbox 5.60×4.06=22.7 µm²（含存根/独立 tap，未阵列摊销）对 4.6 µm² 估算 = 从上方界定。黑盒 200/0+201/0（`check_layers.sh` 双重核查空位）；剖面图 `figures/cell2t_cross_section.*`；串扰证书已以实绘 pitch 回灌（δp=1.4e-6 @4.06 µm）。
+> **执行中的重大副产物**：发现 `sky130A_mr.drc` 不传特性开关时恒报 0（假阴性）——SA 的历史「DRC 0 违例」被勘误（详见 layout/README「DRC 特性开关」与 STATUS 2026-07-08 快照）；SA 修复（同款 5-dbu 吸附）随 1.7 布线窗口。
+> **残留**：单元级 netgen LVS（计划即列为可选、不进 DoD）；GDS 渲染图（KLayout GUI/xvfb，非必需——剖面图已承载结构叙事）。
 
 **动机（审稿人视角）**：「你的面积数是纸面估算还是版图」——当前 a_smtj_cell=4.6 µm² 是 cell-count×design-rule 一阶估算（`area_estimate.py:15-18` 自认非 DRC-clean GDS）；画出真实 2T 单元把面积从估算升级为提取，同时给 T3-5 列级重放提供带真实寄生的单元模板。
 

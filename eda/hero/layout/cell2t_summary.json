@@ -1,0 +1,44 @@
+{
+ "gds": "cell2t.gds",
+ "top_cell": "cell2t_smtj",
+ "drawn_bbox_um": [
+  -1.495,
+  -1.345,
+  4.1,
+  3.545
+ ],
+ "drawn_size_um": [
+  5.595,
+  4.89
+ ],
+ "drawn_area_um2": 27.36,
+ "design_bbox_um": [
+  -1.495,
+  -0.93,
+  4.1,
+  3.13
+ ],
+ "design_size_um": [
+  5.595,
+  4.06
+ ],
+ "design_area_um2": 22.716,
+ "estimate_area_um2": 4.6,
+ "note": "Drawn single-cell area includes cell-level stubs (WWL/RWL/WBL/SL/RBL/BODY) and a per-cell ptap strip; the 4.6 um^2 design-rule estimate assumes array-context amortization (shared taps, abutted routing). The drawn cell bounds the estimate from above; black-box layers 200/0, 201/0 are non-manufacturable annotations.",
+ "pitch_candidates_um": {
+  "x_drawn": 5.595,
+  "y_drawn": 4.89,
+  "sqrt_area_estimate": 2.145,
+  "met1_5track_lower_bound": 1.7
+ },
+ "blackbox": {
+  "mtj_pillar_um": 0.08,
+  "sot_track_w_um": 0.2,
+  "be_spacing_um": 0.2,
+  "layers": {
+   "mtj_pillar": "200/0",
+   "sot_track": "201/0"
+  },
+  "insertion": "met2 (BE pads / SL, couples with the met2+ write-line rule) to met3 (TE pad / read line)"
+ }
+}

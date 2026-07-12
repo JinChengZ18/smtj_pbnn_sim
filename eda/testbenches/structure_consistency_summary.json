@@ -24,6 +24,8 @@
     "dp_per_mT": 0.27539418391200143,
     "dp_at_2T_pitch": 1.0180036134611327e-05,
     "critical_pitch_nm_at_1pct": 211.0,
-    "lattice_factor": 1.5
+    "lattice_factor": 1.5,
+    "drawn_cell_pitch_um": 4.06,
+    "dp_at_drawn_cell_pitch": 1.4081769122484373e-06
   }
 }

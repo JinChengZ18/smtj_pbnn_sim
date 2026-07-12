@@ -27,7 +27,7 @@
 - [ ] T1-4 电报储备池 ESP 认证
 - [ ] T2-2 全温度自洽 · T2-3 计数式 RC 读出（窗口窄）
 - [ ] T3-5 确定性重放列级共仿（先做 MTJ L1 的 2T 单元版图供其模板）
-- [ ] MTJ L1 抽象 BEOL 版图——**主路线 `klayout -b` 脚本、不依赖 GUI 窗口**（执行级决策附录见 MTJ 计划文件：met2–met3 插层、黑盒层映射、gen_2t_cell.py）；T3-5 以其 2T 单元为模板，若 T3-5 要赶答辩展示则 L1 提前单独做；完成后用提取 pitch 回灌 L2c 证书（一行重跑）
+- [x] **MTJ L1 抽象 BEOL 版图**（2026-07-08 完成，全脚本无 GUI）：`gen_2t_cell.py`→`cell2t.gds`，CMOS 部分 DRC 真 0 违例（feol+beol+offgrid + 阳性对照）、PEX 2 FET + ~3.1 fF、设计层 22.7 µm²、黑盒 200/0+201/0、剖面图 `figures/cell2t_cross_section.*`、串扰证书已回灌（δp=1.4e-6 @4.06 µm）。**副产物勘误：SA「DRC 0 违例」系无开关假阴性**（~542 条 PCell 偏格/压线伪影；正文无此宣称，内部记录已改；SA 网格吸附修复随 1.7）。T3-5 的 2T 单元模板就绪。残留：可选 LVS、GDS 渲染图（GUI）
 - [ ] L2b 双 CD 候选去留决定（经 B4 修正需 17.2 nm 光刻、吸引力大降——建议降为设计窗图的一句讨论，不再作候选贡献点；若保留才做新颖性查证）
 - [ ] 跨仓库口径修正：ch2 D_elec 派生量说明、configs.py「β-IrMn」注释（并入 pending_vgsot_destale，随 VA 同步窗口）
 

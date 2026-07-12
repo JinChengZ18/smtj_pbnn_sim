@@ -14,8 +14,14 @@
 #   wsl -d Ubuntu-24.04-EDA -- bash -lc \
 #     'cd "<repo>/eda/hero/layout" && bash run_drc.sh'
 #
-# RESULT (2026-06-26): 0 DRC violations on strongarm_sa_devs (device-level; routing
-# DRC follows once interconnect is drawn). drc.log/sa_drc.xml land in $BUILD.
+# RESULT (2026-06-26): "0 DRC violations" -- CORRECTED 2026-07-08: that run passed
+# NO feature flags, and this deck runs no rules without $feol/$beol/$offgrid (always
+# reports 0 = false negative; caught by a positive control while building the 2T
+# cell, see README "DRC 特性开关"). With flags the device-level SA GDS shows ~542
+# items: mostly *_OFFGRID (PCell emits 0.001um off-grid coords in guard rings /
+# some widths) plus m1.5 x24 / li.3 x6 -- PCell edge artifacts, not design errors;
+# fix = the 5-dbu grid snap used by gen_2t_cell.py, scheduled with the 1.7 routing
+# window. Flags are now passed below.
 set -u
 BUILD=/home/lenovo/smtj_eda_build
 DECK=/opt/pdk/sky130A/libs.tech/klayout/drc/sky130A_mr.drc
@@ -31,6 +37,7 @@ echo "staged $sz bytes -> $BUILD/sa.gds"
 export PDK_ROOT=/opt/pdk PDK=sky130A
 klayout -b -r "$DECK" \
   -rd input="$BUILD/sa.gds" -rd report="$BUILD/sa_drc.xml" -rd top_cell="$TOP" \
+  -rd feol=1 -rd beol=1 -rd offgrid=1 \
   > "$BUILD/drc.log" 2>&1
 v=$(grep -c "<item>" "$BUILD/sa_drc.xml" 2>/dev/null || true)   # grep -c exits 1 on 0 matches
 echo "DRC done: ${v:-0} violations"

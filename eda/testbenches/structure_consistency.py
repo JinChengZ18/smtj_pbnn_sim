@@ -121,6 +121,22 @@ def main() -> None:
           f"(negligible); dp = 1% critical pitch = {pitch_star*1e9:.0f} nm "
           f"(FET-less dense-BEOL regime only)")
 
+    # drawn-cell backfill (MTJ plan L1): evaluate the certificate at the pitch
+    # of the actually drawn 2T cell (eda/hero/layout/cell2t_summary.json,
+    # design-bbox short side) -- the drawn cell is looser than the 2.1 um
+    # estimate, so the coupling there is smaller still.
+    dp_drawn = None
+    drawn_pitch = None
+    cell_json = REPO / "eda" / "hero" / "layout" / "cell2t_summary.json"
+    if cell_json.exists():
+        cell = json.loads(cell_json.read_text(encoding="utf-8"))
+        if "design_size_um" in cell:
+            drawn_pitch = min(cell["design_size_um"]) * 1e-6
+            e1 = MU0 * 2 * m / (4 * np.pi * drawn_pitch ** 3) * m * lattice / (KB * T_K)
+            dp_drawn = float(np.tanh(e1 / 2.0) / 2.0)
+            print(f"drawn-cell backfill: design-bbox short side = "
+                  f"{drawn_pitch*1e6:.2f} um -> dp = {dp_drawn:.2e}")
+
     summary = {
         "geometry": {"D_elec_nm": c.D_elec * 1e9, "tf_nm": c.tf * 1e9,
                      "Nx": nx, "Nz": nz},
@@ -136,7 +152,10 @@ def main() -> None:
         "dipolar": {"moment_Am2": m, "dp_per_mT": dpdB * 1e-3,
                     "dp_at_2T_pitch": dp_2t,
                     "critical_pitch_nm_at_1pct": round(pitch_star * 1e9, 0),
-                    "lattice_factor": lattice},
+                    "lattice_factor": lattice,
+                    "drawn_cell_pitch_um": (round(drawn_pitch * 1e6, 2)
+                                            if drawn_pitch else None),
+                    "dp_at_drawn_cell_pitch": dp_drawn},
     }
     out_json = Path(__file__).with_name("structure_consistency_summary.json")
     out_json.write_text(json.dumps(summary, indent=2), encoding="utf-8")
