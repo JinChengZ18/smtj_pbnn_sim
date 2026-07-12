@@ -128,3 +128,9 @@ for ext in ("png", "svg"):
                 bbox_inches="tight",
                 metadata=({"Date": None} if ext == "svg" else None))
     print(f"saved figures/cell2t_cross_section.{ext}")
+# deck-pipeline panel copy (letter-free; the deck overlays panel letters):
+# panel (a) = GDS top view (render_2t.py), panel (b) = this cross-section
+panels = OUT / "panels"
+panels.mkdir(exist_ok=True)
+fig.savefig(panels / "ch04_22_b.png", dpi=300, bbox_inches="tight")
+print("saved figures/panels/ch04_22_b.png")

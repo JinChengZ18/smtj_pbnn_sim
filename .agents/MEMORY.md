@@ -106,6 +106,12 @@
 
 - 2026-07-08 (later): **执行队列建立 + 阶段 A 前三项落地（A1/A2/A3）。** 队列=`plans/EXECUTION.md`（合并两份计划的唯一执行顺序清单，live 状态）。(1) **A1 表 4.6 陈旧修正**：实际**两行**变动（sMTJ 7.90/12.73 J + stoch-ReRAM 448.40/453.22 J；复现指南 §7.1 原「仅 sMTJ 一行」diff 不完整已订正）；正文排名改「仅次于 STT-MRAM 与 FeRAM」、1.14×→1.22×、4.2×→3.9×；[^nv_ranking] 附旧占位值来历；图 4.13 经 deck 换图重导出（slide 13 blob 替换+纵横比修正+dpi419 裁剪，工作树其余 13 张用户重导出 PNG 未动）。(2) **A2**：ch4 标定器件 CD 改约 80 nm（第二章口径），无沟道工艺以约 100 nm 括注保留。(3) **A3 敏感性审计**：新增 `experiments/22_energy_sensitivity.py`（18 参数三档带宽、基线对规范 run 自校验、闭式名次反转点）→ 实测 p-bit/sMTJ 包络 1.5–10.9×（方向稳健）、sMTJ/STT 0.72–1.64×（跨 1 → 改口同档）；§4.5 增包络句 + [^energy_sens] 脚注（并列 6.4×/3.1× 口径，**errata R5 残余口径就此闭环**）。发现并挂芯片：复现指南「已入库 run」措辞与 runs/ 整体 gitignore 矛盾（task_27021e46）。龙卷风图暂为仓库级证据（figures/22_*），是否收正文待用户定夺。PPA 12 测试全过。
 
+- 2026-07-12: **MTJ L1/L2 稿件整合完成（绘图 + 撰写）——B4 稿件段、GDS 渲染残留、口径修正 #5 全部闭环。**
+  - **绘图**：offscreen KLayout（`QT_QPA_PLATFORM=offscreen klayout -z`，`eda/hero/layout/render_2t.py`）实现无 GUI 的 GDS 顶视渲染——「GDS 渲染图需 GUI」残留就此关闭；图4.22 =（a）版图顶视 +（b）剖面示意（`figures/panels/ch04_22_a/b.png`，autofig 注册）、图4.23 = structure_consistency 双面板（overlay (1,2) 注册），经 `build_ppt_figs.py` deck 管线出 `article/figs/Chapter04_local_22/23.png`（manifest n_figs 21→23）。
+  - **撰写**：§4.6 新增版图/结构两段（图4.20 与方法学段之间）：2T 单元版图（脚本化生成、CMOS 零违例、~3 fF、22.7 µm² 从上方界定 4.6 µm² 摊销估算）、黑盒 met2–met3 插层与公开几何锚、θ_SH 材料值 −0.3 vs 器件级有效效率的口径句（修正 #5 落地）；保持 Δ=48.5 kT 自洽 + 81% 补偿敏感度 + CV(Δ) 微观解释、17 nm 设计窗、偶极串扰 211 nm 临界间距 vs 确定性存储 30 nm 规则。[^drc_control] 试错-修正脚注承载 DRC 假阴性教训（符合试错记录规范）。方法学段「绝对面积仍俟版图细化」已按实绘版图更新。
+  - **新尾注 4 条（题录经本会话联网核准）**：[^hikstor_edl] Yang et al. IEEE EDL 2024（DOI 10.1109/LED.2024.3454609，全 13 作者）、[^beta_w] Pai et al. APL 2012（DOI 10.1063/1.4753947）、[^hybrid_mpdk] Di Pendina et al. ASP-DAC 2014（DOI 10.1109/ASPDAC.2014.6742971）、[^mram_pitch] Caçoilo et al. arXiv:2312.05245（题名/作者已对 arXiv 页核准）。脚注用-定义双向一致性经程序化校验。docx 经 build_docx.py 重生同提交。
+  - 用户在途的 chapter01.md 修改未纳入本次提交。
+
 - 2026-07-08 (audit pass): **L1 交付物对抗性审计（4 怀疑者工作流 `wf_fd4afa58-2df`）：0 major、全部 minor 已修。**
   - **连通性主审通过**：8 节点经 .ext 坐标+逐层面积核算全部对号（无短路/断路/错连）；据审计加了**端口标签**（68/5、69/5、70/5）→ PEX 现在输出命名端口 `.subckt cell2t_smtj RBL WWL RWL BODY WBL BE1 SL TE`（X1=写管 BE1/WWL/WBL、X0=读管 TE/RWL/RBL），可直接 LVS/实例化；RWL 与栅垫的 30nm 悬崖重叠加宽到 0.23µm。
   - **可复现性修复**：GDS 关时间戳（两次生成 sha256 一致）；SVG 加 hashsalt+去 Date；`check_layers.sh` 的 magic-tech 分支原 grep `gds` 是空验证（tech 用 `calma` 语法）→ 已改（结论碰巧不变：≥128 仅 235/4）；run_drc_2t/run_pex_2t 加「删旧输出+退出码断言+elapsed 哨兵」堵陈旧输出假阴性通道；阳性对照脚本 `mk_drc_control.py` 入库。

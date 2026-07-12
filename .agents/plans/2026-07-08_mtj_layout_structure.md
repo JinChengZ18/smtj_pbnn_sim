@@ -14,7 +14,7 @@
 
 > **执行结果**：`eda/hero/layout/gen_2t_cell.py` → `cell2t.gds`（写管 w=2.2 + 读管 w=0.42 R180 + ptap 条 + 纯脚本布线；PCell gr=0 自带 S/D 与栅的 li1+mcon+met1，布线只需 via1/met2/via2/met3 + met1 延伸）。CMOS 部分 **DRC 真 0 违例**（`run_drc_2t.sh`，feol+beol+offgrid，**经阳性对照验证**）；PEX 提出 2 FET（w=2.2/0.42 精确对应）+ ~3.1 fF 寄生（`run_pex_2t.sh`；BE2/SL 岛按设计浮空、Magic 明确忽略黑盒层——皆为方法学证据）。面积：设计层 bbox 5.60×4.06=22.7 µm²（含存根/独立 tap，未阵列摊销）对 4.6 µm² 估算 = 从上方界定。黑盒 200/0+201/0（`check_layers.sh` 双重核查空位）；剖面图 `figures/cell2t_cross_section.*`；串扰证书已以实绘 pitch 回灌（δp=1.4e-6 @4.06 µm）。
 > **执行中的重大副产物**：发现 `sky130A_mr.drc` 不传特性开关时恒报 0（假阴性）——SA 的历史「DRC 0 违例」被勘误（详见 layout/README「DRC 特性开关」与 STATUS 2026-07-08 快照）；SA 修复（同款 5-dbu 吸附）随 1.7 布线窗口。
-> **残留**：单元级 netgen LVS（计划即列为可选、不进 DoD）；GDS 渲染图（KLayout GUI/xvfb，非必需——剖面图已承载结构叙事）。
+> **残留**：单元级 netgen LVS（计划即列为可选、不进 DoD）。~~GDS 渲染图~~ ✅ 2026-07-12 以 offscreen KLayout 落实（`render_2t.py`，QT_QPA_PLATFORM=offscreen，无需 GUI）；**稿件整合 ✅ 2026-07-12**：§4.6 版图/结构两段 + 图4.22（(a) GDS 顶视 + (b) 剖面）/图4.23（保持Δ正演 + 串扰 pitch 规则）经 deck 管线成图（Chapter04_local_22/23），含 θ_SH 口径句（修正 #5）与 [^drc_control] 试错-修正脚注。
 
 **动机（审稿人视角）**：「你的面积数是纸面估算还是版图」——当前 a_smtj_cell=4.6 µm² 是 cell-count×design-rule 一阶估算（`area_estimate.py:15-18` 自认非 DRC-clean GDS）；画出真实 2T 单元把面积从估算升级为提取，同时给 T3-5 列级重放提供带真实寄生的单元模板。
 
