@@ -209,6 +209,16 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 
 [^sample_timing]: 每样本一写一读的计费对应读后择极性的采样时序：读出当前态、按目标概率选择脉冲极性与幅度，条件切换概率精确实现目标边缘分布，样本严格独立，所需的双向切换标定即第二章的两方向实测曲线；其相对该计费的真实增量仅为写前感测一读 (约6%)。作为对照，先复位再编程的时序使写路能量近乎翻倍；免复位且不读态的单极性时序会把状态棘轮化到脉冲偏好侧 (平稳分布恒不低于1/2)，即使按权重符号静态选极性并预畸变编程电压，马尔可夫相关仍使$$T=4$$平均的方差膨胀约3.8倍、精度实测下降约0.7个百分点。
 
+漂移压力测试给出的是抽象的共模预算，把第二章的磁性温度标度律沿校准链传播则给出其物理刻度：环境温度是最主要的共模轴。有效各向异性是界面项与形状项约81%补偿之差，二者随温度以不同指数下降 (Bloch $$T^{3/2}$$对修正Callen–Callen指数2.18)，升温使补偿加深、$$K_\mathrm{eff}$$的温度斜率被近补偿放大，由此传播到写阈值得$$\mathrm{d}V_\mathrm{th}/\mathrm{d}T\approx-2.1\,\mathrm{mV/K}$$，而判决窗仅按$$V_T(T)=V_{T,300}\cdot T/300$$缓慢展宽 (补偿比在临界电压与开关指数之间严格相消)。将对应的共模变换$$p\to\sigma(a\theta+b)$$ ($$a=300/T$$，$$b$$由阈值漂移折算) 施加于已训练网络的全部单元，得到部署温窗：不作任何重标定时，精度损失1个百分点的窗口仅约[293, 309] K；一次共模刷新 (清零$$b$$) 后，网络在250至400 K全程平坦——温窗受共模失调而非斜率失配限制。
+
+这一结论把温度补偿职责清晰分层：温漂应由全局写电压轨的单点校正吸收 (400 K处需约−214 mV，超出每单元微调码量程)，每单元微调码专司器件间失配；该路线与在权重空间吸收器件参数偏移的阵列级补偿[^tcomp_weight]互补，后者需重新求解权重，前者复用既有数模转换电路。器件级$$P_\mathrm{sw}(T)$$与$$\tau(T)$$行为已有实验确立[^smtj_temp_apex]，网络级性能对热稳定体制的敏感性亦有先例[^ssn_regimes]；此处的贡献是把单点标定锚与平台标度律穿成一条从叠层参数到部署温窗的可复算链，并给出链的不确定性带：温窗数值依赖超顺磁变体的补偿实现 (原生叠层0.81、修剪路线0.98、缩径路线0.73) 与Callen–Callen指数的文献带$$n\in[1.8,2.8]$$，1个百分点温窗最宽至[279, 327] K、最窄至亚开尔文量级；悲观端为热激活外推，乐观端有纳秒弹道区阈值弱温度依赖的实验支持[^rehm_ballistic] (0.75 ns工作脉宽恰处过渡区，两端合围真实器件)。全LLG动力学在270至330 K对临界电流温度比值的独立复算与解析链在蒙特卡洛不确定度 (约1%) 内一致，构成该链的双模型锚。整条标度链、部署温窗与储备池热时钟的修正温轴 (见第五章) 如图4.24所示。
+
+[^temp_band_note]: 该温窗带本身是一次修正的产物：初版只按原生记忆级叠层的补偿比报告单一温窗，复核发现同章的结构自洽分析恰好支持超顺磁变体来自更深补偿的叠层 (修剪路线补偿约0.98、温度斜率约3.3倍陡)，单点结论不稳健，遂将补偿实现与标度指数一并展开为区间表述。
+
+![图4.24 全温度自洽传播与部署温窗](figs/Chapter04_local_24.png)
+
+**图4.24** 标定接口的全温度自洽传播与部署温窗[^temp_band_note]。(a) 标度链各量对300 K锚的比值 (左轴) 与三种补偿实现下的写阈值漂移 (右轴，实线为原生叠层、虚线为修剪路线、点线为缩径路线)；(b) 共模漂移下的部署精度：三种实现的无重标定曲线在300 K附近坍缩，共模刷新后 (蓝) 在250至400 K全程平坦，阴影为原生实现的1个百分点温窗；(c) 储备池热时钟的修正温轴：势垒与kT同时随温变化的弛豫时间 (蓝) 短于仅kT缩放的简化口径 (橙虚线)，两者之比 (绿，右轴) 在400 K处约0.45。
+
 把PBNN sMTJ与多种具有竞争力的CIM架构置于同一训练任务上做能耗对比。任务是20轮的MNIST PBNN-MLP训练 (batch 128，共9380个mini-batch)，每个mini-batch包含三次MAC pass：前向、反向输入梯度 ($$W^\top\partial L/\partial y$$) 与反向权重梯度 ($$\partial L/\partial y\cdot x^\top$$)。仿真器内置五种主流CIM存储器 (STT-MRAM[^stt_apalkov]、ReRAM[^reram_wong]、PCRAM[^pcram_burr]、铁电随机存储器 (Ferroelectric RAM，FeRAM) [^feram_mikolajick]、SRAM-CIM[^sram_khwa]) 与三种概率二值存储模式 (sMTJ自身、基于Lin等人模拟ReRAM非理想性研究构造的ReRAM采样对照[^stoch_reram_lin]、Camsari等人2019综述中的CMOS p-bit ASIC[^cmos_pbit_camsari]) 的参数表。每个条目以per-bit读能、per-cell写能、写延迟与每权重比特数四个参数描述，并附文献出处。CMOS p-bit ASIC的per-update能量为5pJ，已包含加权和、阈值与Bernoulli发生三段操作，5ns完成；Borders与Sutton等人的实测原型机给出该数据的边界。将此5pJ作为CMOS p-bit ASIC的per-sample能量，与sMTJ的0.78pJ每样本 (有物理依据标定的Ohmic值) 直接比较。20轮训练总能耗的横向对比汇总于表4.6与图4.13，按总能耗升序排列。
 
 **表4.6** 20轮MNIST PBNN-MLP训练任务下九种存储器/p-bit架构的能耗分解。
@@ -323,6 +333,14 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 本节电路级结论的方法学口径如下：随机性保留在数值采样环中、紧凑模型保持代数形式以适配开源编译器，含噪后仿的随机共仿尚未实现；Magic的电阻型寄生与IR压降为粗集总、仅给量级且未建模串扰，故写线IR仅为量级估计；磁隧道结在版图中以抽象黑盒单元表示并附不可制造声明，因无开源工艺提供可用的SOT-MTJ单元，CMOS工艺只承担外围；写数模转换器与计数器的能量已按sky130器件电容估算给出 (电阻串数模转换器码设置约34 fJ、计数器自增约19 fJ)；外围与存储单元的面积亦已按提取的sky130标准单元尺寸 (触发器/全加器约20 µm²、行高2.72 µm) 与设计规则作一阶估算——2T存储单元约4.6 µm²[^cell_area]、电阻串数模转换器约800 µm²、列累加计数器约630 µm²，合得256×256片块面积约0.67 mm²，外围面积与阵列同量级、不可忽略——其中2T单元的估算已由设计规则洁净的实绘版图给出上界 (图4.22)，数模转换器与计数器面积仍为单元计数级估算。这一晶体管级协同设计与近期在130 nm商用CMOS上以电压控制磁隧道结作熵源实测的概率计算芯片[^pbit_asic]互为补充：后者给出实测硅，本节则以晶圆标定的紧凑模型为可信锚、在开源工艺上做可复现的器件—电路协同设计。
 
 [^cell_area]: 2T存储单元的面积由写访问管主导：通过约1.16 mA写电流需约2.2 µm管宽。
+
+外围链条的最后一环，是把行为级与电路级在同一随机实例上对齐的端到端验证。架构把随机权重比特的产生留在数字域 (写时序按目标概率择极性)，据此本工作采用确定性重放式共仿：由同一随机源预抽整列伯努利态，同一组态分别送入行为级popcount判决与晶体管级读出链瞬态仿真，逐次比较判决——验证对象是位线压降、跨阻映射、灵敏放大器失调与再生、建立过程的联合效应，而非写入随机性本身。电路为64单元差分列，位线以提取板阻建模为分段梯形网络，终端为虚地跨阻级与sky130 StrongARM灵敏放大器；虚地并非建模便利而是架构必需：列的诺顿阻抗仅约百欧姆量级，无源电阻感测会同时压塌共模与popcount斜率，且列共模电流须由匹配参考列抵消、不得流经反馈电阻[^replay_iter]。600次重放 (灵敏放大器失调取0与9.2 mV两个变体) 给出三层结果 (图4.25)：灵敏放大器对模拟符号的保真度分别为0.998与0.947，失调变体的差错全部集中在判决边界附近的小裕量样本；行为级理想映射与电路之间的主要偏差是位线电阻引起的popcount斜率压缩 (拟合斜率约0.69，远端压降约为读半摆幅的四分之一)，对该偏差作一点阈值重标定后判决一致率由86%回升到92%，重标定后的残差分布通过Lilliefors正态性检验；同一网络的线性精确解与电路仿真在微伏量级吻合，确认压缩来自线阻物理而非仿真伪影。对设计的可执行含义：行为级默认的理想读出映射在窄金属位线与微米级间距下并不成立，须以更宽或更高层金属走位线、或在判决阈值中吸收斜率压缩；此前按单元电阻量级作出的读通路压降可忽略的判断，正确的比较对象是列诺顿阻抗，本验证据此将其修订为可量化的设计规则。
+
+[^replay_iter]: 该读出结构经两次真实迭代方才收敛：初版以无源电阻直连共模电压感测，被列诺顿阻抗 (约110 Ω对2450 Ω跨阻) 压塌至每popcount单位不足1 mV、低于放大器失调；改虚地后初版未抵消共模电流，跨阻级输出被拖至地电位以下、灵敏放大器输入对截止，其判决实为微伏级泄漏残余的符号——加入匹配参考列的共模抵消后放大器方满轨再生，此处数字均为修正后结果。
+
+![图4.25 列级确定性重放共仿](figs/Chapter04_local_25.png)
+
+**图4.25** 列级确定性重放共仿对读出链的端到端验证。(a) 600次重放的模拟popcount对精确popcount：散点紧贴含线阻压缩的拟合线 (红虚线) 而系统性偏离理想映射 (灰线)，绿色点线为判决阈值；(b) 读出链残差分布及一致率、灵敏放大器保真度、Lilliefors检验与远端位线压降的汇总统计。
 
 ## 4.7 本章小结
 
@@ -443,3 +461,11 @@ PBNN在硬件层面更深层的优势源于编码方式本身：每个物理单�
 [^hybrid_mpdk]: Di Pendina G, 等. Hybrid CMOS/magnetic process design kit and SOT-based non-volatile standard cell architectures. *19th Asia and South Pacific Design Automation Conference (ASP-DAC)*, 2014. [doi:10.1109/ASPDAC.2014.6742971](https://doi.org/10.1109/ASPDAC.2014.6742971)
 
 [^mram_pitch]: Caçoilo N, Buda-Prejbeanu L D, Dieny B, Fruchart O, Prejbeanu I L. Dipolar coupled core-shell perpendicular shape anisotropy MTJ with enhanced write speed and reduced cross-talk. *arXiv preprint*, 2023. [arXiv:2312.05245](https://arxiv.org/abs/2312.05245)
+
+[^tcomp_weight]: Zhang B, Liu Y, Gao T, Yin J, Guan Z, Zhang D, Zeng L. Automatic extraction and compensation of P-bit device variations in large array utilizing Boltzmann machine training. *arXiv preprint*, 2024. [arXiv:2410.16915](https://arxiv.org/abs/2410.16915)
+
+[^smtj_temp_apex]: Kaneko H, Ota R, Kobayashi K, Kanai S, Elyasi M, Bauer G E W, Ohno H, Fukami S. Temperature dependence of the properties of stochastic magnetic tunnel junction with perpendicular magnetization. *Applied Physics Express*, 2024, 17(5): 053001. [doi:10.35848/1882-0786/ad43b0](https://doi.org/10.35848/1882-0786/ad43b0)
+
+[^ssn_regimes]: Liyanagedera C M, Sengupta A, Jaiswal A, Roy K. Stochastic spiking neural networks enabled by magnetic tunnel junctions: from nontelegraphic to telegraphic switching regimes. *Physical Review Applied*, 2017, 8(6): 064017. [doi:10.1103/PhysRevApplied.8.064017](https://doi.org/10.1103/PhysRevApplied.8.064017)
+
+[^rehm_ballistic]: Rehm L, Morshed M G, Misra S, Shukla A, Rakheja S, Pinarbasi M, Ghosh A W, Kent A D. Temperature-resilient random number generation with stochastic actuated magnetic tunnel junction devices. *Applied Physics Letters*, 2024, 124(5): 052401. [doi:10.1063/5.0186810](https://doi.org/10.1063/5.0186810)

@@ -66,14 +66,16 @@ MANIFESTS = {
         "refresh": {},
     },
     "Chapter04_local": {
-        "n_figs": 23,
+        "n_figs": 25,
         "hand_order": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
         "autofigs": {15: ("ch04_15", "abc"), 16: ("ch04_16", "ab"),
                      17: ("ch04_17", "abc"), 22: ("ch04_22", "ab")},
         # composed multi-panel plots that ship as one image: letters overlaid
         # at the detected axes corners (fig 19 = 3 transient-waveform panels)
         "overlays": {19: (FIGS / "waveforms_3ops.png", "abc", (1, 3)),
-                     23: (FIGS / "structure_consistency.png", "ab", (1, 2))},
+                     23: (FIGS / "structure_consistency.png", "ab", (1, 2)),
+                     24: (FIGS / "30_temperature_selfconsistency.png", "abc", (1, 3)),
+                     25: (FIGS / "32_replay_column_cosim.png", "ab", (1, 2))},
         "singles": {20: FIGS / "mode_pipeline.png",
                     21: FIGS / "dual_model_consistency.png"},
         "vector": {14: OUT / "Chapter04_local_14.png",
@@ -83,9 +85,10 @@ MANIFESTS = {
                     21: FIGS / "dual_model_consistency.png"},
     },
     "Chapter05_local": {
-        "n_figs": 10,
+        "n_figs": 11,
         "hand_order": [1, 2, 3, 4, 5, 6, 7],
         "autofigs": {9: ("ch05_09", "abc")},
+        "overlays": {11: (FIGS / "31_rc_counting_readout.png", "ab", (1, 2))},
         "singles": {},
         "vector": {8: OUT / "Chapter05_local_08.png",
                    10: OUT / "Chapter05_local_10.png"},
