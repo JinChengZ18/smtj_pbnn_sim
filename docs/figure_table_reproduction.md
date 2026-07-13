@@ -29,9 +29,9 @@ Python 3.10 及以上，编辑式安装即可导入仿真包：`pip install -e .
 
 原始图变为编号资产的路径 (2026-07-08 起统一)：
 
-1. **章节 deck 导出 (第 1/4/5 章全部编号光栅资产)**：`python eda/build_ppt_figs.py` 维护三个章节 deck——每张 slide 以备注 `FIG:NN` 标记图号，**slide 位置 = 章节图号**；手工合成 slide 保留原样，多面板分析图 (4.15/4.16/4.17/5.9) 由脚本按 `figures/panels/` 重建并加 `(a)(b)(c)`，单图 (如 4.19/4.20/4.21) 自动以原始无编号图插入，电路原理图 (4.14/4.18/5.8/5.10) 只插占位 slide、其编号资产仍由 SVG 管线产出；随后 LibreOffice→PDF→按页自动裁剪导出全部编号 PNG (dpi 419)。生成器脚本一律只写无编号原始图。
-2. **附录 B/C 复制改名**：附录图不经 deck，`figures/…png` 与 `article/figs/Appendix{B,C}_NN.png` 字节完全一致。
-3. **附录 D / 电路原理图**：由 `postprocess_schematic_svg.py` 直接写出编号 SVG，再由 cairosvg 光栅化，不经 deck。
+1. **章节 deck 导出 (第 1/4/5 章全部编号光栅资产)**：`python eda/build_ppt_figs.py` 维护三个章节 deck——每张 slide 以备注 `FIG:NN` 标记图号，**slide 位置 = 章节图号**；手工合成 slide 保留原样，分立多面板图 (4.15/4.16/4.17/5.9) 由脚本按 `figures/panels/` 重建并加 `(a)(b)(c)`，已合成的多面板单图 (4.19) 按检测到的各子图坐标叠加 `(a)(b)(c)`、其余单图 (4.20/4.21) 以原始无编号图插入，电路原理图 (4.14/4.18/5.8/5.10) 只插占位 slide、其编号资产仍由 SVG 管线产出；随后 LibreOffice→PDF→按页自动裁剪导出全部编号 PNG (dpi 419)。生成器脚本一律只写无编号原始图；面板字母只在 deck 里叠加。
+2. **附录 deck 导出 (附录 B/C 与 D.8)**：`python eda/build_ppt_figs.py AppendixB AppendixC AppendixD` 从 `figures/` 的无字母合成图重建三个附录 deck，按检测到的各子图坐标叠加面板字母 (B.1–B.4→`(a)(b)`、C.1→`(a)(b)(c)(d)`、D.8→`(a)(b)`)，同路径 1 经 LibreOffice→PDF→裁剪导出 `article/figs/Appendix{B,C}_NN.png` 与 `AppendixD_08.png`。原始合成图来源：B 为 `figures/05a_*、06a_*.png`，C 为 `figures/21_seed_independence.png`，D.8 为 `figures/sar_capdac_switching.png` (由 `eda/hero/schematics/gen_sar_switching_fig.py` 写出；2026-07-13 起该脚本改写 `figures/` 无字母原图、字母由 deck 叠加，此前直写 `article/figs/AppendixD_08.{png,svg}`)。
+3. **附录 D 电路原理图 (D.1–D.7、D.9、D.10)**：由 `postprocess_schematic_svg.py` 直接写出编号 SVG，再由 cairosvg 光栅化，不经 deck。
 
 ### 2.1 电路原理图通用流程 (Family B，需 WSL)
 
@@ -93,7 +93,7 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 | 图 4.16 | 写通路能量与供电完整性 (a/b) | EDA 分析面板流程，`gen_supplement_figs.py` fig3 | `figures/panels/ch04_16_*` → `Chapter04_local_16.png` | 数据源 `eda/extraction/writeline/ir_drop_summary.json`；面板 b 的驱动数为 fig3 内联 ngspice 实测数组 |
 | 图 4.17 | IR 感知逐行写预畸变 (a/b/c) | EDA 分析面板流程，`gen_supplement_figs.py` fig5 | `figures/panels/ch04_17_*` → `Chapter04_local_17.png` | 数据源 `eda/hero/ir_aware_writedac_summary.json` + `comparison_results.json`；配套实验 `experiments/20_write_ir_drop.py` (非本图生成器) |
 | 图 4.18 | 写通路电路 | 电路原理图流程 (§2.1)，`<base>=writepath` | → `Chapter04_local_18.{svg,png,pdf}` | WSL EDA 工具链 |
-| 图 4.19 | 三类操作的瞬态波形 | `eda/testbenches/plot_waveforms.py` · `python eda/testbenches/plot_waveforms.py` | `figures/waveforms_3ops.png` → (deck) → `Chapter04_local_19.png` | 数据源 `write_tran.csv`/`sa_tran.csv` (ngspice 瞬态)；2026-07-08 起并入 deck 管线 |
+| 图 4.19 | 三类操作的瞬态波形 | `eda/testbenches/plot_waveforms.py` · `python eda/testbenches/plot_waveforms.py` | `figures/waveforms_3ops.png` → (deck 叠加 (a)(b)(c)) → `Chapter04_local_19.png` | 数据源 `write_tran.csv`/`sa_tran.csv` (ngspice 瞬态)；2026-07-13 起面板字母改由 deck 按各子图坐标叠加，`plot_waveforms.py` 的标题不再烘焙 `(a)` 前缀 |
 | 图 4.20 | 工作模式流水线与相位时序 | `eda/testbenches/plot_pipeline.py` · `python eda/testbenches/plot_pipeline.py` | `figures/mode_pipeline.png` → (deck) → `Chapter04_local_20.png` | 概念/时序图，纯 matplotlib |
 | 图 4.21 | 器件双模型一致性 | `eda/gen_supplement_figs.py` fig1 · `python eda/gen_supplement_figs.py` | `figures/dual_model_consistency.png` → (deck) → `Chapter04_local_21.png` | 数据源 `eda/testbenches/llg_validate_summary.json` + `golden_psw.csv`；底层重算需 `eda/vendor/vgsot-sim` (LLG)，不需 ngspice |
 
@@ -125,11 +125,11 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 
 ## 6. 附录 B / C / D
 
-### 6.1 附录 B (PBNN-CNN 扩展，Family A，复制改名编号)
+### 6.1 附录 B (PBNN-CNN 扩展，Family A，AppendixB deck 叠加 (a)(b) 编号)
 
 | 编号 | 标题 | 生成脚本 · 命令 | 产出/数据源 | 依赖/备注 |
 |---|---|---|---|---|
-| 图 B.1 | Fashion-MNIST 上 PBNN-CNN 与基线的训练曲线 | `experiments/05a_fashion_mnist_pbnn_cnn.py` | `figures/05a_fashion_mnist_training_curves.png` →(复制改名)→ `article/figs/AppendixB_01.png` | torch + Fashion-MNIST |
+| 图 B.1 | Fashion-MNIST 上 PBNN-CNN 与基线的训练曲线 | `experiments/05a_fashion_mnist_pbnn_cnn.py` | `figures/05a_fashion_mnist_training_curves.png` →(AppendixB deck 叠加 (a)(b))→ `article/figs/AppendixB_01.png` | torch + Fashion-MNIST |
 | 图 B.2 | CIFAR-10 上 PBNN-CNN 与基线的训练曲线 | `experiments/05a_cifar10_pbnn_cnn.py` | `figures/05a_cifar10_training_curves.png` → `AppendixB_02.png` | 60 轮，实际需 GPU |
 | 图 B.3 | Fashion-MNIST PBNN-CNN 全栈 T 扫描 | `experiments/06a_fashion_mnist_sweep_T_vs_accuracy.py` | `figures/06a_fashion_mnist_sweep_T.png` → `AppendixB_03.png` | 依赖 `runs/fashion_mnist_pbnn_cnn/best.pt` (本机；`*.pt` 不入库) |
 | 图 B.4 | CIFAR-10 PBNN-CNN 全栈 T 扫描 | `experiments/06a_cifar10_sweep_T_vs_accuracy.py` | `figures/06a_cifar10_sweep_T.png` → `AppendixB_04.png` | 依赖 `runs/cifar10_pbnn_cnn/best.pt` (本机；`*.pt` 不入库) |
@@ -140,7 +140,7 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 
 | 编号 | 标题 | 生成脚本 · 命令 | 产出/数据源 | 依赖/备注 |
 |---|---|---|---|---|
-| 图 C.1 | 主要结论的随机数种子稳健性 (4 面板) | `experiments/21_seed_independence.py` · `python experiments/21_seed_independence.py 8` | `figures/21_seed_independence.png` →(复制改名)→ `AppendixC_01.png` | torch + MNIST；8 个种子各训练一次 |
+| 图 C.1 | 主要结论的随机数种子稳健性 (4 面板) | `experiments/21_seed_independence.py` · `python experiments/21_seed_independence.py 8` | `figures/21_seed_independence.png` →(AppendixC deck 叠加 (a)(b)(c)(d))→ `AppendixC_01.png` | torch + MNIST；8 个种子各训练一次 |
 | 表 C.1 | 头部结论在 8 个种子下的均值±标准差 | `experiments/21_seed_independence.py` · `python experiments/21_seed_independence.py 8` | `runs/21_seed_independence/seed_independence.json` (`summary` 块) | 数据源在 `runs/` (gitignore)，不随仓库分发；本机核对五行均值/标准差与文章逐项吻合，重跑 `21` 重新生成 |
 
 ### 6.3 附录 D (电路比较)
@@ -150,7 +150,7 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 | 编号 | 标题 | 生成脚本 · 命令 | 产出/数据源 | 依赖/备注 |
 |---|---|---|---|---|
 | 图 D.1–D.7, D.9, D.10 | 各读出比较器 / 写入 DAC / p-bit 驱动链 / 闪存 ADC 切片 / 门控对 原理图 | 电路原理图流程 (§2.1) | → `AppendixD_{01,02,03,04,05,06,07,09,10}.{svg,png,pdf}` | WSL EDA 工具链 |
-| 图 D.8 | 两种 SAR 电容 DAC 开关方案的能耗对照 | `eda/hero/schematics/gen_sar_switching_fig.py` · `python …/gen_sar_switching_fig.py` | 直接写 `AppendixD_08.png` + `.svg` (无 pdf)；数据源 `eda/testbenches/sar_capdac_tran_summary.json` (b=8) | matplotlib，无需 WSL |
+| 图 D.8 | 两种 SAR 电容 DAC 开关方案的能耗对照 | `eda/hero/schematics/gen_sar_switching_fig.py` · `python …/gen_sar_switching_fig.py` | 写无字母原图 `figures/sar_capdac_switching.{png,svg}` →(AppendixD deck 叠加 (a)(b))→ `AppendixD_08.png`；数据源 `eda/testbenches/sar_capdac_tran_summary.json` (b=8) | matplotlib，无需 WSL |
 | 图 D.11 | 本方案 SAR 能耗与 Andrulis 下界的自洽检验 | `eda/design_survey/repro/andrulis_adc_model.py` · `python …/andrulis_adc_model.py` | 直接写 `AppendixD_11.png` (仅 png)；数据源 `sar_capdac_tran_summary.json` + `comparison_results.json` | matplotlib，无需 WSL |
 | 表 D.1 | 五种读出比较器的输入折合失调 (N=120) | `eda/design_survey/comparison_driver.py` · `python …/comparison_driver.py` | `comparison_results.json` → `readout_sa`；上游 MC (WSL) `eda/hero/run_offset_mc.py` | 3σ 列由 σ/V_T 推导 |
 | 表 D.2 | 三种写入 DAC 的线性度 (6 bit, 200 mV) | `eda/design_survey/comparison_driver.py` | `comparison_results.json` → `write_dac`；上游 (WSL) `eda/hero/run_write_dac.py` | — |
@@ -169,3 +169,5 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 7. **储备池实验 14–19 不写 CSV**：指标仅打印到 stdout。`runs/rc/` 下的 CSV 为原型日志，非任何编号图的数据源。
 8. **EDA 分析面板须按序跑两条命令**：只跑 `gen_supplement_figs.py` 会在 `article/figs/` 留下无字母占位图，须接着跑 `build_ppt_figs.py` 覆盖为带 `(a)(b)(c)` 的规范资产 (图 4.15/4.16/4.17/5.9)。
 9. **表 4.4 PGD 行与图 4.8(h) 的口径差 (2026-07-08 起)**：exp07 旧代码对 PBNN 的 PGD 终评误用 CLT 路径 (HARDWARE_AWARE)，与表内其余行的全栈 T=4 终评口径不一致——代码已修 (`_eval_pgd` 攻击/终评口径分离)，表 4.4 的 PBNN 单元改为 exp23 修正口径值 53.22 (52.12 为规范 run 旧口径值；BNN/FP 单元保持规范 run 出处)。图 4.8(h) 面板仍为规范 run 旧口径曲线，与新单元差约 1.1 pp、在线宽内；下次全量重跑 exp07 时自然对齐 (注意重训基线的对抗精度对训练实例敏感，±5 pp 量级，见 exp23 审计)。EOT/迁移/多重启审计细节 = `runs/23_eot_attack_20260708_053712/attack_matrix.csv`。
+10. **图 4.16(b) 竖线伪影 — 已于 2026-07-13 修正**：`save_panels` 按各子图紧包围盒裁剪时，横向外扩 (`expanded(1.06, …)`) 越过子图间隙、把相邻子图 (a) 的右边框卷入子图 (b) 左缘，形成一条异常竖线。现 `save_panels` 增加"裁剪框横向不越过与相邻子图的间隙中点"钳制，重跑 `gen_supplement_figs.py`→`build_ppt_figs.py` 即消除；同一钳制对所有分立多面板图 (4.15/4.16/4.17/5.9) 生效。
+11. **图 4.19 面板字母入 deck、附录 B/C/D.8 改由 deck 编号 — 2026-07-13**：图 4.19 (`waveforms_3ops`) 此前把 `(a)(b)(c)` 烘焙在 `plot_waveforms.py` 的子图标题里、且以单图插入 deck；现标题去掉字母前缀，deck 按检测到的各子图坐标叠加 `(a)(b)(c)` (manifest 中由 `singles` 移至 `overlays`)。附录 B.1–B.4、C.1、D.8 亦由复制改名改为经 `AppendixB/C/D` deck 叠加面板字母 (见 §2 路径 2)，对应图注的方位词 (左/右、左上等) 改为 `(a)(b)(c)(d)`。D.8 生成器另删去图底那条过宽而被画布左缘裁断的比率说明文字 (该比率与 fJ 数值已由正文 D.8 图注、表 D.4 及两个子图内的实测框承载)。

@@ -166,15 +166,11 @@ def main():
 
     fig.suptitle("SAR Cap-DAC Switching Schemes: Why Monotonic Switching Saves Energy",
                  fontsize=12.5, fontweight="bold", color=PURPLE, y=0.995)
-    # ratio caption under the figure (derived only from the two committed numbers)
-    ratio = E_CONV_fJ / E_MONO_fJ
-    fig.text(0.5, 0.015,
-             f"Conventional draws repeated up-then-down charge on every bit trial; monotonic "
-             f"draws charge in down-only steps, reducing cap-DAC switching energy "
-             f"{ratio:.2f}x at b = 8 ({E_CONV_fJ:.1f} fJ vs {E_MONO_fJ:.1f} fJ).",
-             ha="center", va="bottom", fontsize=9.5, color="#333333")
+    # The switching-energy ratio and the per-scheme fJ figures live in the
+    # manuscript D.8 caption, Table D.4 and the in-panel measurement boxes; no
+    # baked prose caption here (its long line overran the canvas and clipped).
 
-    fig.tight_layout(rect=(0, 0.045, 1, 0.96))
+    fig.tight_layout(rect=(0, 0.01, 1, 0.96))
 
     # Write the raw, unlettered plot to figures/; the AppendixD deck overlays
     # the (a)(b) panel letters and exports the numbered article/figs/AppendixD_08.png
