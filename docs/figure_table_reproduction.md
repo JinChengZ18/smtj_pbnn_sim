@@ -105,7 +105,7 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 | 表 4.2 | MNIST 上 PBNN-MLP、BNN-MLP 与 QAT FP-MLP 的最佳测试精度 | `experiments/05_mnist_pbnn.py` | `runs/05_mnist_pbnn_20260509_092543/{summary.json, fp_*_metrics.csv}` | PBNN 96.98%、FP32/INT8/INT4/INT2=98.51/98.33/98.43/98.21% 已核对；⚠ BNN 行 97.05% 数据源缺口，见 §7 |
 | 表 4.3 | PBNN-MLP 在六类 UCI 表格任务上的迁移精度 | `experiments/10_uci_benchmarks.py` | `runs/10_uci_20260502_071140/summary.csv` (列 pbnn_best_acc, fp_best_acc, ref_baseline) | 六行逐行核对一致 |
 | 表 4.4 | 八类输入、权重与对抗扰动下的 MNIST 测试精度 | `experiments/07_baseline_comparison.py` | `runs/07_baseline_20260511_192151/noise_*.csv` (8 个文件)；PGD 行 PBNN 单元自 2026-07-08 起 = `experiments/23_eot_attack_audit.py` 修正口径值 (规范 run `runs/23_eot_attack_20260708_053712/attack_matrix.csv`) | 列 param, pbnn_T4, bnn, fp；PGD 口径见 §7 |
-| 表 4.5 | 均匀单比特翻转率下不同权重编码的 MNIST 测试精度 | `experiments/09_hardware_bitflip.py` | `runs/09_hardware_bitflip_20260502_061419/bitflip_sweep.csv` (列 p_flip, pbnn_T8, pbnn_T64, bnn, fp_8bit) | 八行逐行核对一致 |
+| 表 4.5 | 均匀单比特翻转率下不同权重编码的 MNIST 测试精度 | `experiments/09_hardware_bitflip.py` | `runs/09_hardware_bitflip_20260502_061419/bitflip_sweep.csv` (列 p_flip, pbnn_T8, pbnn_T64, bnn, fp_8bit) | 八行逐行核对一致；FP+SECDED 列由 `experiments/35_ecc_baseline.py` 闭式折算+同曲线插值 (2026-07-19 增) |
 | 表 4.6 | 九种存储器/p-bit 架构的训练能耗分解 | `experiments/13_training_energy.py` | 规范 run `runs/13_training_energy_20260706_225408/breakdown.csv` (列 forward_J, backward_J, write_or_theta_J, total_J) | 2026-07-08 已修正：文章值与规范 run 一致，见 §7 |
 
 ## 5. 第 5 章 (无编号表)
@@ -122,6 +122,9 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 | 图 5.8 | 列共享逐次逼近读出电路 | 电路原理图流程 (§2.1)，`<base>=sar_readout` | → `Chapter05_local_08.{svg,png,pdf}` | WSL EDA 工具链 |
 | 图 5.9 | 储备池读出的能量—记忆容量协同 (a/b/c) | EDA 分析面板流程 (§2.2)，`gen_supplement_figs.py` fig4 | `figures/panels/ch05_09_*` → (build_ppt_figs) → `Chapter05_local_09.png` (fig4 亦直接写合成图) | 数据源 `eda/testbenches/rc_isoenergy_summary.json`、`rc_energy_recompute_summary.json`、`comparison_results.json` |
 | 图 5.10 | 由器件到系统的整体架构层次 | `eda/hero/schematics/gen_arch2.py` · `python eda/hero/schematics/gen_arch2.py` 后 cairosvg 光栅化 | `eda/hero/schematics/arch_stack.svg` (+光栅化 png/pdf) → `Chapter05_local_10.png` | 纯 Python 构建 SVG，非 Xschem；不经 `build_schematics.sh` |
+| 图 5.11 | 计数式读出与逐次逼近读出的同列对比 | `eda/testbenches/rc_counting_readout.py` | `figures/31_rc_counting_readout.png` → (deck overlay) → `Chapter05_local_11.png` | T2-3；物理系综同口径 |
+| 图 5.12 | 器件优化结论的物理系综复验 | `experiments/33_physical_ensemble_check.py` | `figures/33_physical_ensemble.png` → (deck overlay) → `Chapter05_local_12.png` | stochastic E=96×3 种子；规范 run `runs/33_physical_ensemble_20260719_183501` |
+| 图 5.13 | 概率位器件上的储备池工作点 | `experiments/34_dualmode_workingpoint.py` | `figures/34_dualmode_workingpoint.png` → (deck single) → `Chapter05_local_13.png` | 含匹配点与设计点两处 ST 校验；规范 run `runs/34_dualmode_*` |
 
 ## 6. 附录 B / C / D
 
