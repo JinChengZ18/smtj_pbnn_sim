@@ -95,6 +95,11 @@ def main() -> None:
         print(f"seed {seed}: PBNN T4 {acc_t4*100:.2f} T64 {acc_t64*100:.2f} "
               f"BNN {acc_bnn*100:.2f} FP {acc_fp*100:.2f} "
               f"({time.time()-t0:.0f}s)", flush=True)
+        # incremental checkpoint: a killed run keeps its completed seeds
+        with open(run_dir / "paired_bands_partial.csv", "w", newline="",
+                  encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0]))
+            w.writeheader(); w.writerows(rows)
 
     a = {k: np.array([r[k] for r in rows]) for k in
          ("pbnn_t4", "pbnn_t64", "bnn", "fp32")}
