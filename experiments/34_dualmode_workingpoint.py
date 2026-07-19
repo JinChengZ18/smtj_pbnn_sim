@@ -83,14 +83,18 @@ def main() -> None:
     i_best = int(np.argmax(mf))
     dt_best = float(DTS[i_best])
 
-    # physical check at the matched point (nearest grid dt to dt*)
+    # physical check at the matched point (nearest grid dt to dt*), with the
+    # like-for-like stochastic reference at the design point for comparison
     i_star = int(np.argmin(np.abs(DTS - dt_star)))
     sts = [mc_of(D_PBNN, DTS[i_star], "stochastic", s) for s in SEEDS]
+    sts_ref = [mc_of(D_RC, DT_REF, "stochastic", s) for s in SEEDS]
     rows[i_star]["mc_stoch_mean"] = round(float(np.mean(sts)), 3)
     rows[i_star]["mc_stoch_std"] = round(float(np.std(sts)), 3)
     print(f"matched point dt={DTS[i_star]*1e9:.0f} ns: "
           f"MC mean-field {mf[i_star]:.2f}, stochastic E={ENSEMBLE} "
-          f"{np.mean(sts):.2f} +/- {np.std(sts):.2f}")
+          f"{np.mean(sts):.2f} +/- {np.std(sts):.2f} "
+          f"(design-point stochastic reference "
+          f"{np.mean(sts_ref):.2f} +/- {np.std(sts_ref):.2f})")
     rec = mf[i_star] / mc_ref
     print(f"recovery at matched clock: {rec*100:.0f}% of the Delta={D_RC} "
           f"design point (best grid point: {mf[i_best]:.2f} at "
@@ -112,7 +116,10 @@ def main() -> None:
                 label=r"$\Delta=4.91$ (PBNN device), mean-field")
     ax.errorbar([DTS[i_star] * 1e9], [np.mean(sts)], yerr=[np.std(sts)],
                 fmt="s", color="#A82038", ms=9, capsize=4,
-                label=f"stochastic check (E={ENSEMBLE}, 3 seeds)")
+                label=f"stochastic, matched clock (E={ENSEMBLE}, 3 seeds)")
+    ax.errorbar([DT_REF * 1e9], [np.mean(sts_ref)], yerr=[np.std(sts_ref)],
+                fmt="D", color="#1A6B5A", ms=8, capsize=4,
+                label=r"stochastic, $\Delta=4.1$ design point")
     ax.axhline(mc_ref, color="#1A6B5A", ls="--", lw=1.6)
     ax.text(DTS[0] * 1e9, mc_ref, r" $\Delta=4.1$, $dt=8$ ns design point",
             fontsize=9, color="#1A6B5A", va="bottom")
@@ -122,7 +129,7 @@ def main() -> None:
     ax.set_xlabel("task step dt (ns)")
     ax.set_ylabel("linear memory capacity")
     ax.set_title("RC on the PBNN device: capacity recovered by clock matching")
-    ax.legend(fontsize=9)
+    ax.legend(fontsize=9, loc="center right")
     ax.grid(alpha=0.3, which="both")
     fig.tight_layout()
     out = REPO / "figures" / "34_dualmode_workingpoint.png"

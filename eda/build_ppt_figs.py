@@ -85,15 +85,17 @@ MANIFESTS = {
                     21: FIGS / "dual_model_consistency.png"},
     },
     "Chapter05_local": {
-        "n_figs": 11,
+        "n_figs": 13,
         "hand_order": [1, 2, 3, 4, 5, 6, 7],
         "autofigs": {9: ("ch05_09", "abc")},
-        "overlays": {11: (FIGS / "31_rc_counting_readout.png", "ab", (1, 2))},
-        "singles": {},
+        "overlays": {11: (FIGS / "31_rc_counting_readout.png", "ab", (1, 2)),
+                     12: (FIGS / "33_physical_ensemble.png", "ab", (1, 2))},
+        "singles": {13: FIGS / "34_dualmode_workingpoint.png"},
         "vector": {8: OUT / "Chapter05_local_08.png",
                    10: OUT / "Chapter05_local_10.png"},
         "refresh": {4: FIGS / "19_rc_temperature.png",
-                    6: FIGS / "18_rc_benchmarks.png"},
+                    6: FIGS / "18_rc_benchmarks.png",
+                    13: FIGS / "34_dualmode_workingpoint.png"},
     },
 }
 
