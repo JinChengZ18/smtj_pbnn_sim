@@ -1,0 +1,42 @@
+[
+  {
+    "N": 16,
+    "slope": 0.9754,
+    "far_end_ir_mV": 0.908,
+    "agree_raw_pct": 100.0,
+    "agree_recal_pct": 100.0,
+    "n_decisions": 600
+  },
+  {
+    "N": 32,
+    "slope": 0.9024,
+    "far_end_ir_mV": 3.883,
+    "agree_raw_pct": 100.0,
+    "agree_recal_pct": 100.0,
+    "n_decisions": 600
+  },
+  {
+    "N": 64,
+    "slope": 0.6926,
+    "far_end_ir_mV": 12.967,
+    "agree_raw_pct": 95.3,
+    "agree_recal_pct": 95.5,
+    "n_decisions": 600
+  },
+  {
+    "N": 128,
+    "slope": 0.3499,
+    "far_end_ir_mV": 31.49,
+    "agree_raw_pct": 79.7,
+    "agree_recal_pct": 83.2,
+    "n_decisions": 600
+  },
+  {
+    "N": 256,
+    "slope": 0.1334,
+    "far_end_ir_mV": 46.393,
+    "agree_raw_pct": 59.8,
+    "agree_recal_pct": 66.7,
+    "n_decisions": 600
+  }
+]

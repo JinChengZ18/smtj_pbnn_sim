@@ -42,8 +42,11 @@ MATCH_RATIO = 2.31           # tau* / dt from experiment 15
 DT_FIXED = 8e-9
 
 
-def delta_of_T(T):
-    return DELTA_300 * 300.0 / T
+# As-built calibrated chain (T2-2, LLG dual-anchored to <1%): Bloch M_s +
+# Callen-Callen K_i through the 81%-compensated K_eff -- replaces the
+# kT-only simplification Delta_300*300/T that overestimated the high-T
+# relaxation time by ~2x (see the chapter's tau-axis correction footnote).
+from smtj_pbnn_sim.device.thermal_scaling import delta_of_T  # noqa: E402
 
 
 def main() -> None:

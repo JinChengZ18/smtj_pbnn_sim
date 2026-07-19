@@ -92,7 +92,8 @@ MANIFESTS = {
         "singles": {},
         "vector": {8: OUT / "Chapter05_local_08.png",
                    10: OUT / "Chapter05_local_10.png"},
-        "refresh": {6: FIGS / "18_rc_benchmarks.png"},
+        "refresh": {4: FIGS / "19_rc_temperature.png",
+                    6: FIGS / "18_rc_benchmarks.png"},
     },
 }
 
