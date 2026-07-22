@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Operating-mode pipeline / phase-timing diagram (Chapter 4, fig 4.21).
+"""Operating-mode pipeline / phase-timing diagram (Chapter 4, fig 4.20).
 
 Two time-multiplexed operating modes of the shared sMTJ array and their phase pipeline:
 (a) p-bit inference -- one decision = T Bernoulli samples, each a write (Phi_W) -> settle -> read
@@ -51,7 +51,7 @@ def main():
     ax.set_xlim(0, 27); ax.set_ylim(0, 14.2); ax.axis("off")
 
     # ---- (a) p-bit inference lane ----
-    ax.text(0, 13.5, "(a)  p-bit inference   —   one decision = T Bernoulli samples", fontsize=11.5,
+    ax.text(1.05, 13.5, "p-bit inference   —   one decision = T Bernoulli samples", fontsize=11.5,
             color=TXT, fontweight="bold")
 
     y = 9.5                                   # sample-box row
@@ -85,7 +85,7 @@ def main():
             + PHI_R + ";  confidence early-exit shortens T", fontsize=8, color=MUT)
 
     # ---- (b) reservoir processing lane ----
-    ax.text(0, 7.0, "(b)  reservoir processing   —   column-shared, time-multiplexed read-out",
+    ax.text(1.05, 7.0, "reservoir processing   —   column-shared, time-multiplexed read-out",
             fontsize=11.5, color=TXT, fontweight="bold")
     yb = 2.2
     x0 = 9.0; slot = 1.45

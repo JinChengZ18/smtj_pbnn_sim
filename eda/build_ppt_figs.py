@@ -75,26 +75,31 @@ MANIFESTS = {
         "overlays": {19: (FIGS / "waveforms_3ops.png", "abc", (1, 3)),
                      23: (FIGS / "structure_consistency.png", "ab", (1, 2)),
                      24: (FIGS / "30_temperature_selfconsistency.png", "abc", (1, 3)),
-                     25: (FIGS / "32_replay_column_cosim.png", "ab", (1, 2))},
-        "singles": {20: FIGS / "mode_pipeline.png",
-                    21: FIGS / "dual_model_consistency.png"},
+                     25: (FIGS / "32_replay_column_cosim.png", "ab", (1, 2)),
+                     # frameless schematic: letters keyed to explicit anchors
+                     20: (FIGS / "mode_pipeline.png", "ab",
+                          [(0.018, 0.045), (0.018, 0.489)])},
+        "singles": {21: FIGS / "dual_model_consistency.png"},
         "vector": {14: OUT / "Chapter04_local_14.png",
                    18: OUT / "Chapter04_local_18.png"},
         "refresh": {13: FIGS / "13a_training_energy_breakdown.png",
-                    20: FIGS / "mode_pipeline.png",
                     21: FIGS / "dual_model_consistency.png"},
     },
     "Chapter05_local": {
-        "n_figs": 13,
-        "hand_order": [1, 2, 3, 4, 5, 6, 7],
-        "autofigs": {9: ("ch05_09", "abc")},
-        "overlays": {11: (FIGS / "31_rc_counting_readout.png", "ab", (1, 2)),
-                     12: (FIGS / "33_physical_ensemble.png", "ab", (1, 2))},
+        # 2026-07-22: renumbered into reading order (old->new 12->6, 6->8,
+        # 7->9, 8->10, 9->11, 11->12, 10->14) and the ESP phase planes added
+        # as fig 7; slides were re-tagged in place, the deck sorts by FIG tag.
+        "n_figs": 14,
+        "hand_order": [1, 2, 3, 4, 5, 8, 9],
+        "autofigs": {11: ("ch05_09", "abc")},
+        "overlays": {6: (FIGS / "33_physical_ensemble.png", "ab", (1, 2)),
+                     7: (FIGS / "29_esp_certification.png", "ab", (1, 2)),
+                     12: (FIGS / "31_rc_counting_readout.png", "ab", (1, 2))},
         "singles": {13: FIGS / "34_dualmode_workingpoint.png"},
-        "vector": {8: OUT / "Chapter05_local_08.png",
-                   10: OUT / "Chapter05_local_10.png"},
+        "vector": {10: OUT / "Chapter05_local_10.png",
+                   14: OUT / "Chapter05_local_14.png"},
         "refresh": {4: FIGS / "19_rc_temperature.png",
-                    6: FIGS / "18_rc_benchmarks.png",
+                    8: FIGS / "18_rc_benchmarks.png",
                     13: FIGS / "34_dualmode_workingpoint.png"},
     },
 }
@@ -299,7 +304,6 @@ def populate_overlay(slide, src: Path, letters: str, grid) -> None:
     """Place one composed multi-panel plot full-width on ``slide`` and overlay
     each panel letter at that subplot's detected axes-frame corner. Used for
     figures that ship as a single image (no separate panel PNGs)."""
-    rows, cols = grid
     im = Image.open(src)
     pw = 10.0 - 2 * MARGIN
     ph = pw * im.height / im.width
@@ -307,9 +311,15 @@ def populate_overlay(slide, src: Path, letters: str, grid) -> None:
         ph = 6.8; pw = ph * im.width / im.height
     x = (10.0 - pw) / 2
     slide.shapes.add_picture(str(src), Inches(x), Inches(TOP), width=Inches(pw))
-    for (xf, yf), ch in zip(frame_corners(src, rows, cols), letters):
-        _letter_box(slide, max(0.02, x + xf * pw - LABEL_DX_IN),
-                    max(0.02, TOP + yf * ph - LABEL_DY_IN), ch)
+    # ``grid`` is either a (rows, cols) subplot grid whose axes frames are
+    # auto-detected, or an explicit list of (xfrac, yfrac) anchors for
+    # frameless diagrams, where no spine exists to key the letters to.
+    explicit = not all(isinstance(v, int) for v in grid)
+    pts = list(grid) if explicit else frame_corners(src, *grid)
+    dx, dy = (0.0, 0.0) if explicit else (LABEL_DX_IN, LABEL_DY_IN)
+    for (xf, yf), ch in zip(pts, letters):
+        _letter_box(slide, max(0.02, x + xf * pw - dx),
+                    max(0.02, TOP + yf * ph - dy), ch)
 
 
 def add_autofig(prs, stem: str, letters: str, tag: str):

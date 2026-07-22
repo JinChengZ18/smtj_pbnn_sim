@@ -1,0 +1,266 @@
+<svg viewBox="0 0 1250 612" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica,Arial,sans-serif">
+<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#5b3f96"/></marker><marker id="ahs" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6a4fa3"/></marker><marker id="ar" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#c0392b"/></marker></defs>
+<rect x="0" y="0" width="1250" height="612" fill="white"/>
+<text x="625" y="40" font-family="Helvetica,Arial,sans-serif" font-size="18" fill="#3f2a7a" font-weight="bold" text-anchor="middle">sMTJ p-bit / reservoir compute architecture</text>
+<text x="625" y="62" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">device  →  XNOR-CIM array  →  sky130 CMOS periphery  →  system</text>
+<rect x="36" y="95" width="200" height="360" rx="12" fill="#ece9f6" stroke="#6a4fa3" stroke-width="2"/>
+<text x="136" y="121" font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#3f2a7a" font-weight="bold" text-anchor="middle">SOT-MTJ device</text>
+<text x="136" y="140" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">(entropy + compute)</text>
+<rect x="94" y="280" width="84" height="13" rx="3" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="1.6"/>
+<line x1="100" y1="293" x2="95" y2="301" stroke="#6a4fa3" stroke-width="1"/>
+<line x1="112" y1="293" x2="107" y2="301" stroke="#6a4fa3" stroke-width="1"/>
+<line x1="124" y1="293" x2="119" y2="301" stroke="#6a4fa3" stroke-width="1"/>
+<line x1="136" y1="293" x2="131" y2="301" stroke="#6a4fa3" stroke-width="1"/>
+<line x1="148" y1="293" x2="143" y2="301" stroke="#6a4fa3" stroke-width="1"/>
+<line x1="160" y1="293" x2="155" y2="301" stroke="#6a4fa3" stroke-width="1"/>
+<line x1="172" y1="293" x2="167" y2="301" stroke="#6a4fa3" stroke-width="1"/>
+<line x1="78" y1="286" x2="94" y2="286" stroke="#6a4fa3" stroke-width="1.6"/>
+<line x1="178" y1="286" x2="194" y2="286" stroke="#6a4fa3" stroke-width="1.6"/>
+<text x="72" y="290" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#6a4fa3" font-weight="normal" text-anchor="end">T1</text>
+<text x="200" y="290" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#6a4fa3" font-weight="normal" text-anchor="start">T2</text>
+<rect x="116" y="256" width="40" height="22" fill="#e8e1f6" stroke="#6a4fa3" stroke-width="1.6"/>
+<line x1="124" y1="267" x2="148" y2="267" stroke="#c0392b" stroke-width="2" marker-start="url(#ar)" marker-end="url(#ar)"/>
+<text x="182" y="271" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#c0392b" font-weight="normal" text-anchor="start">free</text>
+<line x1="116" y1="254" x2="156" y2="254" stroke="#6a4fa3" stroke-width="2"/>
+<text x="182" y="252" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="start">MgO</text>
+<rect x="116" y="228" width="40" height="24" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="1.6"/>
+<line x1="127" y1="240" x2="145" y2="240" stroke="#6a4fa3" stroke-width="2" marker-end="url(#ahs)"/>
+<text x="182" y="238" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="start">pinned</text>
+<line x1="136" y1="278" x2="136" y2="280" stroke="#6a4fa3" stroke-width="1.6"/>
+<line x1="136" y1="228" x2="136" y2="204" stroke="#6a4fa3" stroke-width="1.6"/>
+<text x="136" y="198" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle">read</text>
+<text x="48" y="408" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#2b2b2b" font-weight="normal" text-anchor="start">P<tspan baseline-shift="sub" font-size="0.72em">sw</tspan>(V) = σ((V−V<tspan baseline-shift="sub" font-size="0.72em">th</tspan>)/V<tspan baseline-shift="sub" font-size="0.72em">T</tspan>)</text>
+<text x="136" y="428" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">thermal stochastic switching</text>
+<rect x="300" y="95" width="230" height="360" rx="12" fill="#ece9f6" stroke="#6a4fa3" stroke-width="2"/>
+<text x="415" y="121" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#3f2a7a" font-weight="bold" text-anchor="middle">2T SOT-MTJ XNOR-CIM</text>
+<text x="415" y="140" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">array  (N rows × M cols)</text>
+<line x1="340" y1="174" x2="340" y2="372" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="376" y1="174" x2="376" y2="372" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="412" y1="174" x2="412" y2="372" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="448" y1="174" x2="448" y2="372" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="484" y1="174" x2="484" y2="372" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="330" y1="190" x2="494" y2="190" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="330" y1="246" x2="494" y2="246" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="330" y1="302" x2="494" y2="302" stroke="#6a4fa3" stroke-width="1.0"/>
+<line x1="330" y1="358" x2="494" y2="358" stroke="#6a4fa3" stroke-width="1.0"/>
+<rect x="327" y="197" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="331" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="349" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="334.5" y="189" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="189" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="334.5" y="187" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="334.5" y="180" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="180" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="327" y="253" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="331" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="349" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="334.5" y="245" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="245" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="334.5" y="243" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="334.5" y="236" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="236" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="327" y="309" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="331" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="349" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="334.5" y="301" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="301" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="334.5" y="299" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="334.5" y="292" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="292" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="327" y="365" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="331" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="349" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="334.5" y="357" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="357" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="334.5" y="355" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="334.5" y="348" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="340" cy="348" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="363" y="197" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="367" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="385" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="370.5" y="189" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="189" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="370.5" y="187" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="370.5" y="180" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="180" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="363" y="253" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="367" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="385" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="370.5" y="245" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="245" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="370.5" y="243" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="370.5" y="236" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="236" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="363" y="309" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="367" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="385" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="370.5" y="301" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="301" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="370.5" y="299" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="370.5" y="292" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="292" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="363" y="365" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="367" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="385" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="370.5" y="357" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="357" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="370.5" y="355" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="370.5" y="348" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="376" cy="348" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="399" y="197" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="403" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="421" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="406.5" y="189" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="189" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="406.5" y="187" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="406.5" y="180" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="180" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="399" y="253" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="403" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="421" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="406.5" y="245" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="245" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="406.5" y="243" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="406.5" y="236" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="236" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="399" y="309" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="403" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="421" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="406.5" y="301" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="301" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="406.5" y="299" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="406.5" y="292" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="292" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="399" y="365" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="403" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="421" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="406.5" y="357" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="357" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="406.5" y="355" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="406.5" y="348" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="412" cy="348" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="435" y="197" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="439" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="457" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="442.5" y="189" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="189" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="442.5" y="187" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="442.5" y="180" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="180" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="435" y="253" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="439" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="457" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="442.5" y="245" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="245" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="442.5" y="243" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="442.5" y="236" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="236" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="435" y="309" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="439" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="457" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="442.5" y="301" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="301" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="442.5" y="299" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="442.5" y="292" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="292" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="435" y="365" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="439" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="457" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="442.5" y="357" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="357" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="442.5" y="355" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="442.5" y="348" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="448" cy="348" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="471" y="197" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="475" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="493" cy="199.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="478.5" y="189" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="189" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="478.5" y="187" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="478.5" y="180" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="180" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="471" y="253" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="475" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="493" cy="255.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="478.5" y="245" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="245" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="478.5" y="243" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="478.5" y="236" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="236" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="471" y="309" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="475" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="493" cy="311.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="478.5" y="301" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="301" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="478.5" y="299" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="478.5" y="292" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="292" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="471" y="365" width="26" height="5" rx="2" fill="#b9a7e0" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="475" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<ellipse cx="493" cy="367.5" rx="1.4" ry="1.4" fill="#6a4fa3"/>
+<rect x="478.5" y="357" width="11" height="8" fill="#c9bbe8" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="357" rx="5.5" ry="1.7" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="0.9"/>
+<rect x="478.5" y="355" width="11" height="2" fill="#ffffff" stroke="#6a4fa3" stroke-width="0.6"/>
+<rect x="478.5" y="348" width="11" height="7" fill="#c0392b" fill-opacity="0.5" stroke="#6a4fa3" stroke-width="0.9"/>
+<ellipse cx="484" cy="348" rx="5.5" ry="1.7" fill="#c0392b" fill-opacity="0.75" stroke="#6a4fa3" stroke-width="0.9"/>
+<text x="322" y="415" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#2b2b2b" font-weight="normal" text-anchor="start">I<tspan baseline-shift="sub" font-size="0.72em">col</tspan> ∝ Σ XNOR(x, w)</text>
+<text x="322" y="433" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="start" font-style="italic">Kirchhoff popcount</text>
+<rect x="594" y="95" width="380" height="360" rx="12" fill="#ece9f6" stroke="#6a4fa3" stroke-width="2"/>
+<text x="784" y="121" font-family="Helvetica,Arial,sans-serif" font-size="15" fill="#3f2a7a" font-weight="bold" text-anchor="middle">sky130 CMOS periphery</text>
+<rect x="610" y="141" width="348" height="70" rx="12" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="2"/>
+<text x="784" y="165" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="middle">write path</text>
+<text x="784" y="189" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#2b2b2b" font-weight="normal" text-anchor="middle">R-string DAC · IR pre-distortion · CMOS driver  → BL/SL</text>
+<rect x="610" y="221" width="348" height="92" rx="12" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="2"/>
+<text x="784" y="245" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="middle">read path</text>
+<text x="784" y="269" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#2b2b2b" font-weight="normal" text-anchor="middle">TIA + StrongARM  → p-bit</text>
+<text x="784" y="291" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#2b2b2b" font-weight="normal" text-anchor="middle">column-shared SAR  → reservoir   ← RBL</text>
+<rect x="610" y="323" width="168" height="88" rx="12" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="2"/>
+<text x="694" y="351" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#3f2a7a" font-weight="bold" text-anchor="middle">row / col decode</text>
+<text x="694" y="373" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#2b2b2b" font-weight="normal" text-anchor="middle">+ WL drivers</text>
+<rect x="790" y="323" width="168" height="88" rx="12" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="2"/>
+<text x="874" y="351" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#3f2a7a" font-weight="bold" text-anchor="middle">mode &amp; timing</text>
+<text x="874" y="373" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#2b2b2b" font-weight="normal" text-anchor="middle">controller</text>
+<text x="784" y="441" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">couples to the array via BL/SL · WWL/RWL · RBL</text>
+<rect x="1038" y="95" width="176" height="360" rx="12" fill="#ece9f6" stroke="#6a4fa3" stroke-width="2"/>
+<text x="1126" y="119" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#3f2a7a" font-weight="bold" text-anchor="middle">operating modes</text>
+<text x="1126" y="138" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">(time-multiplexed)</text>
+<rect x="1052" y="157" width="148" height="126" rx="12" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="2"/>
+<text x="1126" y="181" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="middle">p-bit inference</text>
+<text x="1126" y="203" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">T Bernoulli samples</text>
+<text x="1126" y="221" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">averaged → E[s]</text>
+<text x="1126" y="247" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">memoryless cell:</text>
+<text x="1126" y="264" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">write → read</text>
+<rect x="1052" y="297" width="148" height="156" rx="12" fill="#e0d8f1" stroke="#6a4fa3" stroke-width="2"/>
+<text x="1126" y="321" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="middle">reservoir</text>
+<text x="1126" y="343" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">low-Δ free evolution</text>
+<text x="1126" y="361" font-family="Helvetica,Arial,sans-serif" font-size="10.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">→ shared read-out</text>
+<text x="1126" y="387" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">stateful node:</text>
+<text x="1126" y="404" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">fading memory +</text>
+<text x="1126" y="421" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#6a4fa3" font-weight="normal" text-anchor="middle" font-style="italic">tanh nonlinearity</text>
+<line x1="236" y1="300" x2="300" y2="300" stroke="#5b3f96" stroke-width="3" marker-end="url(#ah)"/>
+<line x1="530" y1="300" x2="594" y2="300" stroke="#5b3f96" stroke-width="3" marker-end="url(#ah)"/>
+<line x1="974" y1="300" x2="1038" y2="300" stroke="#5b3f96" stroke-width="3" marker-end="url(#ah)"/>
+<text x="268" y="292" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#2b2b2b" font-weight="normal" text-anchor="middle">cell</text>
+<text x="548" y="292" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#2b2b2b" font-weight="normal" text-anchor="start">I<tspan baseline-shift="sub" font-size="0.72em">col</tspan></text>
+<text x="1006" y="292" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#2b2b2b" font-weight="normal" text-anchor="middle">code</text>
+<line x1="1126" y1="455" x2="1126" y2="482" stroke="#5b3f96" stroke-width="1.6" stroke-dasharray="6 4"/>
+<line x1="1126" y1="482" x2="415" y2="482" stroke="#5b3f96" stroke-width="1.6" stroke-dasharray="6 4"/>
+<line x1="415" y1="482" x2="415" y2="455" stroke="#5b3f96" stroke-width="2.2" marker-end="url(#ah)" stroke-dasharray="6 4"/>
+<text x="770" y="476" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#c0392b" font-weight="normal" text-anchor="middle" font-style="italic">closed-loop sampling  x(r+1)</text>
+<text x="40" y="506" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="start">abstraction layer  ↔  grounding:</text>
+<rect x="36" y="520" width="200" height="70" rx="12" fill="#f4f1fb" stroke="#6a4fa3" stroke-width="2"/>
+<text x="136.0" y="543" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="middle">device</text>
+<text x="136.0" y="563" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">wafer-calibrated compact model +</text>
+<text x="136.0" y="579" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">LLG cross-check</text>
+<rect x="300" y="520" width="230" height="70" rx="12" fill="#f4f1fb" stroke="#6a4fa3" stroke-width="2"/>
+<text x="415.0" y="543" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="middle">array</text>
+<text x="415.0" y="563" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">behavioural XNOR-CIM, T-step</text>
+<text x="415.0" y="579" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">unroll</text>
+<rect x="594" y="520" width="380" height="70" rx="12" fill="#fbecec" stroke="#c0392b" stroke-width="2"/>
+<text x="784.0" y="543" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#c0392b" font-weight="bold" text-anchor="middle">periphery</text>
+<text x="784.0" y="563" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#c0392b" font-weight="normal" text-anchor="middle">sky130 EXTRACTED — StrongARM read</text>
+<text x="784.0" y="579" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#c0392b" font-weight="normal" text-anchor="middle">48 fJ · write-line IR · SAR cap-DAC</text>
+<rect x="1038" y="520" width="176" height="70" rx="12" fill="#f4f1fb" stroke="#6a4fa3" stroke-width="2"/>
+<text x="1126.0" y="543" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#3f2a7a" font-weight="bold" text-anchor="middle">system</text>
+<text x="1126.0" y="563" font-family="Helvetica,Arial,sans-serif" font-size="9.5" fill="#2b2b2b" font-weight="normal" text-anchor="middle">PPA energy / latency model</text>
+</svg>

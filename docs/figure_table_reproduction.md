@@ -42,7 +42,7 @@ Python 3.10 及以上，编辑式安装即可导入仿真包：`pip install -e .
 3. `python eda/hero/schematics/postprocess_schematic_svg.py <base>` — 裁剪 viewBox、叠加彩色虚线模块框、下标化标签，写出编号 `article/figs/<编号>.svg` (`<base>`→`<编号>` 映射硬编码在该脚本的 `GROUPS` 字典中)。
 4. WSL cairosvg：把编号 `.svg` 光栅化为编号 `.png/.pdf`。
 
-`<base>`→编号映射：`strongarm_sa`→Chapter04_local_14；`writepath`→Chapter04_local_18；`sar_readout`→Chapter05_local_08；`double_tail`→AppendixD_01；`dsa`→AppendixD_02；`current_sampling`→AppendixD_03；`dong_autozero`→AppendixD_04；`current_steering_dac`→AppendixD_05；`r2r_dac`→AppendixD_06；`yoon_pbit_driver`→AppendixD_07；`rram_flash_slice`→AppendixD_09；`picoram_gating`→AppendixD_10。
+`<base>`→编号映射：`strongarm_sa`→Chapter04_local_14；`writepath`→Chapter04_local_18；`sar_readout`→Chapter05_local_10；`double_tail`→AppendixD_01；`dsa`→AppendixD_02；`current_sampling`→AppendixD_03；`dong_autozero`→AppendixD_04；`current_steering_dac`→AppendixD_05；`r2r_dac`→AppendixD_06；`yoon_pbit_driver`→AppendixD_07；`rram_flash_slice`→AppendixD_09；`picoram_gating`→AppendixD_10。
 
 ### 2.2 EDA 分析面板通用流程 (Family B)
 
@@ -117,14 +117,15 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 | 图 5.3 | 面向 RC 的器件优化指导 | `experiments/15_rc_device_optimization.py` | `figures/15_rc_device_optimization.png` → `Chapter05_local_03.png` | 同上 |
 | 图 5.4 | 温度依赖与时钟补偿 | `experiments/19_rc_temperature.py` | `figures/19_rc_temperature.png` → `Chapter05_local_04.png` | ⚠ 实验-图号偏移 (exp 19→图 5.4)；见 §7 |
 | 图 5.5 | 储备池的变异容忍与噪声极限 | `experiments/17_rc_robustness.py` | `figures/17_rc_robustness.png` → `Chapter05_local_05.png` | exp 17→图 5.5 |
-| 图 5.6 | 基准广度与处理容量 | `experiments/18_rc_benchmarks.py` | `figures/18_rc_benchmarks.png` → `Chapter05_local_06.png` | exp 18→图 5.6；容量为 summed-r² 代理 (非 Dambre IPC) |
-| 图 5.7 | 储备池的硬件 PPA 评估 | `experiments/16_rc_hardware_ppa.py` | `figures/16_rc_hardware_ppa.png` → `Chapter05_local_07.png` | exp 16→图 5.7；亦为图 5.9 的能量依据 |
-| 图 5.8 | 列共享逐次逼近读出电路 | 电路原理图流程 (§2.1)，`<base>=sar_readout` | → `Chapter05_local_08.{svg,png,pdf}` | WSL EDA 工具链 |
-| 图 5.9 | 储备池读出的能量—记忆容量协同 (a/b/c) | EDA 分析面板流程 (§2.2)，`gen_supplement_figs.py` fig4 | `figures/panels/ch05_09_*` → (build_ppt_figs) → `Chapter05_local_09.png` (fig4 亦直接写合成图) | 数据源 `eda/testbenches/rc_isoenergy_summary.json`、`rc_energy_recompute_summary.json`、`comparison_results.json` |
-| 图 5.10 | 由器件到系统的整体架构层次 | `eda/hero/schematics/gen_arch2.py` · `python eda/hero/schematics/gen_arch2.py` 后 cairosvg 光栅化 | `eda/hero/schematics/arch_stack.svg` (+光栅化 png/pdf) → `Chapter05_local_10.png` | 纯 Python 构建 SVG，非 Xschem；不经 `build_schematics.sh` |
-| 图 5.11 | 计数式读出与逐次逼近读出的同列对比 | `eda/testbenches/rc_counting_readout.py` | `figures/31_rc_counting_readout.png` → (deck overlay) → `Chapter05_local_11.png` | T2-3；物理系综同口径 |
-| 图 5.12 | 器件优化结论的物理系综复验 | `experiments/33_physical_ensemble_check.py` | `figures/33_physical_ensemble.png` → (deck overlay) → `Chapter05_local_12.png` | stochastic E=96×3 种子；规范 run `runs/33_physical_ensemble_20260719_183501` |
+| 图 5.6 | 器件优化结论的物理系综复验 | `experiments/33_physical_ensemble_check.py` | `figures/33_physical_ensemble.png` → (deck overlay) → `Chapter05_local_06.png` | stochastic E=96×3 种子；规范 run `runs/33_physical_ensemble_20260719_183501` |
+| 图 5.7 | 电报储备池回声状态判据的参数平面认证 | `experiments/29_esp_certification.py` (扫描) + `experiments/29b_esp_replot.py` (按图规范重绘) | `figures/29_esp_certification.png` → (deck overlay) → `Chapter05_local_07.png` | 规范 run `runs/29_esp_cert_20260713_005835`；29b 只读该 run 的 CSV 重绘，不重算 |
+| 图 5.8 | 基准广度与处理容量 | `experiments/18_rc_benchmarks.py` | `figures/18_rc_benchmarks.png` → `Chapter05_local_08.png` | exp 18→图 5.6；容量为 summed-r² 代理 (非 Dambre IPC) |
+| 图 5.9 | 储备池的硬件 PPA 评估 | `experiments/16_rc_hardware_ppa.py` | `figures/16_rc_hardware_ppa.png` → `Chapter05_local_09.png` | exp 16→图 5.7；亦为图 5.9 的能量依据 |
+| 图 5.10 | 列共享逐次逼近读出电路 | 电路原理图流程 (§2.1)，`<base>=sar_readout` | → `Chapter05_local_10.{svg,png,pdf}` | WSL EDA 工具链 |
+| 图 5.11 | 储备池读出的能量—记忆容量协同 (a/b/c) | EDA 分析面板流程 (§2.2)，`gen_supplement_figs.py` fig4 | `figures/panels/ch05_09_*` → (build_ppt_figs) → `Chapter05_local_11.png` (fig4 亦直接写合成图) | 数据源 `eda/testbenches/rc_isoenergy_summary.json`、`rc_energy_recompute_summary.json`、`comparison_results.json` |
+| 图 5.12 | 计数式读出与逐次逼近读出的同列对比 | `eda/testbenches/rc_counting_readout.py` | `figures/31_rc_counting_readout.png` → (deck overlay) → `Chapter05_local_12.png` | T2-3；物理系综同口径 |
 | 图 5.13 | 概率位器件上的储备池工作点 | `experiments/34_dualmode_workingpoint.py` | `figures/34_dualmode_workingpoint.png` → (deck single) → `Chapter05_local_13.png` | 含匹配点与设计点两处 ST 校验；规范 run `runs/34_dualmode_*` |
+| 图 5.14 | 由器件到系统的整体架构层次 | `eda/hero/schematics/gen_arch2.py` · `python eda/hero/schematics/gen_arch2.py` 后 cairosvg 光栅化 | `eda/hero/schematics/arch_stack.svg` (+光栅化 png/pdf) → `Chapter05_local_14.png` | 纯 Python 构建 SVG，非 Xschem；不经 `build_schematics.sh` |
 
 ## 6. 附录 B / C / D
 
@@ -175,3 +176,6 @@ Family A 各表 (表 4.1–4.6、B.1、B.2、C.1) 的数据源为 `runs/<name>_<
 10. **图 4.16(b) 竖线伪影 — 已于 2026-07-13 修正**：`save_panels` 按各子图紧包围盒裁剪时，横向外扩 (`expanded(1.06, …)`) 越过子图间隙、把相邻子图 (a) 的右边框卷入子图 (b) 左缘，形成一条异常竖线。现 `save_panels` 增加"裁剪框横向不越过与相邻子图的间隙中点"钳制，重跑 `gen_supplement_figs.py`→`build_ppt_figs.py` 即消除；同一钳制对所有分立多面板图 (4.15/4.16/4.17/5.9) 生效。
 11. **图 4.19 面板字母入 deck、附录 B/C/D.8 改由 deck 编号 — 2026-07-13**：图 4.19 (`waveforms_3ops`) 此前把 `(a)(b)(c)` 烘焙在 `plot_waveforms.py` 的子图标题里、且以单图插入 deck；现标题去掉字母前缀，deck 按检测到的各子图坐标叠加 `(a)(b)(c)` (manifest 中由 `singles` 移至 `overlays`)。附录 B.1–B.4、C.1、D.8 亦由复制改名改为经 `AppendixB/C/D` deck 叠加面板字母 (见 §2 路径 2)，对应图注的方位词 (左/右、左上等) 改为 `(a)(b)(c)(d)`。D.8 生成器另删去图底那条过宽而被画布左缘裁断的比率说明文字 (该比率与 fJ 数值已由正文 D.8 图注、表 D.4 及两个子图内的实测框承载)。
 12. **[^seed_band] 脚注的配对差数字源 (2026-07-20)**：ch4 §4.4 脚注中的同种子配对重训数字 (T64−T4 = +0.15±0.08、PBNN−BNN = +0.39±0.25、FP32−PBNN = +1.03±0.17 pp) 由 `experiments/36_paired_seed_bands.py` 生成 (8 种子 × {PBNN(T=4/T=64)、BNN、FP32}，exp07 配方 hidden=1024、20 epochs、**不注入器件失配**——与表 4.2 的 exp05 口径不同，故绝对精度带 (PBNN T4 97.40±0.16%) 高于附录 C 的 97.01±0.17%，脚注只引配对差、不引绝对带)；规范 run `runs/36_paired_seed_20260720_042715/paired_bands.csv` (含逐种子行 + 三行配对汇总；`paired_bands_partial.csv` 为逐种子增量 checkpoint 副产物)。
+13. **第 5 章图号于 2026-07-22 按阅读顺序重排**：此前 markdown 中的图号与正文出现顺序不一致 (§5.4 引用的图 5.12 出现在图 5.6 之前)。现按首次出现顺序重编，旧→新为 12→6、6→8、7→9、8→10、9→11、11→12、13→13、10→14，新增的回声状态判据图占 7；deck 内以 FIG 备注标签重打 (重排前的 deck 可由本次提交的父提交取回)。随之改名的资产：矢量图 `Chapter05_local_08.{svg,png,pdf}`→`_10.*`、`Chapter05_local_10.*`→`_14.*`；生成器目标同步更新 (`postprocess_schematic_svg.py` 的 `sar_readout`→`Chapter05_local_10`、`gen_supplement_figs.py` 的 `Chapter05_local_09`→`_11`)。
+14. **图 4.20 面板字母于 2026-07-22 迁入 deck**：`eda/testbenches/plot_pipeline.py` 的两条小节标题不再烘焙 `(a)/(b)` 前缀 (改为留出缩进)，deck 端 `populate_overlay` 新增显式锚点模式——该图是无坐标轴框的示意图，`frame_corners` 的 spine 检测在其上不成立，故 manifest 用图内分数坐标 `[(0.018, 0.045), (0.018, 0.489)]` 定位字母。图 4.19 已于 2026-07-13 迁移完毕，本次未动。
+15. **未进正文的仓库级图**：`figures/37_cifar_uq.png` (CIFAR-10 原生不确定度复验)、`figures/38_conformal_sprt.png` (自适应采样与共形覆盖) 与 `figures/22_energy_sensitivity.png` (能量敏感性龙卷风图) 只作复现证据，其结论以正文段落与脚注承载。第 4 章图号插入会牵动 `gen_supplement_figs.py`、`postprocess_schematic_svg.py` 内硬编码的编号资产名，故新增结论一律不新开图位。

@@ -22,6 +22,7 @@ experiments/data/
 article/ppt/Chapter0*_local.pdf
 article/ppt/Appendix*.pdf
 article/ppt/*.pptx.bak
+article/ppt/*.pptx.renumber_bak
 # per-slide PNG export directories (regenerable from the decks)
 article/ppt/Chapter0*_local/
 
